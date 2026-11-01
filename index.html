@@ -549,6 +549,7 @@
 
             const vencimientoDate = new Date(ingreso);
             vencimientoDate.setDate(vencimientoDate.getDate() + diasLimite);
+            vencimientoDate.setHours(0, 0, 0, 0);
             const vencimientoFormatted = vencimientoDate.toISOString().split('T')[0];
 
             const diffVenc = vencimientoDate - hoy;
@@ -762,17 +763,17 @@
                         <td class="py-3.5 px-4 text-slate-800 max-w-[220px] truncate font-medium border-r border-slate-200/80" title="${asunto}">${asunto}</td>
                         <td class="py-3.5 px-4 text-slate-600 font-semibold border-r border-slate-200/80">${fechaIng}</td>
                         <td class="py-3.5 px-4 font-bold text-slate-700 border-r border-slate-200/80">${fechaVenc}</td>
-                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans} días</span></td>
+                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans}</span></td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
                             ${diasFalt > 0 && !isAtendido ? 
-                                `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt} días</span>` : 
-                                `<span class="text-slate-400 font-semibold text-[11px]">0 días</span>`
+                                `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt}</span>` : 
+                                `<span class="text-slate-400 font-semibold text-[11px]">0</span>`
                             }
                         </td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
                             ${diasExc > 0 && !isAtendido ? 
-                                `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc} días</span>` : 
-                                `<span class="text-emerald-600 font-extrabold text-[11px]">0 días</span>`
+                                `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc}</span>` : 
+                                `<span class="text-emerald-600 font-extrabold text-[11px]">0</span>`
                             }
                         </td>
                         <td class="py-3.5 px-4 text-slate-700 font-semibold border-r border-slate-200/80">${responsable}</td>
