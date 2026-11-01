@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIDRANDINA - Control de Documentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-50">
+
+    <!-- Header Principal -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
+                    <i class="fa-solid fa-bolt text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-900 text-lg leading-tight">HIDRANDINA - Control de Documentos</h1>
+                    <div class="flex items-center space-x-2 mt-0.5">
+                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-500 animate-pulse"></span> Sincronizando con Google Sheets...
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="fetchData()" class="p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition" title="Refrescar Datos">
+                    <i class="fa-solid fa-sync text-base"></i>
+                </button>
+                <button onclick="openConfigModal()" class="p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition" title="Configurar URL Backend">
+                    <i class="fa-solid fa-gear text-base"></i>
+                </button>
+                <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nuevo Documento</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegación por Pestañas -->
+    <nav class="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex space-x-8">
+            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-1 border-b-2 border-blue-600 text-blue-600 font-semibold text-sm flex items-center space-x-2 transition">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Documentos</span>
+            </button>
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 transition">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </button>
+            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 transition">
+                <i class="fa-solid fa-database"></i>
+                <span>Gestión de Catálogos</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- TAB 1: DOCUMENTOS -->
+        <section id="tab-documentos" class="space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="relative w-full sm:w-96">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-search"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por expediente, asunto, responsable..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <select id="filterEstado" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Todos los Estados</option>
+                    </select>
+                    <select id="filterOrigen" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Todos los Orígenes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabla de Registros -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3 px-4">Expediente</th>
+                                <th class="py-3 px-4">Origen</th>
+                                <th class="py-3 px-4">Asunto</th>
+                                <th class="py-3 px-4">Fecha Ingreso</th>
+                                <th class="py-3 px-4">Responsable</th>
+                                <th class="py-3 px-4">Estado</th>
+                                <th class="py-3 px-4 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentosTableBody" class="divide-y divide-slate-100 text-sm">
+                            <tr>
+                                <td colspan="7" class="py-8 text-center text-slate-400">Cargando datos desde Google Sheets...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: DASHBOARD -->
+        <section id="tab-dashboard" class="hidden space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Expedientes</p>
+                        <h3 id="stat-total" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">En Tramitación</p>
+                        <h3 id="stat-tramite" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Atendidos</p>
+                        <h3 id="stat-atendido" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">En Evaluación</p>
+                        <h3 id="stat-evaluacion" class="text-2xl font-bold text-indigo-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 mb-4">Expedientes por Estado</h3>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="chartEstados"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 mb-4">Expedientes por Tipo de Origen</h3>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="chartOrigenes"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: GESTIÓN DE CATÁLOGOS -->
+        <section id="tab-catalogos" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Personal -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3 text-blue-600">
+                            <i class="fa-solid fa-users text-xl"></i>
+                            <h3 class="font-bold text-slate-900">Personal / Responsables</h3>
+                        </div>
+                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i> Agregar</button>
+                    </div>
+                    <div id="managePersonalList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto"></div>
+                </div>
+
+                <!-- Estados -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3 text-indigo-600">
+                            <i class="fa-solid fa-tags text-xl"></i>
+                            <h3 class="font-bold text-slate-900">Estados</h3>
+                        </div>
+                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i> Agregar</button>
+                    </div>
+                    <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto"></div>
+                </div>
+
+                <!-- Origenes -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3 text-emerald-600">
+                            <i class="fa-solid fa-layer-group text-xl"></i>
+                            <h3 class="font-bold text-slate-900">Orígenes Documentales</h3>
+                        </div>
+                        <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i> Agregar</button>
+                    </div>
+                    <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: EXPEDIENTE (CREAR / EDITAR / DERIVAR) -->
+    <div id="docFormModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 id="docModalTitle" class="font-bold text-slate-900 text-lg">Expediente</h3>
+                <button onclick="closeDocFormModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="docForm" onsubmit="saveDocument(event)" class="space-y-3 text-sm">
+                <input type="hidden" id="docIndex">
+                <div>
+                    <label class="font-medium text-slate-700">Nro. Expediente *</label>
+                    <input type="text" id="formNumeroExpediente" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="EXP-2026-XXX">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-700">Tipo de Origen *</label>
+                        <select id="formOrigenTipo" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-700">Fecha de Ingreso *</label>
+                        <input type="date" id="formFechaIngreso" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="font-medium text-slate-700">Asunto / Descripción *</label>
+                    <textarea id="formAsunto" rows="2" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Describa el motivo del documento..."></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-700">Responsable / Derivación *</label>
+                        <select id="formResponsable" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-700">Estado Actual *</label>
+                        <select id="formEstado" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="font-medium text-slate-700">Observaciones</label>
+                    <textarea id="formObservaciones" rows="2" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Comentarios adicionales..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-3">
+                    <button type="button" onclick="closeDocFormModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
+                    <button type="submit" id="btnSaveDoc" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm flex items-center space-x-2">
+                        <span>Guardar en Google Sheets</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CATÁLOGO (CREAR / EDITAR CON CAMPOS COMPLETOS) -->
+    <div id="catalogModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 id="catalogModalTitle" class="font-bold text-slate-900 text-lg">Gestionar Catálogo</h3>
+                <button onclick="closeCatalogModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="catalogForm" onsubmit="saveCatalogItem(event)" class="space-y-3 text-sm">
+                <input type="hidden" id="catalogType">
+                <input type="hidden" id="catalogOldIndex">
+                
+                <div>
+                    <label id="catalogLabelName" class="font-medium text-slate-700">Nombre / Valor *</label>
+                    <input type="text" id="catalogInputValue" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div id="catalogFieldSecondaryContainer">
+                    <label id="catalogLabelSecondary" class="font-medium text-slate-700">Campo Secundario</label>
+                    <input type="text" id="catalogInputSecondary" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div id="catalogFieldThirdContainer" class="hidden">
+                    <label id="catalogLabelThird" class="font-medium text-slate-700">Correo Electrónico</label>
+                    <input type="email" id="catalogInputThird" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeCatalogModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
+                    <button type="submit" id="btnSaveCat" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIGURACIÓN BACKEND -->
+    <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 text-lg">Configuración Apps Script</h3>
+                <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-sm text-slate-500">Ingrese la URL de despliegue oficial de su Google Apps Script:</p>
+            <input type="text" id="inputBackendUrl" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex justify-end space-x-3 pt-2">
+                <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+                <button onclick="saveBackendUrl()" class="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700">Guardar y Conectar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LÓGICA DE SINCRONIZACIÓN Y CRUD EN TIEMPO REAL -->
+    <script>
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
+
+        function getBackendUrl() {
+            return localStorage.getItem('hidrandina_gas_url') || DEFAULT_GAS_URL;
+        }
+
+        let appData = {
+            Documentos: [],
+            Personal: [],
+            Estados: [],
+            Origenes: []
+        };
+
+        let chartsInstance = { estados: null, origenes: null };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLocalCache();
+            fetchData();
+        });
+
+        function loadLocalCache() {
+            const cachedDocs = localStorage.getItem('hidrandina_docs_cache');
+            const cachedPers = localStorage.getItem('hidrandina_pers_cache');
+            const cachedEsts = localStorage.getItem('hidrandina_ests_cache');
+            const cachedOrig = localStorage.getItem('hidrandina_orig_cache');
+
+            if (cachedDocs) appData.Documentos = JSON.parse(cachedDocs);
+            if (cachedPers) appData.Personal = JSON.parse(cachedPers);
+            if (cachedEsts) appData.Estados = JSON.parse(cachedEsts);
+            if (cachedOrig) appData.Origenes = JSON.parse(cachedOrig);
+
+            if (appData.Documentos.length > 0) {
+                renderAll();
+            }
+        }
+
+        function saveLocalCache() {
+            localStorage.setItem('hidrandina_docs_cache', JSON.stringify(appData.Documentos));
+            localStorage.setItem('hidrandina_pers_cache', JSON.stringify(appData.Personal));
+            localStorage.setItem('hidrandina_ests_cache', JSON.stringify(appData.Estados));
+            localStorage.setItem('hidrandina_orig_cache', JSON.stringify(appData.Origenes));
+        }
+
+        function setConnectionStatus(status, text) {
+            const badge = document.getElementById('connection-badge');
+            if (status === 'active') {
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-500"></span> ${text}`;
+            } else if (status === 'error') {
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-rose-500"></span> ${text}`;
+            } else {
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${text}`;
+            }
+        }
+
+        window.handleGASResponse = function(data) {
+            if (data) {
+                if (data.Registros) appData.Documentos = data.Registros;
+                if (data.Catalogos) {
+                    appData.Personal = data.Catalogos.Personal || appData.Personal;
+                    appData.Estados = data.Catalogos.Estados || appData.Estados;
+                    appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
+                }
+                saveLocalCache();
+                setConnectionStatus('active', 'Nube Activa (Sincronizado)');
+                renderAll();
+            }
+        };
+
+        function fetchData() {
+            setConnectionStatus('sync', 'Conectando con Google Sheets...');
+            const url = getBackendUrl();
+            const oldScript = document.getElementById('jsonp-fetch');
+            if (oldScript) oldScript.remove();
+
+            const script = document.createElement('script');
+            script.id = 'jsonp-fetch';
+            script.src = `${url}?callback=handleGASResponse&_=${new Date().getTime()}`;
+            script.onerror = function() {
+                setConnectionStatus('error', 'Sin conexión (Modo Offline)');
+                renderAll();
+            };
+            document.body.appendChild(script);
+        }
+
+        function executeGASAction(params, successCallback) {
+            setConnectionStatus('sync', 'Guardando en Google Sheets...');
+            const callbackName = 'gasWriteCb_' + Math.floor(Math.random() * 100000);
+            
+            window[callbackName] = function(response) {
+                delete window[callbackName];
+                const s = document.getElementById(callbackName);
+                if (s) s.remove();
+
+                if (response && response.success) {
+                    setConnectionStatus('active', 'Guardado en Google Sheets');
+                    if (successCallback) successCallback(response);
+                    fetchData();
+                } else {
+                    alert("Aviso de sincronización: " + (response ? response.message : 'No se pudo guardar'));
+                    fetchData();
+                }
+            };
+
+            const url = getBackendUrl();
+            const query = Object.keys(params)
+                .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+                .join('&');
+
+            const script = document.createElement('script');
+            script.id = callbackName;
+            script.src = `${url}?${query}&callback=${callbackName}&_=${new Date().getTime()}`;
+            script.onerror = function() {
+                alert("Error de conexión al guardar datos en Google Sheets.");
+                setConnectionStatus('error', 'Error al sincronizar');
+            };
+            document.body.appendChild(script);
+        }
+
+        function renderAll() {
+            renderTable(appData.Documentos);
+            populateSelects();
+            renderStats();
+            renderCatalogsManagement();
+        }
+
+        function renderTable(docs) {
+            const tbody = document.getElementById('documentosTableBody');
+            if (!docs || docs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No se encontraron expedientes registrados.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = docs.map((doc, idx) => `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="py-3 px-4 font-semibold text-slate-900">${doc.Numero_Expediente || doc.NRO_EXPEDIENTE || '-'}</td>
+                    <td class="py-3 px-4 text-slate-600"><span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">${doc.Origen_Tipo || doc.ORIGEN || '-'}</span></td>
+                    <td class="py-3 px-4 text-slate-800 max-w-xs truncate">${doc.Asunto || doc.ASUNTO || '-'}</td>
+                    <td class="py-3 px-4 text-slate-500 text-xs">${doc.Fecha_Ingreso || doc.FECHA_INGRESO || '-'}</td>
+                    <td class="py-3 px-4 text-slate-700 font-medium"><i class="fa-solid fa-user-gear text-blue-500 mr-1.5 text-xs"></i>${doc.Responsable || doc.RESPONSABLE || '-'}</td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${getStateBadgeClass(doc.Estado || doc.ESTADO)}">${doc.Estado || doc.ESTADO || '-'}</span></td>
+                    <td class="py-3 px-4 text-right space-x-1">
+                        <button onclick="editDocument(${idx})" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar / Derivar">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteDocument(${idx})" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar del Excel">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStateBadgeClass(estado) {
+            if (!estado) return 'bg-slate-100 text-slate-700';
+            const e = estado.toLowerCase();
+            if (e.includes('atendido') || e.includes('concluido')) return 'bg-emerald-100 text-emerald-800';
+            if (e.includes('tramit') || e.includes('evalu')) return 'bg-amber-100 text-amber-800';
+            return 'bg-blue-100 text-blue-800';
+        }
+
+        function populateSelects() {
+            const estSel = document.getElementById('filterEstado');
+            const origSel = document.getElementById('filterOrigen');
+            
+            const currentEst = estSel.value;
+            const currentOrig = origSel.value;
+
+            // Extraer nombres de estados y orígenes de los objetos de catálogo
+            const estadosNombres = appData.Estados.map(e => e.Nombre_Estado || e);
+            const origenesNombres = appData.Origenes.map(o => o.Tipo_Origen || o);
+            const personalNombres = appData.Personal.map(p => p.Nombre_Completo || p);
+
+            estSel.innerHTML = '<option value="">Todos los Estados</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
+            origSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+            
+            estSel.value = currentEst;
+            origSel.value = currentOrig;
+
+            document.getElementById('formOrigenTipo').innerHTML = origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+            document.getElementById('formResponsable').innerHTML = personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+            document.getElementById('formEstado').innerHTML = estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
+        }
+
+        function filterDocuments() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const estado = document.getElementById('filterEstado').value;
+            const origen = document.getElementById('filterOrigen').value;
+
+            const filtered = appData.Documentos.filter(doc => {
+                const exp = String(doc.Numero_Expediente || doc.NRO_EXPEDIENTE || '').toLowerCase();
+                const asunto = String(doc.Asunto || doc.ASUNTO || '').toLowerCase();
+                const resp = String(doc.Responsable || doc.RESPONSABLE || '').toLowerCase();
+                const docEstado = String(doc.Estado || doc.ESTADO || '');
+                const docOrigen = String(doc.Origen_Tipo || doc.ORIGEN || '');
+
+                const matchesQuery = exp.includes(query) || asunto.includes(query) || resp.includes(query);
+                const matchesEstado = !estado || docEstado === estado;
+                const matchesOrigen = !origen || docOrigen === origen;
+
+                return matchesQuery && matchesEstado && matchesOrigen;
+            });
+
+            renderTable(filtered);
+        }
+
+        function renderStats() {
+            const total = appData.Documentos.length;
+            let tramite = 0, atendido = 0, evaluacion = 0;
+
+            appData.Documentos.forEach(doc => {
+                const est = String(doc.Estado || doc.ESTADO || '').toLowerCase();
+                if (est.includes('tramit')) tramite++;
+                if (est.includes('atendido') || est.includes('concluido')) atendido++;
+                if (est.includes('evaluacion') || est.includes('evaluación')) evaluacion++;
+            });
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-tramite').innerText = tramite;
+            document.getElementById('stat-atendido').innerText = atendido;
+            document.getElementById('stat-evaluacion').innerText = evaluacion;
+        }
+
+        function openDocFormModal(idx = null) {
+            document.getElementById('docForm').reset();
+            populateSelects();
+            if (idx !== null) {
+                const doc = appData.Documentos[idx];
+                document.getElementById('docModalTitle').innerText = "Editar / Derivar Documento";
+                document.getElementById('docIndex').value = idx;
+                document.getElementById('formNumeroExpediente').value = doc.Numero_Expediente || doc.NRO_EXPEDIENTE || '';
+                document.getElementById('formOrigenTipo').value = doc.Origen_Tipo || doc.ORIGEN || '';
+                document.getElementById('formAsunto').value = doc.Asunto || doc.ASUNTO || '';
+                document.getElementById('formFechaIngreso').value = doc.Fecha_Ingreso || doc.FECHA_INGRESO || new Date().toISOString().split('T')[0];
+                document.getElementById('formResponsable').value = doc.Responsable || doc.RESPONSABLE || '';
+                document.getElementById('formEstado').value = doc.Estado || doc.ESTADO || '';
+                document.getElementById('formObservaciones').value = doc.Observaciones || doc.OBSERVACIONES || '';
+            } else {
+                document.getElementById('docModalTitle').innerText = "Nuevo Documento / Expediente";
+                document.getElementById('docIndex').value = "";
+                document.getElementById('formFechaIngreso').value = new Date().toISOString().split('T')[0];
+            }
+            document.getElementById('docFormModal').classList.remove('hidden');
+        }
+
+        function closeDocFormModal() {
+            document.getElementById('docFormModal').classList.add('hidden');
+        }
+
+        function saveDocument(e) {
+            e.preventDefault();
+            const params = {
+                action: "saveDoc",
+                Numero_Expediente: document.getElementById('formNumeroExpediente').value,
+                Origen_Tipo: document.getElementById('formOrigenTipo').value,
+                Asunto: document.getElementById('formAsunto').value,
+                Fecha_Ingreso: document.getElementById('formFechaIngreso').value,
+                Responsable: document.getElementById('formResponsable').value,
+                Estado: document.getElementById('formEstado').value,
+                Observaciones: document.getElementById('formObservaciones').value
+            };
+
+            closeDocFormModal();
+            executeGASAction(params, function() {
+                console.log("Documento sincronizado exitosamente con Google Sheets.");
+            });
+        }
+
+        function editDocument(idx) {
+            openDocFormModal(idx);
+        }
+
+        function deleteDocument(idx) {
+            const doc = appData.Documentos[idx];
+            const exp = doc.Numero_Expediente || doc.NRO_EXPEDIENTE;
+            if (confirm(`¿Está seguro de eliminar el expediente ${exp} de Google Sheets?`)) {
+                const params = {
+                    action: "deleteDoc",
+                    Numero_Expediente: exp
+                };
+                executeGASAction(params, function() {
+                    console.log("Documento eliminado de Google Sheets.");
+                });
+            }
+        }
+
+        function renderCatalogsManagement() {
+            document.getElementById('managePersonalList').innerHTML = appData.Personal.map((p, i) => `
+                <div class="py-2.5 flex items-center justify-between text-sm">
+                    <div>
+                        <span class="font-medium text-slate-800"><i class="fa-solid fa-user text-blue-500 mr-2"></i> ${p.Nombre_Completo || p}</span>
+                        <p class="text-xs text-slate-500 ml-5">${p.Cargo_Area || ''} ${p.Correo_Electronico ? '(' + p.Correo_Electronico + ')' : ''}</p>
+                    </div>
+                    <div class="space-x-1">
+                        <button onclick="editCatalogItem('Personal', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCatalogItem('Personal', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
+
+            document.getElementById('manageEstadosList').innerHTML = appData.Estados.map((e, i) => `
+                <div class="py-2.5 flex items-center justify-between text-sm">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full" style="background-color: ${e.Color_Hex || '#3b82f6'}"></span>
+                        <span class="font-medium text-slate-800">${e.Nombre_Estado || e}</span>
+                    </div>
+                    <div class="space-x-1">
+                        <button onclick="editCatalogItem('Estados', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCatalogItem('Estados', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
+
+            document.getElementById('manageOrigenesList').innerHTML = appData.Origenes.map((o, i) => `
+                <div class="py-2.5 flex items-center justify-between text-sm">
+                    <div>
+                        <span class="font-medium text-slate-800"><i class="fa-solid fa-folder text-emerald-500 mr-2"></i> ${o.Tipo_Origen || o}</span>
+                        <p class="text-xs text-slate-500 ml-5">${o.Descripcion || ''}</p>
+                    </div>
+                    <div class="space-x-1">
+                        <button onclick="editCatalogItem('Origenes', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCatalogItem('Origenes', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
+        }
+
+        function openCatalogModal(type, index = null) {
+            document.getElementById('catalogForm').reset();
+            document.getElementById('catalogType').value = type;
+            document.getElementById('catalogModalTitle').innerText = `Gestionar Catálogo - ${type}`;
+
+            const lblName = document.getElementById('catalogLabelName');
+            const lblSec = document.getElementById('catalogLabelSecondary');
+            const secContainer = document.getElementById('catalogFieldSecondaryContainer');
+            const thirdContainer = document.getElementById('catalogFieldThirdContainer');
+            const lblThird = document.getElementById('catalogLabelThird');
+
+            secContainer.classList.remove('hidden');
+            thirdContainer.classList.add('hidden');
+
+            if (type === 'Personal') {
+                lblName.innerText = "Nombre Completo *";
+                lblSec.innerText = "Cargo / Área";
+                thirdContainer.classList.remove('hidden');
+                lblThird.innerText = "Correo Electrónico";
+            } else if (type === 'Estados') {
+                lblName.innerText = "Nombre Estado *";
+                lblSec.innerText = "Color Hexadecimal (Ej. #3b82f6)";
+            } else if (type === 'Origenes') {
+                lblName.innerText = "Tipo de Origen *";
+                lblSec.innerText = "Descripción";
+            }
+
+            if (index !== null) {
+                document.getElementById('catalogOldIndex').value = index;
+                const item = appData[type][index];
+                if (type === 'Personal') {
+                    document.getElementById('catalogInputValue').value = item.Nombre_Completo || item;
+                    document.getElementById('catalogInputSecondary').value = item.Cargo_Area || '';
+                    document.getElementById('catalogInputThird').value = item.Correo_Electronico || '';
+                } else if (type === 'Estados') {
+                    document.getElementById('catalogInputValue').value = item.Nombre_Estado || item;
+                    document.getElementById('catalogInputSecondary').value = item.Color_Hex || '#3b82f6';
+                } else if (type === 'Origenes') {
+                    document.getElementById('catalogInputValue').value = item.Tipo_Origen || item;
+                    document.getElementById('catalogInputSecondary').value = item.Descripcion || '';
+                }
+            } else {
+                document.getElementById('catalogOldIndex').value = "";
+                if (type === 'Estados') document.getElementById('catalogInputSecondary').value = '#3b82f6';
+            }
+            document.getElementById('catalogModal').classList.remove('hidden');
+        }
+
+        function closeCatalogModal() {
+            document.getElementById('catalogModal').classList.add('hidden');
+        }
+
+        function saveCatalogItem(e) {
+            e.preventDefault();
+            const type = document.getElementById('catalogType').value;
+            const val = document.getElementById('catalogInputValue').value.trim();
+            const secondary = document.getElementById('catalogInputSecondary').value.trim();
+            const third = document.getElementById('catalogInputThird').value.trim();
+            if (!val) return;
+
+            closeCatalogModal();
+
+            const params = {
+                action: "saveCatalog",
+                type: type,
+                value: val,
+                secondary: secondary,
+                third: third
+            };
+
+            executeGASAction(params, function() {
+                console.log(`Catálogo ${type} actualizado en Google Sheets.`);
+            });
+        }
+
+        function editCatalogItem(type, index) {
+            openCatalogModal(type, index);
+        }
+
+        function deleteCatalogItem(type, index) {
+            const item = appData[type][index];
+            const val = typeof item === 'object' ? (item.Nombre_Completo || item.Nombre_Estado || item.Tipo_Origen) : item;
+            if (confirm(`¿Está seguro de eliminar '${val}' del catálogo de ${type} en Google Sheets?`)) {
+                const params = {
+                    action: "deleteCatalog",
+                    type: type,
+                    value: val
+                };
+                executeGASAction(params, function() {
+                    console.log(`Elemento eliminado de Google Sheets.`);
+                });
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-semibold');
+                btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
+            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-semibold');
+            if (tabId === 'dashboard') renderCharts();
+            if (tabId === 'catalogos') renderCatalogsManagement();
+        }
+
+        function renderCharts() {
+            const estadosNombres = appData.Estados.map(e => e.Nombre_Estado || e);
+            const origenesNombres = appData.Origenes.map(o => o.Tipo_Origen || o);
+
+            const estadoCounts = {};
+            estadosNombres.forEach(e => estadoCounts[e] = 0);
+            appData.Documentos.forEach(doc => {
+                const est = doc.Estado || doc.ESTADO || 'Otros';
+                estadoCounts[est] = (estadoCounts[est] || 0) + 1;
+            });
+
+            const origenCounts = {};
+            origenesNombres.forEach(o => origenCounts[o] = 0);
+            appData.Documentos.forEach(doc => {
+                const orig = doc.Origen_Tipo || doc.ORIGEN || 'Otros';
+                origenCounts[orig] = (origenCounts[orig] || 0) + 1;
+            });
+
+            if (chartsInstance.estados) chartsInstance.estados.destroy();
+            if (chartsInstance.origenes) chartsInstance.origenes.destroy();
+
+            const ctx1 = document.getElementById('chartEstados').getContext('2d');
+            chartsInstance.estados = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(estadoCounts),
+                    datasets: [{
+                        data: Object.values(estadoCounts),
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const ctx2 = document.getElementById('chartOrigenes').getContext('2d');
+            chartsInstance.origenes = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(origenCounts),
+                    datasets: [{
+                        label: 'Documentos',
+                        data: Object.values(origenCounts),
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 8
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
+
+        function openConfigModal() {
+            document.getElementById('inputBackendUrl').value = getBackendUrl();
+            document.getElementById('configModal').classList.remove('hidden');
+        }
+
+        function closeConfigModal() {
+            document.getElementById('configModal').classList.add('hidden');
+        }
+
+        function saveBackendUrl() {
+            const url = document.getElementById('inputBackendUrl').value.trim();
+            if (url) {
+                localStorage.setItem('hidrandina_gas_url', url);
+                closeConfigModal();
+                fetchData();
+            }
+        }
+    </script>
+</body>
+</html>
