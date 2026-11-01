@@ -25,7 +25,7 @@
                     <h1 class="font-bold text-slate-900 text-lg leading-tight">HIDRANDINA - Control de Documentos</h1>
                     <div class="flex items-center space-x-2 mt-0.5">
                         <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-500 animate-pulse"></span> Sincronizando con Google Sheets...
+                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-500 animate-pulse"></span> Sincronizando...
                         </span>
                     </div>
                 </div>
@@ -103,7 +103,7 @@
                         </thead>
                         <tbody id="documentosTableBody" class="divide-y divide-slate-100 text-sm">
                             <tr>
-                                <td colspan="7" class="py-8 text-center text-slate-400">Cargando datos desde Google Sheets...</td>
+                                <td colspan="7" class="py-8 text-center text-slate-400">Cargando datos...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -170,48 +170,60 @@
 
         <!-- TAB 3: GESTIÓN DE CATÁLOGOS -->
         <section id="tab-catalogos" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Personal -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3 text-blue-600">
-                            <i class="fa-solid fa-users text-xl"></i>
-                            <h3 class="font-bold text-slate-900">Personal / Responsables</h3>
+                        <div class="flex items-center space-x-2 text-blue-600">
+                            <i class="fa-solid fa-users text-lg"></i>
+                            <h3 class="font-bold text-slate-900 text-sm">Personal</h3>
                         </div>
-                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i> Agregar</button>
+                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <div id="managePersonalList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto"></div>
+                    <div id="managePersonalList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
                 </div>
 
                 <!-- Estados -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3 text-indigo-600">
-                            <i class="fa-solid fa-tags text-xl"></i>
-                            <h3 class="font-bold text-slate-900">Estados</h3>
+                        <div class="flex items-center space-x-2 text-indigo-600">
+                            <i class="fa-solid fa-tags text-lg"></i>
+                            <h3 class="font-bold text-slate-900 text-sm">Estados</h3>
                         </div>
-                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i> Agregar</button>
+                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto"></div>
+                    <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
                 </div>
 
                 <!-- Origenes -->
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-3 text-emerald-600">
-                            <i class="fa-solid fa-layer-group text-xl"></i>
-                            <h3 class="font-bold text-slate-900">Orígenes Documentales</h3>
+                        <div class="flex items-center space-x-2 text-emerald-600">
+                            <i class="fa-solid fa-layer-group text-lg"></i>
+                            <h3 class="font-bold text-slate-900 text-sm">Orígenes</h3>
                         </div>
-                        <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i> Agregar</button>
+                        <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto"></div>
+                    <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+                </div>
+
+                <!-- Alarmas -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-rose-600">
+                            <i class="fa-solid fa-bell text-lg"></i>
+                            <h3 class="font-bold text-slate-900 text-sm">Alarmas</h3>
+                        </div>
+                        <button onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div id="manageAlarmasList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <!-- MODAL: EXPEDIENTE (CREAR / EDITAR / DERIVAR) -->
+    <!-- MODAL: EXPEDIENTE -->
     <div id="docFormModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center">
@@ -236,7 +248,7 @@
                 </div>
                 <div>
                     <label class="font-medium text-slate-700">Asunto / Descripción *</label>
-                    <textarea id="formAsunto" rows="2" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Describa el motivo del documento..."></textarea>
+                    <textarea id="formAsunto" rows="2" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Describa el motivo..."></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -250,19 +262,17 @@
                 </div>
                 <div>
                     <label class="font-medium text-slate-700">Observaciones</label>
-                    <textarea id="formObservaciones" rows="2" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Comentarios adicionales..."></textarea>
+                    <textarea id="formObservaciones" rows="2" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Comentarios..."></textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-3">
                     <button type="button" onclick="closeDocFormModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
-                    <button type="submit" id="btnSaveDoc" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm flex items-center space-x-2">
-                        <span>Guardar en Google Sheets</span>
-                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm">Guardar en Google Sheets</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: CATÁLOGO (CREAR / EDITAR CON CAMPOS COMPLETOS) -->
+    <!-- MODAL: CATÁLOGO CON COLOR PICKER -->
     <div id="catalogModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
             <div class="flex justify-between items-center">
@@ -280,39 +290,50 @@
 
                 <div id="catalogFieldSecondaryContainer">
                     <label id="catalogLabelSecondary" class="font-medium text-slate-700">Campo Secundario</label>
-                    <input type="text" id="catalogInputSecondary" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <!-- Selector de color dinámico o texto normal -->
+                    <div id="inputSecondaryWrapper" class="mt-1 flex items-center space-x-2">
+                        <input type="text" id="catalogInputSecondary" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
                 </div>
 
                 <div id="catalogFieldThirdContainer" class="hidden">
-                    <label id="catalogLabelThird" class="font-medium text-slate-700">Correo Electrónico</label>
-                    <input type="email" id="catalogInputThird" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <label id="catalogLabelThird" class="font-medium text-slate-700">Campo Tercero</label>
+                    <input type="text" id="catalogInputThird" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div id="catalogFieldFourthContainer" class="hidden">
+                    <label id="catalogLabelFourth" class="font-medium text-slate-700">Color Alarma</label>
+                    <div class="mt-1 flex items-center space-x-2">
+                        <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-10 p-1 border border-slate-200 rounded-xl cursor-pointer bg-white" onchange="document.getElementById('catalogInputFourthText').value = this.value">
+                        <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
+                    </div>
                 </div>
 
                 <div class="flex justify-end space-x-3 pt-2">
                     <button type="button" onclick="closeCatalogModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
-                    <button type="submit" id="btnSaveCat" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">Guardar Cambios</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">Guardar Cambios</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: CONFIGURACIÓN BACKEND -->
+    <!-- MODAL: CONFIGURACIÓN -->
     <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
             <div class="flex justify-between items-center">
                 <h3 class="font-bold text-slate-900 text-lg">Configuración Apps Script</h3>
                 <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <p class="text-sm text-slate-500">Ingrese la URL de despliegue oficial de su Google Apps Script:</p>
+            <p class="text-sm text-slate-500">URL del Google Apps Script:</p>
             <input type="text" id="inputBackendUrl" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <div class="flex justify-end space-x-3 pt-2">
                 <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
-                <button onclick="saveBackendUrl()" class="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700">Guardar y Conectar</button>
+                <button onclick="saveBackendUrl()" class="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700">Guardar</button>
             </div>
         </div>
     </div>
 
-    <!-- LÓGICA DE SINCRONIZACIÓN Y CRUD EN TIEMPO REAL -->
+    <!-- LÓGICA JAVASCRIPT -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -324,7 +345,8 @@
             Documentos: [],
             Personal: [],
             Estados: [],
-            Origenes: []
+            Origenes: [],
+            Alarmas: []
         };
 
         let chartsInstance = { estados: null, origenes: null };
@@ -335,19 +357,12 @@
         });
 
         function loadLocalCache() {
-            const cachedDocs = localStorage.getItem('hidrandina_docs_cache');
-            const cachedPers = localStorage.getItem('hidrandina_pers_cache');
-            const cachedEsts = localStorage.getItem('hidrandina_ests_cache');
-            const cachedOrig = localStorage.getItem('hidrandina_orig_cache');
-
-            if (cachedDocs) appData.Documentos = JSON.parse(cachedDocs);
-            if (cachedPers) appData.Personal = JSON.parse(cachedPers);
-            if (cachedEsts) appData.Estados = JSON.parse(cachedEsts);
-            if (cachedOrig) appData.Origenes = JSON.parse(cachedOrig);
-
-            if (appData.Documentos.length > 0) {
-                renderAll();
-            }
+            if (localStorage.getItem('hidrandina_docs_cache')) appData.Documentos = JSON.parse(localStorage.getItem('hidrandina_docs_cache'));
+            if (localStorage.getItem('hidrandina_pers_cache')) appData.Personal = JSON.parse(localStorage.getItem('hidrandina_pers_cache'));
+            if (localStorage.getItem('hidrandina_ests_cache')) appData.Estados = JSON.parse(localStorage.getItem('hidrandina_ests_cache'));
+            if (localStorage.getItem('hidrandina_orig_cache')) appData.Origenes = JSON.parse(localStorage.getItem('hidrandina_orig_cache'));
+            if (localStorage.getItem('hidrandina_alar_cache')) appData.Alarmas = JSON.parse(localStorage.getItem('hidrandina_alar_cache'));
+            if (appData.Documentos.length > 0) renderAll();
         }
 
         function saveLocalCache() {
@@ -355,6 +370,7 @@
             localStorage.setItem('hidrandina_pers_cache', JSON.stringify(appData.Personal));
             localStorage.setItem('hidrandina_ests_cache', JSON.stringify(appData.Estados));
             localStorage.setItem('hidrandina_orig_cache', JSON.stringify(appData.Origenes));
+            localStorage.setItem('hidrandina_alar_cache', JSON.stringify(appData.Alarmas));
         }
 
         function setConnectionStatus(status, text) {
@@ -378,15 +394,16 @@
                     appData.Personal = data.Catalogos.Personal || data.Catalogos.Responsables || appData.Personal;
                     appData.Estados = data.Catalogos.Estados || appData.Estados;
                     appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
+                    appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
                 }
                 saveLocalCache();
-                setConnectionStatus('active', 'Nube Activa (Sincronizado)');
+                setConnectionStatus('active', 'Sincronizado');
                 renderAll();
             }
         };
 
         function fetchData() {
-            setConnectionStatus('sync', 'Conectando con Google Sheets...');
+            setConnectionStatus('sync', 'Conectando...');
             const url = getBackendUrl();
             const oldScript = document.getElementById('jsonp-fetch');
             if (oldScript) oldScript.remove();
@@ -394,44 +411,34 @@
             const script = document.createElement('script');
             script.id = 'jsonp-fetch';
             script.src = `${url}?callback=handleGASResponse&_=${new Date().getTime()}`;
-            script.onerror = function() {
-                setConnectionStatus('error', 'Sin conexión (Modo Offline)');
-                renderAll();
-            };
+            script.onerror = () => { setConnectionStatus('error', 'Offline'); renderAll(); };
             document.body.appendChild(script);
         }
 
         function executeGASAction(params, successCallback) {
-            setConnectionStatus('sync', 'Guardando en Google Sheets...');
+            setConnectionStatus('sync', 'Guardando...');
             const callbackName = 'gasWriteCb_' + Math.floor(Math.random() * 100000);
             
             window[callbackName] = function(response) {
                 delete window[callbackName];
                 const s = document.getElementById(callbackName);
                 if (s) s.remove();
-
                 if (response && response.success) {
-                    setConnectionStatus('active', 'Guardado en Google Sheets');
+                    setConnectionStatus('active', 'Guardado en Nube');
                     if (successCallback) successCallback(response);
                     fetchData();
                 } else {
-                    alert("Aviso de sincronización: " + (response ? response.message : 'No se pudo guardar'));
+                    alert("Aviso: " + (response ? response.message : 'Error al guardar'));
                     fetchData();
                 }
             };
 
             const url = getBackendUrl();
-            const query = Object.keys(params)
-                .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
-                .join('&');
-
+            const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
             const script = document.createElement('script');
             script.id = callbackName;
             script.src = `${url}?${query}&callback=${callbackName}&_=${new Date().getTime()}`;
-            script.onerror = function() {
-                alert("Error de conexión al guardar datos en Google Sheets.");
-                setConnectionStatus('error', 'Error al sincronizar');
-            };
+            script.onerror = () => { alert("Error de red."); setConnectionStatus('error', 'Error'); };
             document.body.appendChild(script);
         }
 
@@ -445,52 +452,37 @@
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No se encontraron expedientes registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">Sin expedientes registrados.</td></tr>`;
                 return;
             }
-
             tbody.innerHTML = docs.map((doc, idx) => `
                 <tr class="hover:bg-slate-50/80 transition">
                     <td class="py-3 px-4 font-semibold text-slate-900">${doc.Numero_Expediente || doc.NRO_EXPEDIENTE || '-'}</td>
                     <td class="py-3 px-4 text-slate-600"><span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">${doc.Origen_Tipo || doc.ORIGEN || '-'}</span></td>
                     <td class="py-3 px-4 text-slate-800 max-w-xs truncate">${doc.Asunto || doc.ASUNTO || '-'}</td>
                     <td class="py-3 px-4 text-slate-500 text-xs">${doc.Fecha_Ingreso || doc.FECHA_INGRESO || '-'}</td>
-                    <td class="py-3 px-4 text-slate-700 font-medium"><i class="fa-solid fa-user-gear text-blue-500 mr-1.5 text-xs"></i>${doc.Responsable || doc.RESPONSABLE || '-'}</td>
-                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${getStateBadgeClass(doc.Estado || doc.ESTADO)}">${doc.Estado || doc.ESTADO || '-'}</span></td>
+                    <td class="py-3 px-4 text-slate-700 font-medium">${doc.Responsable || doc.RESPONSABLE || '-'}</td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">${doc.Estado || doc.ESTADO || '-'}</span></td>
                     <td class="py-3 px-4 text-right space-x-1">
-                        <button onclick="editDocument(${idx})" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar / Derivar">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                        <button onclick="deleteDocument(${idx})" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar del Excel">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        <button onclick="editDocument(${idx})" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteDocument(${idx})" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function getStateBadgeClass(estado) {
-            if (!estado) return 'bg-slate-100 text-slate-700';
-            const e = estado.toLowerCase();
-            if (e.includes('atendido') || e.includes('concluido')) return 'bg-emerald-100 text-emerald-800';
-            if (e.includes('tramit') || e.includes('evalu')) return 'bg-amber-100 text-amber-800';
-            return 'bg-blue-100 text-blue-800';
-        }
-
         function populateSelects() {
             const estSel = document.getElementById('filterEstado');
             const origSel = document.getElementById('filterOrigen');
-            
             const currentEst = estSel.value;
             const currentOrig = origSel.value;
 
-            const estadosNombres = appData.Estados.map(e => e.Nombre_Estado || e);
-            const origenesNombres = appData.Origenes.map(o => o.Tipo_Origen || o);
+            const estadosNombres = appData.Estados.map(e => e.Nombre_Estado || e.Estado || e);
+            const origenesNombres = appData.Origenes.map(o => o.Tipo_Origen || o.Origen || o);
             const personalNombres = appData.Personal.map(p => p.Nombre_Completo || p.Nombre || p);
 
             estSel.innerHTML = '<option value="">Todos los Estados</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
             origSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
-            
             estSel.value = currentEst;
             origSel.value = currentOrig;
 
@@ -510,29 +502,20 @@
                 const resp = String(doc.Responsable || doc.RESPONSABLE || '').toLowerCase();
                 const docEstado = String(doc.Estado || doc.ESTADO || '');
                 const docOrigen = String(doc.Origen_Tipo || doc.ORIGEN || '');
-
-                const matchesQuery = exp.includes(query) || asunto.includes(query) || resp.includes(query);
-                const matchesEstado = !estado || docEstado === estado;
-                const matchesOrigen = !origen || docOrigen === origen;
-
-                return matchesQuery && matchesEstado && matchesOrigen;
+                return (exp.includes(query) || asunto.includes(query) || resp.includes(query)) && (!estado || docEstado === estado) && (!origen || docOrigen === origen);
             });
-
             renderTable(filtered);
         }
 
         function renderStats() {
-            const total = appData.Documentos.length;
+            document.getElementById('stat-total').innerText = appData.Documentos.length;
             let tramite = 0, atendido = 0, evaluacion = 0;
-
             appData.Documentos.forEach(doc => {
                 const est = String(doc.Estado || doc.ESTADO || '').toLowerCase();
                 if (est.includes('tramit')) tramite++;
                 if (est.includes('atendido') || est.includes('concluido')) atendido++;
                 if (est.includes('evaluacion') || est.includes('evaluación')) evaluacion++;
             });
-
-            document.getElementById('stat-total').innerText = total;
             document.getElementById('stat-tramite').innerText = tramite;
             document.getElementById('stat-atendido').innerText = atendido;
             document.getElementById('stat-evaluacion').innerText = evaluacion;
@@ -543,7 +526,7 @@
             populateSelects();
             if (idx !== null) {
                 const doc = appData.Documentos[idx];
-                document.getElementById('docModalTitle').innerText = "Editar / Derivar Documento";
+                document.getElementById('docModalTitle').innerText = "Editar Expediente";
                 document.getElementById('docIndex').value = idx;
                 document.getElementById('formNumeroExpediente').value = doc.Numero_Expediente || doc.NRO_EXPEDIENTE || '';
                 document.getElementById('formOrigenTipo').value = doc.Origen_Tipo || doc.ORIGEN || '';
@@ -553,16 +536,14 @@
                 document.getElementById('formEstado').value = doc.Estado || doc.ESTADO || '';
                 document.getElementById('formObservaciones').value = doc.Observaciones || doc.OBSERVACIONES || '';
             } else {
-                document.getElementById('docModalTitle').innerText = "Nuevo Documento / Expediente";
+                document.getElementById('docModalTitle').innerText = "Nuevo Expediente";
                 document.getElementById('docIndex').value = "";
                 document.getElementById('formFechaIngreso').value = new Date().toISOString().split('T')[0];
             }
             document.getElementById('docFormModal').classList.remove('hidden');
         }
 
-        function closeDocFormModal() {
-            document.getElementById('docFormModal').classList.add('hidden');
-        }
+        function closeDocFormModal() { document.getElementById('docFormModal').classList.add('hidden'); }
 
         function saveDocument(e) {
             e.preventDefault();
@@ -576,157 +557,152 @@
                 Estado: document.getElementById('formEstado').value,
                 Observaciones: document.getElementById('formObservaciones').value
             };
-
             closeDocFormModal();
-            executeGASAction(params, function() {
-                console.log("Documento sincronizado exitosamente con Google Sheets.");
-            });
+            executeGASAction(params);
         }
 
-        function editDocument(idx) {
-            openDocFormModal(idx);
-        }
+        function editDocument(idx) { openDocFormModal(idx); }
 
         function deleteDocument(idx) {
             const doc = appData.Documentos[idx];
             const exp = doc.Numero_Expediente || doc.NRO_EXPEDIENTE;
-            if (confirm(`¿Está seguro de eliminar el expediente ${exp} de Google Sheets?`)) {
-                const params = {
-                    action: "deleteDoc",
-                    Numero_Expediente: exp
-                };
-                executeGASAction(params, function() {
-                    console.log("Documento eliminado de Google Sheets.");
-                });
+            if (confirm(`¿Eliminar el expediente ${exp}?`)) {
+                executeGASAction({ action: "deleteDoc", Numero_Expediente: exp });
             }
         }
 
         function renderCatalogsManagement() {
-            // Renderizado robusto de Personal
-            const personalList = document.getElementById('managePersonalList');
-            if (!appData.Personal || appData.Personal.length === 0) {
-                personalList.innerHTML = '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
-            } else {
-                personalList.innerHTML = appData.Personal.map((p, i) => {
-                    const nombre = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p.RESPONSABLE || p[1] || 'Sin Nombre') : p;
+            // Personal
+            const persList = document.getElementById('managePersonalList');
+            persList.innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+                appData.Personal.map((p, i) => {
+                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1]) : p;
                     const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || '') : '';
-                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || '') : '';
-                    
-                    return `
-                        <div class="py-2.5 flex items-center justify-between text-sm border-b border-slate-100 last:border-none">
-                            <div>
-                                <span class="font-medium text-slate-800"><i class="fa-solid fa-user text-blue-500 mr-2"></i> ${nombre}</span>
-                                ${(cargo || correo) ? `<p class="text-xs text-slate-500 ml-5">${cargo} ${correo ? '(' + correo + ')' : ''}</p>` : ''}
-                            </div>
-                            <div class="space-x-1 flex items-center">
-                                <button onclick="editCatalogItem('Personal', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteCatalogItem('Personal', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    `;
+                    return `<div class="py-2 flex justify-between items-center text-xs border-b border-slate-100">
+                        <div><span class="font-medium text-slate-800">${nom}</span>${cargo ? '<br><span class="text-slate-400">'+cargo+'</span>' : ''}</div>
+                        <div class="space-x-1"><button onclick="editCatalogItem('Personal', ${i})" class="text-slate-400 hover:text-blue-600"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCatalogItem('Personal', ${i})" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button></div>
+                    </div>`;
                 }).join('');
-            }
 
-            // Renderizado de Estados
-            const estadosList = document.getElementById('manageEstadosList');
-            if (!appData.Estados || appData.Estados.length === 0) {
-                estadosList.innerHTML = '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
-            } else {
-                estadosList.innerHTML = appData.Estados.map((e, i) => {
-                    const nombre = typeof e === 'object' ? (e.Nombre_Estado || e.Estado || e[1] || 'Sin Estado') : e;
-                    const color = typeof e === 'object' ? (e.Color_Hex || e.Color || '#3b82f6') : '#3b82f6';
-                    
-                    return `
-                        <div class="py-2.5 flex items-center justify-between text-sm border-b border-slate-100 last:border-none">
-                            <div class="flex items-center space-x-2">
-                                <span class="w-3 h-3 rounded-full" style="background-color: ${color}"></span>
-                                <span class="font-medium text-slate-800">${nombre}</span>
-                            </div>
-                            <div class="space-x-1 flex items-center">
-                                <button onclick="editCatalogItem('Estados', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteCatalogItem('Estados', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    `;
+            // Estados
+            const estList = document.getElementById('manageEstadosList');
+            estList.innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+                appData.Estados.map((e, i) => {
+                    const nom = typeof e === 'object' ? (e.Nombre_Estado || e.Estado || e[1]) : e;
+                    const col = typeof e === 'object' ? (e.Color_Hex || e.Color || '#3b82f6') : '#3b82f6';
+                    return `<div class="py-2 flex justify-between items-center text-xs border-b border-slate-100">
+                        <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full" style="background-color: ${col}"></span><span class="font-medium text-slate-800">${nom}</span></div>
+                        <div class="space-x-1"><button onclick="editCatalogItem('Estados', ${i})" class="text-slate-400 hover:text-blue-600"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCatalogItem('Estados', ${i})" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button></div>
+                    </div>`;
                 }).join('');
-            }
 
-            // Renderizado de Orígenes
-            const origenesList = document.getElementById('manageOrigenesList');
-            if (!appData.Origenes || appData.Origenes.length === 0) {
-                origenesList.innerHTML = '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
-            } else {
-                origenesList.innerHTML = appData.Origenes.map((o, i) => {
-                    const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1] || 'Sin Origen') : o;
-                    const desc = typeof o === 'object' ? (o.Descripcion || '') : '';
-                    
-                    return `
-                        <div class="py-2.5 flex items-center justify-between text-sm border-b border-slate-100 last:border-none">
-                            <div>
-                                <span class="font-medium text-slate-800"><i class="fa-solid fa-folder text-emerald-500 mr-2"></i> ${tipo}</span>
-                                ${desc ? `<p class="text-xs text-slate-500 ml-5">${desc}</p>` : ''}
-                            </div>
-                            <div class="space-x-1 flex items-center">
-                                <button onclick="editCatalogItem('Origenes', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteCatalogItem('Origenes', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
-                    `;
+            // Origenes
+            const origList = document.getElementById('manageOrigenesList');
+            origList.innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+                appData.Origenes.map((o, i) => {
+                    const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1]) : o;
+                    return `<div class="py-2 flex justify-between items-center text-xs border-b border-slate-100">
+                        <span class="font-medium text-slate-800">${tipo}</span>
+                        <div class="space-x-1"><button onclick="editCatalogItem('Origenes', ${i})" class="text-slate-400 hover:text-blue-600"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCatalogItem('Origenes', ${i})" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button></div>
+                    </div>`;
                 }).join('');
-            }
+
+            // Alarmas
+            const alarList = document.getElementById('manageAlarmasList');
+            alarList.innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+                appData.Alarmas.map((a, i) => {
+                    const nom = typeof a === 'object' ? (a.Nombre_Alarma || a.Alarma || a[1]) : a;
+                    const min = typeof a === 'object' ? (a.Dias_Min || a[2] || 0) : 0;
+                    const max = typeof a === 'object' ? (a.Dias_Max || a[3] || 0) : 0;
+                    const col = typeof a === 'object' ? (a.Color_Hex || a[4] || '#ef4444') : '#ef4444';
+                    return `<div class="py-2 flex justify-between items-center text-xs border-b border-slate-100">
+                        <div>
+                            <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background-color: ${col}"></span><span class="font-medium text-slate-800">${nom}</span></div>
+                            <span class="text-slate-400 text-[10px]">Rango: ${min} - ${max} días</span>
+                        </div>
+                        <div class="space-x-1"><button onclick="editCatalogItem('Alarmas', ${i})" class="text-slate-400 hover:text-blue-600"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCatalogItem('Alarmas', ${i})" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-trash"></i></button></div>
+                    </div>`;
+                }).join('');
         }
 
         function openCatalogModal(type, index = null) {
             document.getElementById('catalogForm').reset();
             document.getElementById('catalogType').value = type;
-            document.getElementById('catalogModalTitle').innerText = `Gestionar Catálogo - ${type}`;
+            document.getElementById('catalogModalTitle').innerText = `Catálogo - ${type}`;
 
             const lblName = document.getElementById('catalogLabelName');
             const lblSec = document.getElementById('catalogLabelSecondary');
             const secContainer = document.getElementById('catalogFieldSecondaryContainer');
             const thirdContainer = document.getElementById('catalogFieldThirdContainer');
-            const lblThird = document.getElementById('catalogLabelThird');
+            const fourthContainer = document.getElementById('catalogFieldFourthContainer');
 
             secContainer.classList.remove('hidden');
             thirdContainer.classList.add('hidden');
+            fourthContainer.classList.add('hidden');
+
+            const secWrapper = document.getElementById('inputSecondaryWrapper');
 
             if (type === 'Personal') {
                 lblName.innerText = "Nombre Completo *";
                 lblSec.innerText = "Cargo / Área";
+                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">`;
                 thirdContainer.classList.remove('hidden');
-                lblThird.innerText = "Correo Electrónico";
+                document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
             } else if (type === 'Estados') {
                 lblName.innerText = "Nombre Estado *";
-                lblSec.innerText = "Color Hexadecimal (Ej. #3b82f6)";
+                lblSec.innerText = "Color de Estado";
+                secWrapper.innerHTML = `
+                    <input type="color" id="colorPickerSec" value="#3b82f6" class="w-12 h-10 p-1 border border-slate-200 rounded-xl cursor-pointer bg-white" onchange="document.getElementById('catalogInputSecondary').value = this.value">
+                    <input type="text" id="catalogInputSecondary" value="#3b82f6" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" oninput="document.getElementById('colorPickerSec').value = this.value">
+                `;
             } else if (type === 'Origenes') {
                 lblName.innerText = "Tipo de Origen *";
                 lblSec.innerText = "Descripción";
+                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">`;
+            } else if (type === 'Alarmas') {
+                lblName.innerText = "Nombre Alarma *";
+                lblSec.innerText = "Días Mínimos";
+                secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">`;
+                
+                thirdContainer.classList.remove('hidden');
+                document.getElementById('catalogLabelThird').innerText = "Días Máximos";
+                document.getElementById('catalogInputThird').value = "5";
+                document.getElementById('catalogInputThird').type = "number";
+
+                fourthContainer.classList.remove('hidden');
             }
 
             if (index !== null) {
                 document.getElementById('catalogOldIndex').value = index;
                 const item = appData[type][index];
                 if (type === 'Personal') {
-                    document.getElementById('catalogInputValue').value = item.Nombre_Completo || item.Nombre || item;
+                    document.getElementById('catalogInputValue').value = item.Nombre_Completo || item.Nombre || '';
                     document.getElementById('catalogInputSecondary').value = item.Cargo_Area || item.Cargo || '';
                     document.getElementById('catalogInputThird').value = item.Correo_Electronico || item.Correo || '';
                 } else if (type === 'Estados') {
-                    document.getElementById('catalogInputValue').value = item.Nombre_Estado || item.Estado || item;
-                    document.getElementById('catalogInputSecondary').value = item.Color_Hex || item.Color || '#3b82f6';
+                    const col = item.Color_Hex || item.Color || '#3b82f6';
+                    document.getElementById('catalogInputValue').value = item.Nombre_Estado || item.Estado || '';
+                    document.getElementById('catalogInputSecondary').value = col;
+                    const cp = document.getElementById('colorPickerSec');
+                    if(cp) cp.value = col;
                 } else if (type === 'Origenes') {
-                    document.getElementById('catalogInputValue').value = item.Tipo_Origen || item.Origen || item;
+                    document.getElementById('catalogInputValue').value = item.Tipo_Origen || item.Origen || '';
                     document.getElementById('catalogInputSecondary').value = item.Descripcion || '';
+                } else if (type === 'Alarmas') {
+                    const col = item.Color_Hex || '#ef4444';
+                    document.getElementById('catalogInputValue').value = item.Nombre_Alarma || '';
+                    document.getElementById('catalogInputSecondary').value = item.Dias_Min || 0;
+                    document.getElementById('catalogInputThird').value = item.Dias_Max || 5;
+                    document.getElementById('catalogInputFourthText').value = col;
+                    document.getElementById('catalogInputFourthColor').value = col;
                 }
             } else {
                 document.getElementById('catalogOldIndex').value = "";
-                if (type === 'Estados') document.getElementById('catalogInputSecondary').value = '#3b82f6';
             }
             document.getElementById('catalogModal').classList.remove('hidden');
         }
 
-        function closeCatalogModal() {
-            document.getElementById('catalogModal').classList.add('hidden');
-        }
+        function closeCatalogModal() { document.getElementById('catalogModal').classList.add('hidden'); }
 
         function saveCatalogItem(e) {
             e.preventDefault();
@@ -734,39 +710,27 @@
             const val = document.getElementById('catalogInputValue').value.trim();
             const secondary = document.getElementById('catalogInputSecondary').value.trim();
             const third = document.getElementById('catalogInputThird').value.trim();
+            const fourth = document.getElementById('catalogInputFourthText') ? document.getElementById('catalogInputFourthText').value.trim() : '';
             if (!val) return;
 
             closeCatalogModal();
-
-            const params = {
+            executeGASAction({
                 action: "saveCatalog",
                 type: type,
                 value: val,
                 secondary: secondary,
-                third: third
-            };
-
-            executeGASAction(params, function() {
-                console.log(`Catálogo ${type} actualizado en Google Sheets.`);
+                third: third,
+                fourth: fourth
             });
         }
 
-        function editCatalogItem(type, index) {
-            openCatalogModal(type, index);
-        }
+        function editCatalogItem(type, index) { openCatalogModal(type, index); }
 
         function deleteCatalogItem(type, index) {
             const item = appData[type][index];
-            const val = typeof item === 'object' ? (item.Nombre_Completo || item.Nombre || item.Nombre_Estado || item.Tipo_Origen) : item;
-            if (confirm(`¿Está seguro de eliminar '${val}' del catálogo de ${type} en Google Sheets?`)) {
-                const params = {
-                    action: "deleteCatalog",
-                    type: type,
-                    value: val
-                };
-                executeGASAction(params, function() {
-                    console.log(`Elemento eliminado de Google Sheets.`);
-                });
+            const val = typeof item === 'object' ? (item.Nombre_Completo || item.Nombre || item.Nombre_Estado || item.Tipo_Origen || item.Nombre_Alarma) : item;
+            if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
+                executeGASAction({ action: "deleteCatalog", type: type, value: val });
             }
         }
 
@@ -785,71 +749,33 @@
         }
 
         function renderCharts() {
-            const estadosNombres = appData.Estados.map(e => e.Nombre_Estado || e);
-            const origenesNombres = appData.Origenes.map(o => o.Tipo_Origen || o);
-
-            const estadoCounts = {};
-            estadosNombres.forEach(e => estadoCounts[e] = 0);
-            appData.Documentos.forEach(doc => {
-                const est = doc.Estado || doc.ESTADO || 'Otros';
-                estadoCounts[est] = (estadoCounts[est] || 0) + 1;
-            });
-
-            const origenCounts = {};
-            origenesNombres.forEach(o => origenCounts[o] = 0);
-            appData.Documentos.forEach(doc => {
-                const orig = doc.Origen_Tipo || doc.ORIGEN || 'Otros';
-                origenCounts[orig] = (origenCounts[orig] || 0) + 1;
-            });
+            const estadosNombres = appData.Estados.map(e => e.Nombre_Estado || e.Estado || e);
+            const origenesNombres = appData.Origenes.map(o => o.Tipo_Origen || o.Origen || o);
+            const estadoCounts = {}; estadosNombres.forEach(e => estadoCounts[e] = 0);
+            appData.Documentos.forEach(doc => { const est = doc.Estado || doc.ESTADO || 'Otros'; estadoCounts[est] = (estadoCounts[est] || 0) + 1; });
+            const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
+            appData.Documentos.forEach(doc => { const orig = doc.Origen_Tipo || doc.ORIGEN || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
 
             if (chartsInstance.estados) chartsInstance.estados.destroy();
             if (chartsInstance.origenes) chartsInstance.origenes.destroy();
 
-            const ctx1 = document.getElementById('chartEstados').getContext('2d');
-            chartsInstance.estados = new Chart(ctx1, {
+            chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
                 type: 'doughnut',
-                data: {
-                    labels: Object.keys(estadoCounts),
-                    datasets: [{
-                        data: Object.values(estadoCounts),
-                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899']
-                    }]
-                },
+                data: { labels: Object.keys(estadoCounts), datasets: [{ data: Object.values(estadoCounts), backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899'] }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
-
-            const ctx2 = document.getElementById('chartOrigenes').getContext('2d');
-            chartsInstance.origenes = new Chart(ctx2, {
+            chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
                 type: 'bar',
-                data: {
-                    labels: Object.keys(origenCounts),
-                    datasets: [{
-                        label: 'Documentos',
-                        data: Object.values(origenCounts),
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 8
-                    }]
-                },
+                data: { labels: Object.keys(origenCounts), datasets: [{ label: 'Documentos', data: Object.values(origenCounts), backgroundColor: '#3b82f6', borderRadius: 8 }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
         }
 
-        function openConfigModal() {
-            document.getElementById('inputBackendUrl').value = getBackendUrl();
-            document.getElementById('configModal').classList.remove('hidden');
-        }
-
-        function closeConfigModal() {
-            document.getElementById('configModal').classList.add('hidden');
-        }
-
+        function openConfigModal() { document.getElementById('inputBackendUrl').value = getBackendUrl(); document.getElementById('configModal').classList.remove('hidden'); }
+        function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
         function saveBackendUrl() {
             const url = document.getElementById('inputBackendUrl').value.trim();
-            if (url) {
-                localStorage.setItem('hidrandina_gas_url', url);
-                closeConfigModal();
-                fetchData();
-            }
+            if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
         }
     </script>
 </body>
