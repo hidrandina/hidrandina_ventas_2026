@@ -561,7 +561,7 @@
                 cuerpo += `${idx + 1}. [${num}] - ${origen} | Asunto: ${asuntoDoc} | Estado: ${estado} | Responsable: ${resp}\n`;
             });
 
-            cuerpo += `\nAtentamente,\nIng. Johnny Quevin Camacho Mori\nDepartamento de Ventas y Clientes Menores - Hidrandina`;
+            cuerpo += `\nAtentamente,\njcamacho`;
             
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
         }
@@ -593,7 +593,7 @@
             // Asunto: [Carta] + [Entidad / Origen] + [Estado]
             const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
             
-            // Cuerpo actualizado indicando "para su conocimiento" (sin asignar ni notificar obligatoriamente)
+            // Cuerpo actualizado indicando "para su conocimiento" y firma limpia con "Atentamente" y "jcamacho"
             let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe remite el siguiente documento para su conocimiento:\n\n` +
                 `- Nro. Documento: ${numDoc}\n` +
                 `- Entidad / Origen: ${entidad}\n` +
@@ -601,7 +601,7 @@
                 `- Fecha de Ingreso: ${fechaIng}\n` +
                 `- Estado Actual: ${estado}\n` +
                 `- Observaciones: ${observaciones}\n\n` +
-                `Atentamente,\nIng. Johnny Quevin Camacho Mori\nJefe del Departamento de Ventas y Clientes Menores - Hidrandina`;
+                `Atentamente,\njcamacho`;
 
             window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
         }
