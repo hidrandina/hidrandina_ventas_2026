@@ -326,6 +326,10 @@
                     </div>
                 </div>
                 <div>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Fecha de Vencimiento *</label>
+                    <input type="date" id="formFechaVencimiento" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
+                </div>
+                <div>
                     <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Asunto / Descripción *</label>
                     <textarea id="formAsunto" rows="2" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Describa el motivo..."></textarea>
                 </div>
@@ -529,26 +533,29 @@
             renderCatalogsManagement();
         }
 
-        function calcularPlazos(fechaIngresoStr) {
-            if (!fechaIngresoStr) return { vencimiento: '-', diasTranscurridos: 0, diasFaltantes: 0, diasExceso: 0 };
-            const cleanDateStr = String(fechaIngresoStr).split('T')[0];
-            const ingreso = new Date(cleanDateStr + 'T00:00:00');
-            if (isNaN(ingreso.getTime())) return { vencimiento: '-', diasTranscurridos: 0, diasFaltantes: 0, diasExceso: 0 };
-
+        function calcularPlazos(fechaIngresoStr, fechaVencimientoStr) {
+            const cleanIngresoStr = String(fechaIngresoStr || '').split('T')[0];
+            const ingreso = new Date(cleanIngresoStr + 'T00:00:00');
+            
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
 
-            const diffTime = hoy - ingreso;
-            const diasTranscurridos = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
-
-            let diasLimite = 15;
-            if (appData.Alarmas && appData.Alarmas.length > 0) {
-                const maxAlarm = appData.Alarmas.reduce((max, a) => Math.max(max, parseInt(getProp(a, ['Dias_Max', 'dias_max', 3]) || 15)), 0);
-                if (maxAlarm > 0) diasLimite = maxAlarm;
+            let diasTranscurridos = 0;
+            if (!isNaN(ingreso.getTime())) {
+                const diffTime = hoy - ingreso;
+                diasTranscurridos = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
             }
 
-            const vencimientoDate = new Date(ingreso);
-            vencimientoDate.setDate(vencimientoDate.getDate() + diasLimite);
+            let vencimientoDate = null;
+            const cleanVencStr = String(fechaVencimientoStr || '').split('T')[0];
+            if (cleanVencStr) {
+                vencimientoDate = new Date(cleanVencStr + 'T00:00:00');
+            }
+
+            if (!vencimientoDate || isNaN(vencimientoDate.getTime())) {
+                vencimientoDate = new Date(ingreso);
+                vencimientoDate.setDate(vencimientoDate.getDate() + 15);
+            }
             vencimientoDate.setHours(0, 0, 0, 0);
             const vencimientoFormatted = vencimientoDate.toISOString().split('T')[0];
 
@@ -605,7 +612,8 @@
                 if (est && docEst !== est) return false;
 
                 if (alar) {
-                    const plazos = calcularPlazos(fechaIng);
+                    const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 'fecha_vencimiento', 5]);
+                    const plazos = calcularPlazos(fechaIng, fechaVencRaw);
                     const dTrans = plazos.diasTranscurridos;
                     const alarmaObj = appData.Alarmas.find(a => {
                         const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
@@ -641,7 +649,8 @@
 
             const datosFormateados = docs.map(doc => {
                 const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 'fecha_ingreso', 4]) || '';
-                const plazos = calcularPlazos(fechaIngRaw);
+                const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 'fecha_vencimiento', 5]) || '';
+                const plazos = calcularPlazos(fechaIngRaw, fechaVencRaw);
                 return {
                     "Nro. Documento": getProp(doc, ['Numero_Documento', 1]) || '-',
                     "Origen": getProp(doc, ['Origen_Tipo', 2]) || '-',
@@ -736,18 +745,13 @@
                 const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 'fecha_ingreso', 'FECHA_INGRESO', 4]) || '';
                 const fechaIng = fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-';
 
-                const plazos = calcularPlazos(fechaIng);
-
                 const rawVenc = getProp(doc, ['Fecha_Vencimiento', 'fecha_vencimiento', 5]);
-                const fechaVenc = (rawVenc && rawVenc !== 'NaN-aN-aN' && !String(rawVenc).match(/[a-zA-Z]/)) ? String(rawVenc).split('T')[0] : plazos.vencimiento;
+                const plazos = calcularPlazos(fechaIng, rawVenc);
+                const fechaVenc = plazos.vencimiento;
 
-                const rawTrans = getProp(doc, ['Dias_Trancurridos', 'dias_trancurridos', 'Dias_Transcurridos', 6]);
-                const diasTrans = (rawTrans !== undefined && rawTrans !== '' && !isNaN(rawTrans)) ? parseInt(rawTrans) : plazos.diasTranscurridos;
-
+                const diasTrans = plazos.diasTranscurridos;
                 const diasFalt = plazos.diasFaltantes;
-
-                const rawExc = getProp(doc, ['Dias_Exceso', 'dias_exceso', 7]);
-                const diasExc = (rawExc !== undefined && rawExc !== '' && !isNaN(rawExc)) ? parseInt(rawExc) : plazos.diasExceso;
+                const diasExc = plazos.diasExceso;
 
                 const responsable = getProp(doc, ['Responsable', 'responsable', 'RESPONSABLE', 8]) || '-';
                 const rawEstado = getProp(doc, ['Estado', 'estado', 'ESTADO', 9]) || 'Pendiente';
@@ -919,7 +923,19 @@
                 document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '';
                 document.getElementById('formOrigenTipo').value = getProp(doc, ['Origen_Tipo', 2]) || '';
                 document.getElementById('formAsunto').value = getProp(doc, ['Asunto', 3]) || '';
-                document.getElementById('formFechaIngreso').value = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
+                
+                const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
+                document.getElementById('formFechaIngreso').value = fechaIng;
+
+                const fechaVenc = String(getProp(doc, ['Fecha_Vencimiento', 5]) || '').split('T')[0];
+                if (fechaVenc) {
+                    document.getElementById('formFechaVencimiento').value = fechaVenc;
+                } else {
+                    const d = new Date(fechaIng + 'T00:00:00');
+                    d.setDate(d.getDate() + 15);
+                    document.getElementById('formFechaVencimiento').value = d.toISOString().split('T')[0];
+                }
+
                 document.getElementById('formResponsable').value = getProp(doc, ['Responsable', 8]) || '';
                 
                 const rawEst = getProp(doc, ['Estado', 9]) || 'Pendiente';
@@ -928,7 +944,13 @@
             } else {
                 document.getElementById('docModalTitle').innerText = "Nuevo Documento";
                 document.getElementById('docIndex').value = "";
-                document.getElementById('formFechaIngreso').value = new Date().toISOString().split('T')[0];
+                const todayStr = new Date().toISOString().split('T')[0];
+                document.getElementById('formFechaIngreso').value = todayStr;
+                
+                const dDef = new Date();
+                dDef.setDate(dDef.getDate() + 15);
+                document.getElementById('formFechaVencimiento').value = dDef.toISOString().split('T')[0];
+
                 document.getElementById('formEstado').value = "Pendiente";
             }
             document.getElementById('docFormModal').classList.remove('hidden');
@@ -940,19 +962,21 @@
             e.preventDefault();
             const numDoc = document.getElementById('formNumeroDocumento').value.trim();
             const fechaIng = document.getElementById('formFechaIngreso').value;
+            const fechaVenc = document.getElementById('formFechaVencimiento').value;
             const origenTipo = document.getElementById('formOrigenTipo').value;
             const asunto = document.getElementById('formAsunto').value;
             const resp = document.getElementById('formResponsable').value;
             const est = document.getElementById('formEstado').value;
             const obs = document.getElementById('formObservaciones').value;
-            const plazos = calcularPlazos(fechaIng);
+            
+            const plazos = calcularPlazos(fechaIng, fechaVenc);
 
             const newDocObj = {
                 Numero_Documento: numDoc,
                 Origen_Tipo: origenTipo,
                 Asunto: asunto,
                 Fecha_Ingreso: fechaIng,
-                Fecha_Vencimiento: plazos.vencimiento,
+                Fecha_Vencimiento: fechaVenc || plazos.vencimiento,
                 Dias_Trancurridos: plazos.diasTranscurridos,
                 Dias_Exceso: plazos.diasExceso,
                 Responsable: resp,
