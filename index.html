@@ -538,7 +538,6 @@
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Documentos Hidrandina");
             
-            // Descargar archivo Excel real
             XLSX.writeFile(workbook, "Control_Documentos_Hidrandina.xlsx");
         }
 
@@ -551,7 +550,7 @@
             }
 
             const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
-            let cuerpo = `Estimado equipo,\n\nA continuación se presenta el reporte actual de control de documentos (% de registros filtrados: ${docs.length}):\n\n`;
+            let cuerpo = `Estimado equipo,\n\nA continuación se presenta el reporte actual para conocimiento y control:\n\n`;
             
             docs.forEach((doc, idx) => {
                 const num = getProp(doc, ['Numero_Documento', 1]);
@@ -567,7 +566,7 @@
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
         }
 
-        // --- FUNCIONALIDAD 3: ENVIAR REGISTRO INDIVIDUAL POR CORREO (Buscando email del responsable) ---
+        // --- FUNCIONALIDAD 3: ENVIAR REGISTRO INDIVIDUAL (PARA CONOCIMIENTO) ---
         function enviarCorreoIndividual(idx) {
             const doc = appData.Documentos[idx];
             if (!doc) return;
@@ -580,7 +579,6 @@
             const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
             const observaciones = getProp(doc, ['Observaciones', 10]) || '';
 
-            // Buscar correo electrónico del responsable en el catálogo de Personal
             let correoDestino = '';
             if (appData.Personal && appData.Personal.length > 0) {
                 const persEncontrado = appData.Personal.find(p => {
@@ -592,17 +590,17 @@
                 }
             }
 
-            // Asunto solicitado: [Carta] + [Entidad / Origen] + [Estado]
+            // Asunto: [Carta] + [Entidad / Origen] + [Estado]
             const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
             
-            let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe le asigna y notifica el seguimiento del siguiente documento:\n\n` +
+            // Cuerpo actualizado indicando "para su conocimiento" (sin asignar ni notificar obligatoriamente)
+            let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe remite el siguiente documento para su conocimiento:\n\n` +
                 `- Nro. Documento: ${numDoc}\n` +
                 `- Entidad / Origen: ${entidad}\n` +
                 `- Asunto: ${asuntoDoc}\n` +
                 `- Fecha de Ingreso: ${fechaIng}\n` +
                 `- Estado Actual: ${estado}\n` +
                 `- Observaciones: ${observaciones}\n\n` +
-                `Por favor gestionar la atención dentro del plazo establecido.\n\n` +
                 `Atentamente,\nIng. Johnny Quevin Camacho Mori\nJefe del Departamento de Ventas y Clientes Menores - Hidrandina`;
 
             window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
@@ -655,7 +653,7 @@
                         <td class="py-4 px-4"><span class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200/60">${estado}</span></td>
                         <td class="py-4 px-4 text-slate-600 max-w-[160px] truncate" title="${observaciones}">${observaciones}</td>
                         <td class="py-4 px-4 text-right space-x-1">
-                            <button onclick="enviarCorreoIndividual(${idx})" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition shadow-sm" title="Enviar por Correo al Responsable"><i class="fa-solid fa-envelope"></i></button>
+                            <button onclick="enviarCorreoIndividual(${idx})" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition shadow-sm" title="Enviar por Correo para Conocimiento"><i class="fa-solid fa-envelope"></i></button>
                             <button onclick="editDocument(${idx})" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition shadow-sm" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button onclick="deleteDocument(${idx})" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition shadow-sm" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                         </td>
