@@ -9,7 +9,7 @@
     <!-- Librería SheetJS para exportar archivos Excel reales (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style> 
         body { font-family: 'Plus Jakarta Sans', sans-serif; } 
         .glass-header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0284c7 100%); }
@@ -148,7 +148,7 @@
                 </div>
             </div>
 
-            <!-- TABLA MEJORADA CON GRID Y CABECERA AZUL DÉGRADÉ -->
+            <!-- TABLA CON GRID Y CABECERA AZUL DÉGRADÉ -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -160,6 +160,7 @@
                                 <th class="py-4 px-4 border-r border-indigo-600/40">F. Ingreso</th>
                                 <th class="py-4 px-4 border-r border-indigo-600/40">F. Vencimiento</th>
                                 <th class="py-4 px-4 border-r border-indigo-600/40 text-center">Días Transc.</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40 text-center">Días Faltantes</th>
                                 <th class="py-4 px-4 border-r border-indigo-600/40 text-center">Días Exceso</th>
                                 <th class="py-4 px-4 border-r border-indigo-600/40">Responsable</th>
                                 <th class="py-4 px-4 border-r border-indigo-600/40">Estado</th>
@@ -169,7 +170,7 @@
                         </thead>
                         <tbody id="documentosTableBody" class="divide-y divide-slate-200 text-xs font-medium">
                             <tr>
-                                <td colspan="11" class="py-12 text-center text-slate-400 font-semibold">Cargando registros...</td>
+                                <td colspan="12" class="py-12 text-center text-slate-400 font-semibold bg-white">Cargando registros...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -529,10 +530,10 @@
         }
 
         function calcularPlazos(fechaIngresoStr) {
-            if (!fechaIngresoStr) return { vencimiento: '-', diasTranscurridos: 0, diasExceso: 0 };
+            if (!fechaIngresoStr) return { vencimiento: '-', diasTranscurridos: 0, diasFaltantes: 0, diasExceso: 0 };
             const cleanDateStr = String(fechaIngresoStr).split('T')[0];
             const ingreso = new Date(cleanDateStr + 'T00:00:00');
-            if (isNaN(ingreso.getTime())) return { vencimiento: '-', diasTranscurridos: 0, diasExceso: 0 };
+            if (isNaN(ingreso.getTime())) return { vencimiento: '-', diasTranscurridos: 0, diasFaltantes: 0, diasExceso: 0 };
 
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
@@ -550,10 +551,13 @@
             vencimientoDate.setDate(vencimientoDate.getDate() + diasLimite);
             const vencimientoFormatted = vencimientoDate.toISOString().split('T')[0];
 
-            const diffVenc = hoy - vencimientoDate;
-            const diasExceso = Math.max(0, Math.floor(diffVenc / (1000 * 60 * 60 * 24)));
+            const diffVenc = vencimientoDate - hoy;
+            const diasFaltantes = Math.max(0, Math.ceil(diffVenc / (1000 * 60 * 60 * 24)));
 
-            return { vencimiento: vencimientoFormatted, diasTranscurridos, diasExceso };
+            const diffExc = hoy - vencimientoDate;
+            const diasExceso = Math.max(0, Math.floor(diffExc / (1000 * 60 * 60 * 24)));
+
+            return { vencimiento: vencimientoFormatted, diasTranscurridos, diasFaltantes, diasExceso };
         }
 
         function obtenerDocumentosFiltradosActuales() {
@@ -644,6 +648,7 @@
                     "Fecha Ingreso": fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-',
                     "Fecha Vencimiento": plazos.vencimiento,
                     "Días Transcurridos": plazos.diasTranscurridos,
+                    "Días Faltantes": plazos.diasFaltantes,
                     "Días Exceso": plazos.diasExceso,
                     "Responsable": getProp(doc, ['Responsable', 8]) || '-',
                     "Estado": getProp(doc, ['Estado', 9]) || 'Pendiente',
@@ -716,11 +721,10 @@
             window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
         }
 
-        // TABLA CON BORDES DE REJILLA EN CELDA (GRID VISIBLE) Y FILAS INTERCALADAS
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="12" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos registrados.</td></tr>`;
                 return;
             }
 
@@ -739,13 +743,14 @@
                 const rawTrans = getProp(doc, ['Dias_Trancurridos', 'dias_trancurridos', 'Dias_Transcurridos', 6]);
                 const diasTrans = (rawTrans !== undefined && rawTrans !== '' && !isNaN(rawTrans)) ? parseInt(rawTrans) : plazos.diasTranscurridos;
 
+                const diasFalt = plazos.diasFaltantes;
+
                 const rawExc = getProp(doc, ['Dias_Exceso', 'dias_exceso', 7]);
                 const diasExc = (rawExc !== undefined && rawExc !== '' && !isNaN(rawExc)) ? parseInt(rawExc) : plazos.diasExceso;
 
                 const responsable = getProp(doc, ['Responsable', 'responsable', 'RESPONSABLE', 8]) || '-';
                 const rawEstado = getProp(doc, ['Estado', 'estado', 'ESTADO', 9]) || 'Pendiente';
                 const isAtendido = String(rawEstado).toLowerCase().includes('atendido') || String(rawEstado).toLowerCase().includes('concluido');
-                const estado = isAtendido ? 'Atendido' : 'Pendiente';
 
                 const observaciones = getProp(doc, ['Observaciones', 'observaciones', 'OBSERVACIONES', 10]) || '-';
                 const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
@@ -758,6 +763,12 @@
                         <td class="py-3.5 px-4 text-slate-600 font-semibold border-r border-slate-200/80">${fechaIng}</td>
                         <td class="py-3.5 px-4 font-bold text-slate-700 border-r border-slate-200/80">${fechaVenc}</td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans} días</span></td>
+                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
+                            ${diasFalt > 0 && !isAtendido ? 
+                                `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt} días</span>` : 
+                                `<span class="text-slate-400 font-semibold text-[11px]">0 días</span>`
+                            }
+                        </td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
                             ${diasExc > 0 && !isAtendido ? 
                                 `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc} días</span>` : 
