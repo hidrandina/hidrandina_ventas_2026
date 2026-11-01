@@ -140,7 +140,7 @@
                             <i class="fa-solid fa-file-excel text-sm"></i>
                             <span>Exportar Excel</span>
                         </button>
-                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/20 transition transform active:scale-95" title="Descargar Excel y redactar correo institucional">
+                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/20 transition transform active:scale-95" title="Preparar correo y descargar Excel para adjuntar">
                             <i class="fa-solid fa-paper-plane text-sm"></i>
                             <span>Enviar por Correo</span>
                         </button>
@@ -677,11 +677,14 @@
                 return;
             }
 
-            // Descarga automática del Excel para adjuntarlo fácilmente en el correo
+            // Descarga automática del Excel para que el usuario lo adjunte en su gestor de correo
             exportarExcel();
 
             const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
             let cuerpo = `Estimado equipo,\n\nSe adjunta el reporte actual de control de documentos en formato Excel para su revisión y atención.\n\nAtte,\nIng. Johnny Quevin Camacho Mori`;
+
+            // Aviso claro sobre la restricción del navegador para adjuntar archivos automáticamente
+            alert("¡Reporte Excel descargado con éxito!\n\nNota de seguridad del navegador: Los navegadores web no permiten adjuntar archivos automáticamente a través de enlaces de correo (mailto). Por favor, adjunta el archivo 'Control_Documentos_Hidrandina.xlsx' recién descargado en tu ventana de Outlook.");
 
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
         }
