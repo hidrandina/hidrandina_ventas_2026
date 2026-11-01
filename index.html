@@ -561,12 +561,10 @@
                 cuerpo += `${idx + 1}. [${num}] - ${origen} | Asunto: ${asuntoDoc} | Estado: ${estado} | Responsable: ${resp}\n`;
             });
 
-            cuerpo += `\nAtentamente,\njcamacho`;
-            
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
         }
 
-        // --- FUNCIONALIDAD 3: ENVIAR REGISTRO INDIVIDUAL (PARA CONOCIMIENTO) ---
+        // --- FUNCIONALIDAD 3: ENVIAR REGISTRO INDIVIDUAL (PARA CONOCIMIENTO - SIN FIRMA DUPLICADA) ---
         function enviarCorreoIndividual(idx) {
             const doc = appData.Documentos[idx];
             if (!doc) return;
@@ -593,15 +591,14 @@
             // Asunto: [Carta] + [Entidad / Origen] + [Estado]
             const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
             
-            // Cuerpo actualizado indicando "para su conocimiento" y firma limpia con "Atentamente" y "jcamacho"
+            // Cuerpo limpio para que Outlook adjunte tu firma automáticamente sin duplicados
             let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe remite el siguiente documento para su conocimiento:\n\n` +
                 `- Nro. Documento: ${numDoc}\n` +
                 `- Entidad / Origen: ${entidad}\n` +
                 `- Asunto: ${asuntoDoc}\n` +
                 `- Fecha de Ingreso: ${fechaIng}\n` +
                 `- Estado Actual: ${estado}\n` +
-                `- Observaciones: ${observaciones}\n\n` +
-                `Atentamente,\njcamacho`;
+                `- Observaciones: ${observaciones}\n`;
 
             window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
         }
