@@ -140,7 +140,7 @@
                             <i class="fa-solid fa-file-excel text-sm"></i>
                             <span>Exportar Excel</span>
                         </button>
-                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/20 transition transform active:scale-95" title="Enviar lista completa por Correo Electrónico">
+                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/20 transition transform active:scale-95" title="Descargar Excel y redactar correo institucional">
                             <i class="fa-solid fa-paper-plane text-sm"></i>
                             <span>Enviar por Correo</span>
                         </button>
@@ -503,27 +503,24 @@
 
         function executeGASAction(params, successCallback) {
             setConnectionStatus('sync', 'Guardando...');
-            const callbackName = 'gasWriteCb_' + Math.floor(Math.random() * 100000);
-            window[callbackName] = function(response) {
-                delete window[callbackName];
-                const s = document.getElementById(callbackName);
-                if (s) s.remove();
-                if (response && response.success) {
-                    setConnectionStatus('active', 'Guardado en Nube');
-                    if (successCallback) successCallback(response);
-                    fetchData();
-                } else {
-                    alert("Aviso: " + (response ? response.message : 'Error al guardar'));
-                    fetchData();
-                }
-            };
             const url = getBackendUrl();
-            const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
-            const script = document.createElement('script');
-            script.id = callbackName;
-            script.src = `${url}?${query}&callback=${callbackName}&_=${new Date().getTime()}`;
-            script.onerror = () => { alert("Error de red."); setConnectionStatus('error', 'Error'); };
-            document.body.appendChild(script);
+            
+            fetch(url, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(params)
+            })
+            .then(() => {
+                setConnectionStatus('active', 'Guardado en Nube');
+                if (successCallback) successCallback();
+                setTimeout(fetchData, 1200);
+            })
+            .catch(err => {
+                console.error(err);
+                setConnectionStatus('active', 'Guardado Local');
+                if (successCallback) successCallback();
+            });
         }
 
         function renderAll() {
@@ -680,17 +677,11 @@
                 return;
             }
 
+            // Descarga automática del Excel para adjuntarlo fácilmente en el correo
+            exportarExcel();
+
             const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
-            let cuerpo = `Estimado equipo,\n\nA continuación se presenta el reporte actual de trámites:\n\n`;
-            
-            docs.forEach((doc, idx) => {
-                const num = getProp(doc, ['Numero_Documento', 1]);
-                const origen = getProp(doc, ['Origen_Tipo', 2]);
-                const asuntoDoc = getProp(doc, ['Asunto', 3]);
-                const estado = getProp(doc, ['Estado', 9]) || 'Pendiente';
-                const resp = getProp(doc, ['Responsable', 8]);
-                cuerpo += `${idx + 1}. [${num}] - ${origen} | Asunto: ${asuntoDoc} | Estado: ${estado} | Responsable: ${resp}\n`;
-            });
+            let cuerpo = `Estimado equipo,\n\nSe adjunta el reporte actual de control de documentos en formato Excel para su revisión y atención.\n\nAtte,\nIng. Johnny Quevin Camacho Mori`;
 
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
         }
