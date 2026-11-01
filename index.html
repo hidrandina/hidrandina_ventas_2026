@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-100">
+<html lang="es" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,36 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style> 
-        body { font-family: 'Inter', sans-serif; } 
+        body { font-family: 'Plus Jakarta Sans', sans-serif; } 
+        .glass-header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-50 selection:bg-blue-600 selection:text-white">
 
-    <!-- Header Principal Institucional con el Isotipo Exacto de Hidrandina -->
-    <header class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-lg">
+    <!-- Header Principal Institucional Elegante (Sin logo) -->
+    <header class="glass-header border-b border-slate-800 sticky top-0 z-30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center p-2 shadow-lg shadow-blue-600/20 ring-2 ring-blue-400/20">
-                    <!-- Isotipo vectorial exacto de Hidrandina (Figura sin texto) -->
-                    <svg viewBox="0 0 100 100" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Parte superior izquierda (Verde) -->
-                        <path d="M30 15 C20 15 15 20 15 30 L15 50 L50 50 L50 15 Z" fill="#22b55b"/>
-                        <path d="M30 15 L50 15 L50 35 Z" fill="#22b55b"/>
-                        <!-- Parte inferior derecha (Verde) -->
-                        <path d="M70 85 C80 85 85 80 85 70 L85 50 L50 50 L50 85 Z" fill="#22b55b"/>
-                        <!-- Parte superior derecha (Azul) -->
-                        <path d="M70 15 C80 15 85 20 85 30 L85 50 L50 50 L50 15 Z" fill="#0072bc"/>
-                        <!-- Parte inferior izquierda (Azul) -->
-                        <path d="M30 85 C20 85 15 80 15 70 L15 50 L50 50 L50 85 Z" fill="#0072bc"/>
-                    </svg>
-                </div>
                 <div>
-                    <h1 class="font-bold text-white text-lg sm:text-xl tracking-tight leading-tight">HIDRANDINA - Departamento de Ventas y Clientes Menores</h1>
-                    <div class="flex flex-wrap items-center space-x-3 mt-1 text-xs text-slate-300">
-                        <span class="font-medium text-blue-400"><i class="fa-solid fa-user-shield mr-1"></i> Autor: Ing. Johnny Quevin Camacho Mori</span>
-                        <span class="text-slate-500">•</span>
+                    <h1 class="font-bold text-white text-base sm:text-xl tracking-tight leading-tight flex items-center space-x-2">
+                        <span>HIDRANDINA - Departamento de Ventas y Clientes Menores</span>
+                    </h1>
+                    <div class="flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-300">
+                        <span class="font-medium text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-md border border-blue-500/20"><i class="fa-solid fa-user-shield mr-1.5"></i> Autor: Ing. Johnny Quevin Camacho Mori</span>
+                        <span class="text-slate-600">•</span>
                         <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                             <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-400 animate-pulse"></span> Sincronizando...
                         </span>
@@ -44,33 +33,33 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2">
-                <button onclick="fetchData()" class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition shadow-sm" title="Refrescar Datos">
-                    <i class="fa-solid fa-sync text-base"></i>
+            <div class="flex items-center space-x-2.5">
+                <button onclick="fetchData()" class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition shadow-sm border border-transparent hover:border-white/10" title="Refrescar Datos">
+                    <i class="fa-solid fa-sync text-sm"></i>
                 </button>
-                <button onclick="openConfigModal()" class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition shadow-sm" title="Configurar URL Backend">
-                    <i class="fa-solid fa-gear text-base"></i>
+                <button onclick="openConfigModal()" class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition shadow-sm border border-transparent hover:border-white/10" title="Configurar URL Backend">
+                    <i class="fa-solid fa-gear text-sm"></i>
                 </button>
-                <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white px-4.5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/25 transition transform active:scale-95">
-                    <i class="fa-solid fa-plus"></i>
+                <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/30 transition transform active:scale-95 border border-blue-500/50">
+                    <i class="fa-solid fa-plus text-xs"></i>
                     <span>Nuevo Documento</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Navegación por Pestañas -->
-    <nav class="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 shadow-sm">
+    <!-- Navegación por Pestañas Moderna -->
+    <nav class="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 shadow-sm">
         <div class="max-w-7xl mx-auto flex space-x-8">
-            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-2 border-b-2 border-blue-600 text-blue-600 font-semibold text-sm flex items-center space-x-2 transition">
+            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-3 border-b-2 border-blue-600 text-blue-600 font-bold text-sm flex items-center space-x-2.5 transition">
                 <i class="fa-solid fa-file-lines text-base"></i>
                 <span>Documentos</span>
             </button>
-            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center space-x-2 transition">
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-semibold text-sm flex items-center space-x-2.5 transition">
                 <i class="fa-solid fa-chart-pie text-base"></i>
                 <span>Dashboard Ejecutivo</span>
             </button>
-            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center space-x-2 transition">
+            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-semibold text-sm flex items-center space-x-2.5 transition">
                 <i class="fa-solid fa-database text-base"></i>
                 <span>Gestión de Catálogos</span>
             </button>
@@ -82,40 +71,40 @@
 
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
                 <div class="relative w-full sm:w-96">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                         <i class="fa-solid fa-search"></i>
                     </span>
-                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por documento, asunto, responsable..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por documento, asunto, responsable..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
                 </div>
                 <div class="flex items-center space-x-3 w-full sm:w-auto">
-                    <select id="filterEstado" onchange="filterDocuments()" class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    <select id="filterEstado" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Estados</option>
                     </select>
-                    <select id="filterOrigen" onchange="filterDocuments()" class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Orígenes</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Tabla de Registros -->
+            <!-- Tabla de Registros Profesional -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50/75 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                <th class="py-3.5 px-4">Nro. Documento</th>
-                                <th class="py-3.5 px-4">Origen</th>
-                                <th class="py-3.5 px-4">Asunto</th>
-                                <th class="py-3.5 px-4">F. Ingreso</th>
-                                <th class="py-3.5 px-4">F. Vencimiento</th>
-                                <th class="py-3.5 px-4 text-center">Días Transc.</th>
-                                <th class="py-3.5 px-4 text-center">Días Exceso</th>
-                                <th class="py-3.5 px-4">Responsable</th>
-                                <th class="py-3.5 px-4">Estado</th>
-                                <th class="py-3.5 px-4">Observaciones</th>
-                                <th class="py-3.5 px-4 text-right">Acciones</th>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                                <th class="py-4 px-4">Nro. Documento</th>
+                                <th class="py-4 px-4">Origen</th>
+                                <th class="py-4 px-4">Asunto</th>
+                                <th class="py-4 px-4">F. Ingreso</th>
+                                <th class="py-4 px-4">F. Vencimiento</th>
+                                <th class="py-4 px-4 text-center">Días Transc.</th>
+                                <th class="py-4 px-4 text-center">Días Exceso</th>
+                                <th class="py-4 px-4">Responsable</th>
+                                <th class="py-4 px-4">Estado</th>
+                                <th class="py-4 px-4">Observaciones</th>
+                                <th class="py-4 px-4 text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="documentosTableBody" class="divide-y divide-slate-100 text-xs">
@@ -133,37 +122,37 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Documentos</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Documentos</p>
                         <h3 id="stat-total" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
                     </div>
-                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-inner">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-inner border border-blue-100">
                         <i class="fa-solid fa-folder-open"></i>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">En Tramitación</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">En Tramitación</p>
                         <h3 id="stat-tramite" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
                     </div>
-                    <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shadow-inner">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shadow-inner border border-amber-100">
                         <i class="fa-solid fa-clock"></i>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Atendidos</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Atendidos</p>
                         <h3 id="stat-atendido" class="text-3xl font-extrabold text-emerald-600 mt-1">0</h3>
                     </div>
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner border border-emerald-100">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">En Evaluación</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">En Evaluación</p>
                         <h3 id="stat-evaluacion" class="text-3xl font-extrabold text-indigo-600 mt-1">0</h3>
                     </div>
-                    <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-inner">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-inner border border-indigo-100">
                         <i class="fa-solid fa-magnifying-glass-chart"></i>
                     </div>
                 </div>
@@ -171,13 +160,13 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Documentos por Estado</h3>
+                    <h3 class="font-bold text-slate-900 mb-4 text-xs uppercase tracking-wider">Documentos por Estado</h3>
                     <div class="h-72 flex items-center justify-center">
                         <canvas id="chartEstados"></canvas>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Documentos por Tipo de Origen</h3>
+                    <h3 class="font-bold text-slate-900 mb-4 text-xs uppercase tracking-wider">Documentos por Tipo de Origen</h3>
                     <div class="h-72 flex items-center justify-center">
                         <canvas id="chartOrigenes"></canvas>
                     </div>
@@ -194,7 +183,7 @@
                             <i class="fa-solid fa-users"></i>
                             <span>Personal</span>
                         </div>
-                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-semibold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
+                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="managePersonalList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
@@ -205,7 +194,7 @@
                             <i class="fa-solid fa-tags"></i>
                             <span>Estados</span>
                         </div>
-                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-semibold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
+                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
@@ -216,7 +205,7 @@
                             <i class="fa-solid fa-layer-group"></i>
                             <span>Orígenes</span>
                         </div>
-                        <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-xl font-semibold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
+                        <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
@@ -227,7 +216,7 @@
                             <i class="fa-solid fa-bell"></i>
                             <span>Alarmas / Plazos</span>
                         </div>
-                        <button onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-semibold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
+                        <button onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageAlarmasList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
@@ -246,40 +235,40 @@
             <form id="docForm" onsubmit="saveDocument(event)" class="space-y-4 text-sm">
                 <input type="hidden" id="docIndex">
                 <div>
-                    <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Nro. Documento *</label>
-                    <input type="text" id="formNumeroDocumento" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" placeholder="DOC-2026-XXX">
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nro. Documento *</label>
+                    <input type="text" id="formNumeroDocumento" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" placeholder="DOC-2026-XXX">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Tipo de Origen *</label>
-                        <select id="formOrigenTipo" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition"></select>
+                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Tipo de Origen *</label>
+                        <select id="formOrigenTipo" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner"></select>
                     </div>
                     <div>
-                        <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Fecha de Ingreso *</label>
-                        <input type="date" id="formFechaIngreso" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Fecha de Ingreso *</label>
+                        <input type="date" id="formFechaIngreso" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">
                     </div>
                 </div>
                 <div>
-                    <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Asunto / Descripción *</label>
-                    <textarea id="formAsunto" rows="2" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" placeholder="Describa el motivo..."></textarea>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Asunto / Descripción *</label>
+                    <textarea id="formAsunto" rows="2" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" placeholder="Describa el motivo..."></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Responsable *</label>
-                        <select id="formResponsable" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition"></select>
+                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Responsable *</label>
+                        <select id="formResponsable" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner"></select>
                     </div>
                     <div>
-                        <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Estado Actual *</label>
-                        <select id="formEstado" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition"></select>
+                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Estado Actual *</label>
+                        <select id="formEstado" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner"></select>
                     </div>
                 </div>
                 <div>
-                    <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Observaciones</label>
-                    <textarea id="formObservaciones" rows="2" class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" placeholder="Comentarios u observaciones..."></textarea>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Observaciones</label>
+                    <textarea id="formObservaciones" rows="2" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" placeholder="Comentarios u observaciones..."></textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeDocFormModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition">Guardar en Google Sheets</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar en Google Sheets</button>
                 </div>
             </form>
         </div>
@@ -296,29 +285,29 @@
                 <input type="hidden" id="catalogType">
                 <input type="hidden" id="catalogOldIndex">
                 <div>
-                    <label id="catalogLabelName" class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Nombre / Valor *</label>
-                    <input type="text" id="catalogInputValue" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                    <label id="catalogLabelName" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nombre / Valor *</label>
+                    <input type="text" id="catalogInputValue" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">
                 </div>
                 <div id="catalogFieldSecondaryContainer">
-                    <label id="catalogLabelSecondary" class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Campo Secundario</label>
+                    <label id="catalogLabelSecondary" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Campo Secundario</label>
                     <div id="inputSecondaryWrapper" class="mt-1.5 flex items-center space-x-2">
-                        <input type="text" id="catalogInputSecondary" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                        <input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">
                     </div>
                 </div>
                 <div id="catalogFieldThirdContainer" class="hidden">
-                    <label id="catalogLabelThird" class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Campo Tercero</label>
-                    <input type="text" id="catalogInputThird" class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                    <label id="catalogLabelThird" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Campo Tercero</label>
+                    <input type="text" id="catalogInputThird" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">
                 </div>
                 <div id="catalogFieldFourthContainer" class="hidden">
-                    <label id="catalogLabelFourth" class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Color Alarma</label>
+                    <label id="catalogLabelFourth" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Color Alarma</label>
                     <div class="mt-1.5 flex items-center space-x-2">
                         <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputFourthText').value = this.value">
-                        <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
+                        <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
                     </div>
                 </div>
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeCatalogModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition">Guardar Cambios</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar Cambios</button>
                 </div>
             </form>
         </div>
@@ -332,10 +321,10 @@
                 <button onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <p class="text-sm text-slate-500">URL del Google Apps Script enlazado:</p>
-            <input type="text" id="inputBackendUrl" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+            <input type="text" id="inputBackendUrl" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
             <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                 <button onclick="closeConfigModal()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
-                <button onclick="saveBackendUrl()" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-semibold shadow-lg shadow-blue-600/20 transition">Guardar</button>
+                <button onclick="saveBackendUrl()" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar</button>
             </div>
         </div>
     </div>
@@ -523,7 +512,7 @@
                 return `
                     <tr class="hover:bg-slate-50/80 transition">
                         <td class="py-4 px-4 font-bold text-slate-900">${numDoc}</td>
-                        <td class="py-4 px-4 text-slate-600"><span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">${origen}</span></td>
+                        <td class="py-4 px-4 text-slate-600"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">${origen}</span></td>
                         <td class="py-4 px-4 text-slate-800 max-w-[200px] truncate font-medium" title="${asunto}">${asunto}</td>
                         <td class="py-4 px-4 text-slate-500 font-medium">${fechaIng}</td>
                         <td class="py-4 px-4 font-semibold text-slate-700">${fechaVenc}</td>
@@ -535,7 +524,7 @@
                             }
                         </td>
                         <td class="py-4 px-4 text-slate-700 font-medium">${responsable}</td>
-                        <td class="py-4 px-4"><span class="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/60">${estado}</span></td>
+                        <td class="py-4 px-4"><span class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200/60">${estado}</span></td>
                         <td class="py-4 px-4 text-slate-600 max-w-[160px] truncate" title="${observaciones}">${observaciones}</td>
                         <td class="py-4 px-4 text-right space-x-1">
                             <button onclick="editDocument(${idx})" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition shadow-sm" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
@@ -757,7 +746,7 @@
             if (type === 'Personal') {
                 lblName.innerText = "Nombre Completo *";
                 lblSec.innerText = "Cargo / Área";
-                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">`;
+                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">`;
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
             } else if (type === 'Estados') {
@@ -765,16 +754,16 @@
                 lblSec.innerText = "Color de Estado";
                 secWrapper.innerHTML = `
                     <input type="color" id="colorPickerSec" value="#3b82f6" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputSecondary').value = this.value">
-                    <input type="text" id="catalogInputSecondary" value="#3b82f6" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" oninput="document.getElementById('colorPickerSec').value = this.value">
+                    <input type="text" id="catalogInputSecondary" value="#3b82f6" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" oninput="document.getElementById('colorPickerSec').value = this.value">
                 `;
             } else if (type === 'Origenes') {
                 lblName.innerText = "Tipo de Origen *";
                 lblSec.innerText = "Descripción";
-                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">`;
+                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">`;
             } else if (type === 'Alarmas') {
                 lblName.innerText = "Nombre Alarma *";
                 lblSec.innerText = "Días Mínimos";
-                secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">`;
+                secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">`;
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Días Máximos";
                 document.getElementById('catalogInputThird').value = "15";
@@ -853,13 +842,13 @@
         function switchTab(tabId) {
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-semibold');
-                btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
+                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-bold');
+                btn.classList.add('border-transparent', 'text-slate-500', 'font-semibold');
             });
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
-            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-semibold');
+            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-semibold');
+            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-bold');
             if (tabId === 'dashboard') renderCharts();
             if (tabId === 'catalogos') renderCatalogsManagement();
         }
@@ -878,7 +867,7 @@
             chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
                 type: 'doughnut',
                 data: { labels: Object.keys(estadoCounts), datasets: [{ data: Object.values(estadoCounts), backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899'], borderWidth: 2, borderColor: '#ffffff' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { weight: '600' } } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { weight: '700' } } } } }
             });
             chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
                 type: 'bar',
