@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            <!-- Tabla de Registros Alineada Correctamente -->
+            <!-- Tabla de Registros Alineada -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -172,7 +172,6 @@
         <!-- TAB 3: GESTIÓN DE CATÁLOGOS -->
         <section id="tab-catalogos" class="hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Personal -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2 text-blue-600">
@@ -184,7 +183,6 @@
                     <div id="managePersonalList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
                 </div>
 
-                <!-- Estados -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2 text-indigo-600">
@@ -196,7 +194,6 @@
                     <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
                 </div>
 
-                <!-- Origenes -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2 text-emerald-600">
@@ -208,7 +205,6 @@
                     <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
                 </div>
 
-                <!-- Alarmas -->
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2 text-rose-600">
@@ -273,7 +269,7 @@
         </div>
     </div>
 
-    <!-- MODAL: CATÁLOGO CON COLOR PICKER -->
+    <!-- MODAL: CATÁLOGO -->
     <div id="catalogModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
             <div class="flex justify-between items-center">
@@ -283,24 +279,20 @@
             <form id="catalogForm" onsubmit="saveCatalogItem(event)" class="space-y-3 text-sm">
                 <input type="hidden" id="catalogType">
                 <input type="hidden" id="catalogOldIndex">
-                
                 <div>
                     <label id="catalogLabelName" class="font-medium text-slate-700">Nombre / Valor *</label>
                     <input type="text" id="catalogInputValue" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
-
                 <div id="catalogFieldSecondaryContainer">
                     <label id="catalogLabelSecondary" class="font-medium text-slate-700">Campo Secundario</label>
                     <div id="inputSecondaryWrapper" class="mt-1 flex items-center space-x-2">
                         <input type="text" id="catalogInputSecondary" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                 </div>
-
                 <div id="catalogFieldThirdContainer" class="hidden">
                     <label id="catalogLabelThird" class="font-medium text-slate-700">Campo Tercero</label>
                     <input type="text" id="catalogInputThird" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
-
                 <div id="catalogFieldFourthContainer" class="hidden">
                     <label id="catalogLabelFourth" class="font-medium text-slate-700">Color Alarma</label>
                     <div class="mt-1 flex items-center space-x-2">
@@ -308,7 +300,6 @@
                         <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
                     </div>
                 </div>
-
                 <div class="flex justify-end space-x-3 pt-2">
                     <button type="button" onclick="closeCatalogModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
                     <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">Guardar Cambios</button>
@@ -333,7 +324,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT ROBUSTA -->
+    <!-- LÓGICA JAVASCRIPT CORREGIDA Y PRECISA -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -447,7 +438,7 @@
             renderCatalogsManagement();
         }
 
-        // CÁLCULO ESTRICTO DE PLAZOS Y VENCIMIENTOS
+        // CÁLCULO ESTRICTO DE PLAZOS Y EXCESOS
         function calcularPlazos(fechaIngresoStr) {
             if (!fechaIngresoStr) return { vencimiento: '-', diasTranscurridos: 0, diasExceso: 0 };
             const cleanDateStr = String(fechaIngresoStr).split('T')[0];
@@ -456,10 +447,12 @@
 
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
-            
+
+            // Días Transcurridos = Fecha Actual - Fecha de Ingreso
             const diffTime = hoy - ingreso;
             const diasTranscurridos = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
 
+            // Plazo límite (por defecto 15 días o tomado de alarmas)
             let diasLimite = 15;
             if (appData.Alarmas && appData.Alarmas.length > 0) {
                 const maxAlarm = appData.Alarmas.reduce((max, a) => Math.max(max, parseInt(a.Dias_Max || a[3] || 15)), 0);
@@ -469,7 +462,10 @@
             const vencimientoDate = new Date(ingreso);
             vencimientoDate.setDate(vencimientoDate.getDate() + diasLimite);
             const vencimientoFormatted = vencimientoDate.toISOString().split('T')[0];
-            const diasExceso = Math.max(0, diasTranscurridos - diasLimite);
+
+            // Días en Exceso = Fecha Actual - Fecha de Vencimiento
+            const diffVenc = hoy - vencimientoDate;
+            const diasExceso = Math.max(0, Math.floor(diffVenc / (1000 * 60 * 60 * 24)));
 
             return { vencimiento: vencimientoFormatted, diasTranscurridos, diasExceso };
         }
@@ -481,22 +477,20 @@
                 return;
             }
             tbody.innerHTML = docs.map((doc, idx) => {
-                // Extracción estricta respetando las claves correctas
                 const numDoc = doc.Numero_Documento || doc.Numero_Expediente || doc.NRO_DOCUMENTO || '-';
                 const origen = doc.Origen_Tipo || doc.ORIGEN || '-';
                 const asunto = doc.Asunto || doc.ASUNTO || '-';
                 const fechaIngRaw = doc.Fecha_Ingreso || doc.FECHA_INGRESO || '';
                 const fechaIng = fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-';
-                
+
                 const plazos = calcularPlazos(fechaIng);
-                
-                const fechaVenc = doc.Fecha_Vencimiento && doc.Fecha_Vencimiento !== 'NaN-aN-aN' ? String(doc.Fecha_Vencimiento).split('T')[0] : plazos.vencimiento;
-                const diasTrans = (doc.Dias_Trancurridos !== undefined && doc.Dias_Trancurridos !== '' && !isNaN(doc.Dias_Trancurridos)) ? doc.Dias_Trancurridos : plazos.diasTranscurridos;
+
+                const fechaVenc = (doc.Fecha_Vencimiento && doc.Fecha_Vencimiento !== 'NaN-aN-aN' && !String(doc.Fecha_Vencimiento).includes('Carlos')) ? String(doc.Fecha_Vencimiento).split('T')[0] : plazos.vencimiento;
+                const diasTrans = (doc.Dias_Trancurridos !== undefined && doc.Dias_Trancurridos !== '' && !isNaN(doc.Dias_Trancurridos) && !String(doc.Dias_Trancurridos).includes('Pendiente')) ? doc.Dias_Trancurridos : plazos.diasTranscurridos;
                 const diasExc = (doc.Dias_Exceso !== undefined && doc.Dias_Exceso !== '' && !isNaN(doc.Dias_Exceso)) ? doc.Dias_Exceso : plazos.diasExceso;
-                
+
                 const responsable = doc.Responsable || doc.RESPONSABLE || '-';
                 const estado = doc.Estado || doc.ESTADO || '-';
-
                 const isConcluido = String(estado).toLowerCase().includes('atendido') || String(estado).toLowerCase().includes('concluido');
 
                 return `
@@ -732,4 +726,93 @@
                     const col = item.Color_Hex || item.Color || '#3b82f6';
                     document.getElementById('catalogInputValue').value = item.Nombre_Estado || item.Estado || '';
                     document.getElementById('catalogInputSecondary').value = col;
-                    const cp = document.getElementById('
+                    const cp = document.getElementById('colorPickerSec');
+                    if(cp) cp.value = col;
+                } else if (type === 'Origenes') {
+                    document.getElementById('catalogInputValue').value = item.Tipo_Origen || item.Origen || '';
+                    document.getElementById('catalogInputSecondary').value = item.Descripcion || '';
+                } else if (type === 'Alarmas') {
+                    const col = item.Color_Hex || '#ef4444';
+                    document.getElementById('catalogInputValue').value = item.Nombre_Alarma || '';
+                    document.getElementById('catalogInputSecondary').value = item.Dias_Min || 0;
+                    document.getElementById('catalogInputThird').value = item.Dias_Max || 15;
+                    document.getElementById('catalogInputFourthText').value = col;
+                    document.getElementById('catalogInputFourthColor').value = col;
+                }
+            } else {
+                document.getElementById('catalogOldIndex').value = "";
+            }
+            document.getElementById('catalogModal').classList.remove('hidden');
+        }
+
+        function closeCatalogModal() { document.getElementById('catalogModal').classList.add('hidden'); }
+
+        function saveCatalogItem(e) {
+            e.preventDefault();
+            const type = document.getElementById('catalogType').value;
+            const val = document.getElementById('catalogInputValue').value.trim();
+            const secondary = document.getElementById('catalogInputSecondary').value.trim();
+            const third = document.getElementById('catalogInputThird').value.trim();
+            const fourth = document.getElementById('catalogInputFourthText') ? document.getElementById('catalogInputFourthText').value.trim() : '';
+            if (!val) return;
+
+            closeCatalogModal();
+            executeGASAction({ action: "saveCatalog", type: type, value: val, secondary: secondary, third: third, fourth: fourth });
+        }
+
+        function editCatalogItem(type, index) { openCatalogModal(type, index); }
+
+        function deleteCatalogItem(type, index) {
+            const item = appData[type][index];
+            const val = typeof item === 'object' ? (item.Nombre_Completo || item.Nombre || item.Nombre_Estado || item.Tipo_Origen || item.Nombre_Alarma) : item;
+            if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
+                executeGASAction({ action: "deleteCatalog", type: type, value: val });
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-semibold');
+                btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
+            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-semibold');
+            if (tabId === 'dashboard') renderCharts();
+            if (tabId === 'catalogos') renderCatalogsManagement();
+        }
+
+        function renderCharts() {
+            const estadosNombres = appData.Estados.map(e => e.Nombre_Estado || e.Estado || e);
+            const origenesNombres = appData.Origenes.map(o => o.Tipo_Origen || o.Origen || o);
+            const estadoCounts = {}; estadosNombres.forEach(e => estadoCounts[e] = 0);
+            appData.Documentos.forEach(doc => { const est = doc.Estado || doc.ESTADO || 'Otros'; estadoCounts[est] = (estadoCounts[est] || 0) + 1; });
+            const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
+            appData.Documentos.forEach(doc => { const orig = doc.Origen_Tipo || doc.ORIGEN || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
+
+            if (chartsInstance.estados) chartsInstance.estados.destroy();
+            if (chartsInstance.origenes) chartsInstance.origenes.destroy();
+
+            chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: Object.keys(estadoCounts), datasets: [{ data: Object.values(estadoCounts), backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+            chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
+                type: 'bar',
+                data: { labels: Object.keys(origenCounts), datasets: [{ label: 'Documentos', data: Object.values(origenCounts), backgroundColor: '#3b82f6', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
+
+        function openConfigModal() { document.getElementById('inputBackendUrl').value = getBackendUrl(); document.getElementById('configModal').classList.remove('hidden'); }
+        function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
+        function saveBackendUrl() {
+            const url = document.getElementById('inputBackendUrl').value.trim();
+            if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
+        }
+    </script>
+</body>
+</html>
