@@ -8,9 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-50">
 
@@ -74,7 +72,7 @@
                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <i class="fa-solid fa-search"></i>
                     </span>
-                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por expediente, asunto, responsable..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por documento, asunto, responsable..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="flex items-center space-x-3 w-full sm:w-auto">
                     <select id="filterEstado" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -91,19 +89,22 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                <th class="py-3 px-4">Expediente</th>
-                                <th class="py-3 px-4">Origen</th>
-                                <th class="py-3 px-4">Asunto</th>
-                                <th class="py-3 px-4">Fecha Ingreso</th>
-                                <th class="py-3 px-4">Responsable</th>
-                                <th class="py-3 px-4">Estado</th>
-                                <th class="py-3 px-4 text-right">Acciones</th>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3 px-3">Documento</th>
+                                <th class="py-3 px-3">Origen</th>
+                                <th class="py-3 px-3">Asunto</th>
+                                <th class="py-3 px-3">F. Ingreso</th>
+                                <th class="py-3 px-3">F. Vencimiento</th>
+                                <th class="py-3 px-3">Días Transc.</th>
+                                <th class="py-3 px-3">Días Exceso</th>
+                                <th class="py-3 px-3">Responsable</th>
+                                <th class="py-3 px-3">Estado</th>
+                                <th class="py-3 px-3 text-right">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="documentosTableBody" class="divide-y divide-slate-100 text-sm">
+                        <tbody id="documentosTableBody" class="divide-y divide-slate-100 text-xs">
                             <tr>
-                                <td colspan="7" class="py-8 text-center text-slate-400">Cargando datos...</td>
+                                <td colspan="10" class="py-8 text-center text-slate-400">Cargando datos...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -116,7 +117,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Expedientes</p>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Documentos</p>
                         <h3 id="stat-total" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
                     </div>
                     <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
@@ -154,13 +155,13 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4">Expedientes por Estado</h3>
+                    <h3 class="font-bold text-slate-900 mb-4">Documentos por Estado</h3>
                     <div class="h-64 flex items-center justify-center">
                         <canvas id="chartEstados"></canvas>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4">Expedientes por Tipo de Origen</h3>
+                    <h3 class="font-bold text-slate-900 mb-4">Documentos por Tipo de Origen</h3>
                     <div class="h-64 flex items-center justify-center">
                         <canvas id="chartOrigenes"></canvas>
                     </div>
@@ -212,7 +213,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-2 text-rose-600">
                             <i class="fa-solid fa-bell text-lg"></i>
-                            <h3 class="font-bold text-slate-900 text-sm">Alarmas</h3>
+                            <h3 class="font-bold text-slate-900 text-sm">Alarmas / Plazos</h3>
                         </div>
                         <button onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
                     </div>
@@ -223,18 +224,18 @@
 
     </main>
 
-    <!-- MODAL: EXPEDIENTE -->
+    <!-- MODAL: DOCUMENTO -->
     <div id="docFormModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center">
-                <h3 id="docModalTitle" class="font-bold text-slate-900 text-lg">Expediente</h3>
+                <h3 id="docModalTitle" class="font-bold text-slate-900 text-lg">Documento</h3>
                 <button onclick="closeDocFormModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <form id="docForm" onsubmit="saveDocument(event)" class="space-y-3 text-sm">
                 <input type="hidden" id="docIndex">
                 <div>
-                    <label class="font-medium text-slate-700">Nro. Expediente *</label>
-                    <input type="text" id="formNumeroExpediente" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="EXP-2026-XXX">
+                    <label class="font-medium text-slate-700">Nro. Documento *</label>
+                    <input type="text" id="formNumeroDocumento" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="DOC-2026-XXX">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -290,7 +291,6 @@
 
                 <div id="catalogFieldSecondaryContainer">
                     <label id="catalogLabelSecondary" class="font-medium text-slate-700">Campo Secundario</label>
-                    <!-- Selector de color dinámico o texto normal -->
                     <div id="inputSecondaryWrapper" class="mt-1 flex items-center space-x-2">
                         <input type="text" id="catalogInputSecondary" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
@@ -418,7 +418,6 @@
         function executeGASAction(params, successCallback) {
             setConnectionStatus('sync', 'Guardando...');
             const callbackName = 'gasWriteCb_' + Math.floor(Math.random() * 100000);
-            
             window[callbackName] = function(response) {
                 delete window[callbackName];
                 const s = document.getElementById(callbackName);
@@ -432,7 +431,6 @@
                     fetchData();
                 }
             };
-
             const url = getBackendUrl();
             const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
             const script = document.createElement('script');
@@ -449,26 +447,65 @@
             renderCatalogsManagement();
         }
 
+        function calcularPlazos(fechaIngresoStr) {
+            if (!fechaIngresoStr) return { vencimiento: '-', diasTranscurridos: 0, diasExceso: 0 };
+            const cleanDateStr = String(fechaIngresoStr).split('T')[0];
+            const ingreso = new Date(cleanDateStr);
+            if (isNaN(ingreso.getTime())) return { vencimiento: '-', diasTranscurridos: 0, diasExceso: 0 };
+
+            const hoy = new Date();
+            const diffTime = hoy - ingreso;
+            const diasTranscurridos = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+
+            let diasLimite = 15;
+            if (appData.Alarmas && appData.Alarmas.length > 0) {
+                const maxAlarm = appData.Alarmas.reduce((max, a) => Math.max(max, parseInt(a.Dias_Max || a[3] || 15)), 0);
+                if (maxAlarm > 0) diasLimite = maxAlarm;
+            }
+
+            const vencimientoDate = new Date(ingreso);
+            vencimientoDate.setDate(vencimientoDate.getDate() + diasLimite);
+            const vencimientoFormatted = vencimientoDate.toISOString().split('T')[0];
+            const diasExceso = Math.max(0, diasTranscurridos - diasLimite);
+
+            return { vencimiento: vencimientoFormatted, diasTranscurridos, diasExceso };
+        }
+
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">Sin expedientes registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-slate-400">Sin documentos registrados.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = docs.map((doc, idx) => `
-                <tr class="hover:bg-slate-50/80 transition">
-                    <td class="py-3 px-4 font-semibold text-slate-900">${doc.Numero_Expediente || doc.NRO_EXPEDIENTE || '-'}</td>
-                    <td class="py-3 px-4 text-slate-600"><span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">${doc.Origen_Tipo || doc.ORIGEN || '-'}</span></td>
-                    <td class="py-3 px-4 text-slate-800 max-w-xs truncate">${doc.Asunto || doc.ASUNTO || '-'}</td>
-                    <td class="py-3 px-4 text-slate-500 text-xs">${doc.Fecha_Ingreso || doc.FECHA_INGRESO || '-'}</td>
-                    <td class="py-3 px-4 text-slate-700 font-medium">${doc.Responsable || doc.RESPONSABLE || '-'}</td>
-                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">${doc.Estado || doc.ESTADO || '-'}</span></td>
-                    <td class="py-3 px-4 text-right space-x-1">
-                        <button onclick="editDocument(${idx})" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deleteDocument(${idx})" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = docs.map((doc, idx) => {
+                const numDoc = doc.Numero_Documento || doc.Numero_Expediente || doc.NRO_DOCUMENTO || '-';
+                const fechaIng = doc.Fecha_Ingreso || doc.FECHA_INGRESO || '';
+                const plazos = calcularPlazos(fechaIng);
+                const isConcluido = String(doc.Estado || doc.ESTADO || '').toLowerCase().includes('atendido') || String(doc.Estado || doc.ESTADO || '').toLowerCase().includes('concluido');
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3 px-3 font-semibold text-slate-900">${numDoc}</td>
+                        <td class="py-3 px-3 text-slate-600"><span class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">${doc.Origen_Tipo || doc.ORIGEN || '-'}</span></td>
+                        <td class="py-3 px-3 text-slate-800 max-w-[200px] truncate" title="${doc.Asunto || doc.ASUNTO || ''}">${doc.Asunto || doc.ASUNTO || '-'}</td>
+                        <td class="py-3 px-3 text-slate-500">${fechaIng ? fechaIng.split('T')[0] : '-'}</td>
+                        <td class="py-3 px-3 font-medium text-slate-700">${doc.Fecha_Vencimiento || plazos.vencimiento}</td>
+                        <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">${doc.Dias_Trancurridos !== undefined ? doc.Dias_Trancurridos : plazos.diasTranscurridos} días</span></td>
+                        <td class="py-3 px-3 text-center">
+                            ${(doc.Dias_Exceso !== undefined ? doc.Dias_Exceso : plazos.diasExceso) > 0 && !isConcluido ? 
+                                `<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-bold animate-pulse">+${doc.Dias_Exceso !== undefined ? doc.Dias_Exceso : plazos.diasExceso} días</span>` : 
+                                `<span class="text-emerald-600 font-medium">0 días</span>`
+                            }
+                        </td>
+                        <td class="py-3 px-3 text-slate-700">${doc.Responsable || doc.RESPONSABLE || '-'}</td>
+                        <td class="py-3 px-3"><span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">${doc.Estado || doc.ESTADO || '-'}</span></td>
+                        <td class="py-3 px-3 text-right space-x-1">
+                            <button onclick="editDocument(${idx})" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteDocument(${idx})" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function populateSelects() {
@@ -497,12 +534,12 @@
             const origen = document.getElementById('filterOrigen').value;
 
             const filtered = appData.Documentos.filter(doc => {
-                const exp = String(doc.Numero_Expediente || doc.NRO_EXPEDIENTE || '').toLowerCase();
+                const numDoc = String(doc.Numero_Documento || doc.Numero_Expediente || doc.NRO_DOCUMENTO || '').toLowerCase();
                 const asunto = String(doc.Asunto || doc.ASUNTO || '').toLowerCase();
                 const resp = String(doc.Responsable || doc.RESPONSABLE || '').toLowerCase();
                 const docEstado = String(doc.Estado || doc.ESTADO || '');
                 const docOrigen = String(doc.Origen_Tipo || doc.ORIGEN || '');
-                return (exp.includes(query) || asunto.includes(query) || resp.includes(query)) && (!estado || docEstado === estado) && (!origen || docOrigen === origen);
+                return (numDoc.includes(query) || asunto.includes(query) || resp.includes(query)) && (!estado || docEstado === estado) && (!origen || docOrigen === origen);
             });
             renderTable(filtered);
         }
@@ -526,17 +563,17 @@
             populateSelects();
             if (idx !== null) {
                 const doc = appData.Documentos[idx];
-                document.getElementById('docModalTitle').innerText = "Editar Expediente";
+                document.getElementById('docModalTitle').innerText = "Editar Documento";
                 document.getElementById('docIndex').value = idx;
-                document.getElementById('formNumeroExpediente').value = doc.Numero_Expediente || doc.NRO_EXPEDIENTE || '';
+                document.getElementById('formNumeroDocumento').value = doc.Numero_Documento || doc.Numero_Expediente || doc.NRO_DOCUMENTO || '';
                 document.getElementById('formOrigenTipo').value = doc.Origen_Tipo || doc.ORIGEN || '';
                 document.getElementById('formAsunto').value = doc.Asunto || doc.ASUNTO || '';
-                document.getElementById('formFechaIngreso').value = doc.Fecha_Ingreso || doc.FECHA_INGRESO || new Date().toISOString().split('T')[0];
+                document.getElementById('formFechaIngreso').value = (doc.Fecha_Ingreso || doc.FECHA_INGRESO || '').split('T')[0];
                 document.getElementById('formResponsable').value = doc.Responsable || doc.RESPONSABLE || '';
                 document.getElementById('formEstado').value = doc.Estado || doc.ESTADO || '';
                 document.getElementById('formObservaciones').value = doc.Observaciones || doc.OBSERVACIONES || '';
             } else {
-                document.getElementById('docModalTitle').innerText = "Nuevo Expediente";
+                document.getElementById('docModalTitle').innerText = "Nuevo Documento";
                 document.getElementById('docIndex').value = "";
                 document.getElementById('formFechaIngreso').value = new Date().toISOString().split('T')[0];
             }
@@ -547,12 +584,19 @@
 
         function saveDocument(e) {
             e.preventDefault();
+            const numDoc = document.getElementById('formNumeroDocumento').value;
+            const fechaIng = document.getElementById('formFechaIngreso').value;
+            const plazos = calcularPlazos(fechaIng);
+
             const params = {
                 action: "saveDoc",
-                Numero_Expediente: document.getElementById('formNumeroExpediente').value,
+                Numero_Documento: numDoc,
                 Origen_Tipo: document.getElementById('formOrigenTipo').value,
                 Asunto: document.getElementById('formAsunto').value,
-                Fecha_Ingreso: document.getElementById('formFechaIngreso').value,
+                Fecha_Ingreso: fechaIng,
+                Fecha_Vencimiento: plazos.vencimiento,
+                Dias_Trancurridos: plazos.diasTranscurridos,
+                Dias_Exceso: plazos.diasExceso,
                 Responsable: document.getElementById('formResponsable').value,
                 Estado: document.getElementById('formEstado').value,
                 Observaciones: document.getElementById('formObservaciones').value
@@ -565,16 +609,14 @@
 
         function deleteDocument(idx) {
             const doc = appData.Documentos[idx];
-            const exp = doc.Numero_Expediente || doc.NRO_EXPEDIENTE;
-            if (confirm(`¿Eliminar el expediente ${exp}?`)) {
-                executeGASAction({ action: "deleteDoc", Numero_Expediente: exp });
+            const numDoc = doc.Numero_Documento || doc.Numero_Expediente;
+            if (confirm(`¿Eliminar el documento ${numDoc}?`)) {
+                executeGASAction({ action: "deleteDoc", Numero_Documento: numDoc });
             }
         }
 
         function renderCatalogsManagement() {
-            // Personal
-            const persList = document.getElementById('managePersonalList');
-            persList.innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+            document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
                 appData.Personal.map((p, i) => {
                     const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1]) : p;
                     const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || '') : '';
@@ -584,9 +626,7 @@
                     </div>`;
                 }).join('');
 
-            // Estados
-            const estList = document.getElementById('manageEstadosList');
-            estList.innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+            document.getElementById('manageEstadosList').innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
                 appData.Estados.map((e, i) => {
                     const nom = typeof e === 'object' ? (e.Nombre_Estado || e.Estado || e[1]) : e;
                     const col = typeof e === 'object' ? (e.Color_Hex || e.Color || '#3b82f6') : '#3b82f6';
@@ -596,9 +636,7 @@
                     </div>`;
                 }).join('');
 
-            // Origenes
-            const origList = document.getElementById('manageOrigenesList');
-            origList.innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+            document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
                 appData.Origenes.map((o, i) => {
                     const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1]) : o;
                     return `<div class="py-2 flex justify-between items-center text-xs border-b border-slate-100">
@@ -607,11 +645,9 @@
                     </div>`;
                 }).join('');
 
-            // Alarmas
-            const alarList = document.getElementById('manageAlarmasList');
-            alarList.innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+            document.getElementById('manageAlarmasList').innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
                 appData.Alarmas.map((a, i) => {
-                    const nom = typeof a === 'object' ? (a.Nombre_Alarma || a.Alarma || a[1]) : a;
+                    const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1]) : a;
                     const min = typeof a === 'object' ? (a.Dias_Min || a[2] || 0) : 0;
                     const max = typeof a === 'object' ? (a.Dias_Max || a[3] || 0) : 0;
                     const col = typeof a === 'object' ? (a.Color_Hex || a[4] || '#ef4444') : '#ef4444';
@@ -639,7 +675,6 @@
             secContainer.classList.remove('hidden');
             thirdContainer.classList.add('hidden');
             fourthContainer.classList.add('hidden');
-
             const secWrapper = document.getElementById('inputSecondaryWrapper');
 
             if (type === 'Personal') {
@@ -663,12 +698,10 @@
                 lblName.innerText = "Nombre Alarma *";
                 lblSec.innerText = "Días Mínimos";
                 secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">`;
-                
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Días Máximos";
-                document.getElementById('catalogInputThird').value = "5";
+                document.getElementById('catalogInputThird').value = "15";
                 document.getElementById('catalogInputThird').type = "number";
-
                 fourthContainer.classList.remove('hidden');
             }
 
@@ -692,7 +725,7 @@
                     const col = item.Color_Hex || '#ef4444';
                     document.getElementById('catalogInputValue').value = item.Nombre_Alarma || '';
                     document.getElementById('catalogInputSecondary').value = item.Dias_Min || 0;
-                    document.getElementById('catalogInputThird').value = item.Dias_Max || 5;
+                    document.getElementById('catalogInputThird').value = item.Dias_Max || 15;
                     document.getElementById('catalogInputFourthText').value = col;
                     document.getElementById('catalogInputFourthColor').value = col;
                 }
@@ -714,14 +747,7 @@
             if (!val) return;
 
             closeCatalogModal();
-            executeGASAction({
-                action: "saveCatalog",
-                type: type,
-                value: val,
-                secondary: secondary,
-                third: third,
-                fourth: fourth
-            });
+            executeGASAction({ action: "saveCatalog", type: type, value: val, secondary: secondary, third: third, fourth: fourth });
         }
 
         function editCatalogItem(type, index) { openCatalogModal(type, index); }
