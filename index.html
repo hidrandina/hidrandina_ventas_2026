@@ -1,33 +1,157 @@
-} else if (action === "saveCatalog") {
-  var sheetName = params.type; // Personal, Estados, Origenes, Alarmas
-  var sheet = ss.getSheetByName(sheetName);
+function doGet(e) {
+  var params = e.parameter;
+  var callback = params.callback;
+  var action = params.action;
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var result = { success: false };
+  
+  try {
+    if (!action) {
+      // 1. OBTENER TODOS LOS DATOS Y CATÁLOGOS (fetchData)
+      result = {
+        Registros: readSheetData(ss.getSheetByName("Documentos")),
+        Catalogos: {
+          Personal: readSheetData(ss.getSheetByName("Personal")),
+          Estados: readSheetData(ss.getSheetByName("Estados")),
+          Origenes: readSheetData(ss.getSheetByName("Origenes")),
+          Alarmas: readSheetData(ss.getSheetByName("Alarmas"))
+        }
+      };
+    } else if (action === "saveDoc") {
+      // 2. GUARDAR / EDITAR DOCUMENTO
+      var sheet = ss.getSheetByName("Documentos");
+      var data = sheet.getDataRange().getValues();
+      var numDoc = params.Numero_Documento;
+      var foundRow = -1;
+      
+      for (var i = 1; i < data.length; i++) {
+        if (data[i][1] == numDoc) { // Columna B: Numero_Documento
+          foundRow = i + 1;
+          break;
+        }
+      }
+      
+      var rowData = [
+        foundRow > 0 ? data[foundRow-1][0] : (data.length), // ID
+        params.Numero_Documento || "",
+        params.Origen_Tipo || "",
+        params.Asunto || "",
+        params.Fecha_Ingreso || "",
+        params.Fecha_Vencimiento || "",
+        params.Dias_Trancurridos || 0,
+        params.Dias_Exceso || 0,
+        params.Responsable || "",
+        params.Estado || "",
+        params.Observaciones || ""
+      ];
+      
+      if (foundRow > 0) {
+        sheet.getRange(foundRow, 1, 1, rowData.length).setValues([rowData]);
+      } else {
+        sheet.appendRow(rowData);
+      }
+      result = { success: true, message: "Documento guardado correctamente" };
+      
+    } else if (action === "deleteDoc") {
+      // 3. ELIMINAR DOCUMENTO
+      var sheet = ss.getSheetByName("Documentos");
+      var data = sheet.getDataRange().getValues();
+      var numDoc = params.Numero_Documento;
+      
+      for (var i = 1; i < data.length; i++) {
+        if (data[i][1] == numDoc) {
+          sheet.deleteRow(i + 1);
+          break;
+        }
+      }
+      result = { success: true, message: "Documento eliminado" };
+
+    } else if (action === "saveCatalog") {
+      // 4. GESTIONAR / GUARDAR CATÁLOGOS (Personal, Estados, Origenes, Alarmas)
+      var sheetName = params.type; 
+      var sheet = ss.getSheetByName(sheetName);
+      if (!sheet) throw new Error("Hoja de catálogo no encontrada: " + sheetName);
+      
+      var data = sheet.getDataRange().getValues();
+      var val = params.value;
+      var oldValue = params.oldValue || val;
+      var foundRow = -1;
+      
+      for (var i = 1; i < data.length; i++) {
+        if (data[i][1] == oldValue) {
+          foundRow = i + 1;
+          break;
+        }
+      }
+      
+      var rowData = [];
+      var nextId = data.length > 0 ? data.length : 1;
+      if (foundRow > 0) nextId = data[foundRow-1][0];
+
+      if (sheetName === "Personal") {
+        rowData = [nextId, val, params.secondary || "", params.third || ""];
+      } else if (sheetName === "Estados") {
+        rowData = [nextId, val, params.secondary || "#3b82f6"];
+      } else if (sheetName === "Origenes") {
+        rowData = [nextId, val, params.secondary || ""];
+      } else if (sheetName === "Alarmas") {
+        rowData = [nextId, val, params.secondary || 0, params.third || 15, params.fourth || "#ef4444"];
+      }
+      
+      if (foundRow > 0) {
+        sheet.getRange(foundRow, 1, 1, rowData.length).setValues([rowData]);
+      } else {
+        sheet.appendRow(rowData);
+      }
+      result = { success: true, message: "Catálogo actualizado correctamente" };
+
+    } else if (action === "deleteCatalog") {
+      // 5. ELIMINAR ELEMENTO DE CATÁLOGO
+      var sheetName = params.type;
+      var sheet = ss.getSheetByName(sheetName);
+      if (!sheet) throw new Error("Hoja de catálogo no encontrada: " + sheetName);
+      
+      var data = sheet.getDataRange().getValues();
+      var val = params.value;
+      
+      for (var i = 1; i < data.length; i++) {
+        if (data[i][1] == val) {
+          sheet.deleteRow(i + 1);
+          break;
+        }
+      }
+      result = { success: true, message: "Elemento de catálogo eliminado" };
+    }
+  } catch (err) {
+    result = { success: false, message: err.toString() };
+  }
+  
+  var output = callback + "(" + JSON.stringify(result) + ");";
+  return ContentService.createTextOutput(output).setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+// Función auxiliar para leer hojas como objetos JSON usando la cabecera de la Fila 1
+function readSheetData(sheet) {
+  if (!sheet) return [];
   var data = sheet.getDataRange().getValues();
-  var val = params.value;
-  var oldValue = params.oldValue || val;
-  var foundRow = -1;
+  if (data.length < 2) return [];
+  
+  var headers = data[0];
+  var result = [];
   
   for (var i = 1; i < data.length; i++) {
-    if (data[i][1] == oldValue) {
-      foundRow = i + 1;
-      break;
+    var row = data[i];
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      var headerName = headers[j].toString().trim();
+      var val = row[j];
+      if (val instanceof Date) {
+        val = Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
+      }
+      obj[headerName] = val;
     }
+    result.push(obj);
   }
-  
-  var rowData = [];
-  if (sheetName === "Personal") {
-    rowData = [foundRow > 0 ? data[foundRow-1][0] : data.length, val, params.secondary || "", params.third || ""];
-  } else if (sheetName === "Estados") {
-    rowData = [foundRow > 0 ? data[foundRow-1][0] : data.length, val, params.secondary || "#3b82f6"];
-  } else if (sheetName === "Origenes") {
-    rowData = [foundRow > 0 ? data[foundRow-1][0] : data.length, val, params.secondary || ""];
-  } else if (sheetName === "Alarmas") {
-    rowData = [foundRow > 0 ? data[foundRow-1][0] : data.length, val, params.secondary || 0, params.third || 15, params.fourth || "#ef4444"];
-  }
-  
-  if (foundRow > 0) {
-    sheet.getRange(foundRow, 1, 1, rowData.length).setValues([rowData]);
-  } else {
-    sheet.appendRow(rowData);
-  }
-  result = { success: true, message: "Catálogo actualizado" };
+  return result;
 }
