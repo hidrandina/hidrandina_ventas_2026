@@ -1,4 +1,331 @@
-<!-- LÓGICA JAVASCRIPT CON CORREO VISIBLE EN PERSONAL -->
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIDRANDINA - Control de Documentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-50">
+
+    <!-- Header Principal -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
+                    <i class="fa-solid fa-bolt text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-900 text-lg leading-tight">HIDRANDINA - Control de Documentos</h1>
+                    <div class="flex items-center space-x-2 mt-0.5">
+                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-500 animate-pulse"></span> Sincronizando...
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button onclick="fetchData()" class="p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition" title="Refrescar Datos">
+                    <i class="fa-solid fa-sync text-base"></i>
+                </button>
+                <button onclick="openConfigModal()" class="p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition" title="Configurar URL Backend">
+                    <i class="fa-solid fa-gear text-base"></i>
+                </button>
+                <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nuevo Documento</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegación por Pestañas -->
+    <nav class="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex space-x-8">
+            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-1 border-b-2 border-blue-600 text-blue-600 font-semibold text-sm flex items-center space-x-2 transition">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Documentos</span>
+            </button>
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 transition">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </button>
+            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 transition">
+                <i class="fa-solid fa-database"></i>
+                <span>Gestión de Catálogos</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- TAB 1: DOCUMENTOS -->
+        <section id="tab-documentos" class="space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="relative w-full sm:w-96">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-search"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por documento, asunto, responsable..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <select id="filterEstado" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Todos los Estados</option>
+                    </select>
+                    <select id="filterOrigen" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Todos los Orígenes</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabla de Registros -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3 px-3">Nro. Documento</th>
+                                <th class="py-3 px-3">Origen</th>
+                                <th class="py-3 px-3">Asunto</th>
+                                <th class="py-3 px-3">F. Ingreso</th>
+                                <th class="py-3 px-3">F. Vencimiento</th>
+                                <th class="py-3 px-3 text-center">Días Transc.</th>
+                                <th class="py-3 px-3 text-center">Días Exceso</th>
+                                <th class="py-3 px-3">Responsable</th>
+                                <th class="py-3 px-3">Estado</th>
+                                <th class="py-3 px-3">Observaciones</th>
+                                <th class="py-3 px-3 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentosTableBody" class="divide-y divide-slate-100 text-xs">
+                            <tr>
+                                <td colspan="11" class="py-8 text-center text-slate-400">Cargando datos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: DASHBOARD -->
+        <section id="tab-dashboard" class="hidden space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Documentos</p>
+                        <h3 id="stat-total" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">En Tramitación</p>
+                        <h3 id="stat-tramite" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Atendidos</p>
+                        <h3 id="stat-atendido" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">En Evaluación</p>
+                        <h3 id="stat-evaluacion" class="text-2xl font-bold text-indigo-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 mb-4">Documentos por Estado</h3>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="chartEstados"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 mb-4">Documentos por Tipo de Origen</h3>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="chartOrigenes"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: GESTIÓN DE CATÁLOGOS -->
+        <section id="tab-catalogos" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-blue-600">
+                            <i class="fa-solid fa-users text-lg"></i>
+                            <h3 class="font-bold text-slate-900 text-sm">Personal</h3>
+                        </div>
+                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div id="managePersonalList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-indigo-600">
+                            <i class="fa-solid fa-tags text-lg"></i>
+                            <h3 class="font-bold text-slate-900 text-sm">Estados</h3>
+                        </div>
+                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-emerald-600">
+                            <i class="fa-solid fa-layer-group text-lg"></i>
+                            <h3 class="font-bold text-slate-900 text-sm">Orígenes</h3>
+                        </div>
+                        <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-rose-600">
+                            <i class="fa-solid fa-bell text-lg"></i>
+                            <h3 class="font-bold text-slate-900 text-sm">Alarmas / Plazos</h3>
+                        </div>
+                        <button onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <div id="manageAlarmasList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: DOCUMENTO -->
+    <div id="docFormModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 id="docModalTitle" class="font-bold text-slate-900 text-lg">Documento</h3>
+                <button onclick="closeDocFormModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="docForm" onsubmit="saveDocument(event)" class="space-y-3 text-sm">
+                <input type="hidden" id="docIndex">
+                <div>
+                    <label class="font-medium text-slate-700">Nro. Documento *</label>
+                    <input type="text" id="formNumeroDocumento" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="DOC-2026-XXX">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-700">Tipo de Origen *</label>
+                        <select id="formOrigenTipo" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-700">Fecha de Ingreso *</label>
+                        <input type="date" id="formFechaIngreso" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="font-medium text-slate-700">Asunto / Descripción *</label>
+                    <textarea id="formAsunto" rows="2" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Describa el motivo..."></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-medium text-slate-700">Responsable / Derivación *</label>
+                        <select id="formResponsable" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                    </div>
+                    <div>
+                        <label class="font-medium text-slate-700">Estado Actual *</label>
+                        <select id="formEstado" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="font-medium text-slate-700">Observaciones</label>
+                    <textarea id="formObservaciones" rows="2" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Comentarios u observaciones..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-3">
+                    <button type="button" onclick="closeDocFormModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm">Guardar en Google Sheets</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CATÁLOGO -->
+    <div id="catalogModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 id="catalogModalTitle" class="font-bold text-slate-900 text-lg">Gestionar Catálogo</h3>
+                <button onclick="closeCatalogModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="catalogForm" onsubmit="saveCatalogItem(event)" class="space-y-3 text-sm">
+                <input type="hidden" id="catalogType">
+                <input type="hidden" id="catalogOldIndex">
+                <div>
+                    <label id="catalogLabelName" class="font-medium text-slate-700">Nombre / Valor *</label>
+                    <input type="text" id="catalogInputValue" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div id="catalogFieldSecondaryContainer">
+                    <label id="catalogLabelSecondary" class="font-medium text-slate-700">Campo Secundario</label>
+                    <div id="inputSecondaryWrapper" class="mt-1 flex items-center space-x-2">
+                        <input type="text" id="catalogInputSecondary" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                <div id="catalogFieldThirdContainer" class="hidden">
+                    <label id="catalogLabelThird" class="font-medium text-slate-700">Campo Tercero</label>
+                    <input type="text" id="catalogInputThird" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div id="catalogFieldFourthContainer" class="hidden">
+                    <label id="catalogLabelFourth" class="font-medium text-slate-700">Color Alarma</label>
+                    <div class="mt-1 flex items-center space-x-2">
+                        <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-10 p-1 border border-slate-200 rounded-xl cursor-pointer bg-white" onchange="document.getElementById('catalogInputFourthText').value = this.value">
+                        <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeCatalogModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIGURACIÓN -->
+    <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 text-lg">Configuración Apps Script</h3>
+                <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-sm text-slate-500">URL del Google Apps Script:</p>
+            <input type="text" id="inputBackendUrl" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <div class="flex justify-end space-x-3 pt-2">
+                <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+                <button onclick="saveBackendUrl()" class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-semibold">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -336,14 +663,15 @@
             // RENDERIZADO DE PERSONAL CON CORREO ELECTRÓNICO VISIBLE
             document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
                 appData.Personal.map((p, i) => {
-                    const nom = typeof p === 'object' ? getProp(p, ['Nombre_Completo', 'Nombre', 1]) : p;
-                    const cargo = typeof p === 'object' ? getProp(p, ['Cargo_Area', 'Cargo', 2]) || '' : '';
-                    const correo = typeof p === 'object' ? getProp(p, ['Correo_Electronico', 'Correo', 3]) || '' : '';
+                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
+                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : '';
+                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
+                    
                     return `<div class="py-2.5 flex justify-between items-center text-xs border-b border-slate-100">
                         <div>
                             <span class="font-semibold text-slate-900">${nom}</span>
                             ${cargo ? '<br><span class="text-slate-600 font-medium">'+cargo+'</span>' : ''}
-                            ${correo ? '<br><span class="text-blue-600 text-[11px]"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
+                            ${correo ? '<br><span class="text-blue-600 font-medium text-[11px]"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
                         </div>
                         <div class="space-x-1 flex items-center">
                             <button onclick="editCatalogItem('Personal', ${i})" class="p-1 text-slate-400 hover:text-blue-600 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
@@ -354,8 +682,8 @@
 
             document.getElementById('manageEstadosList').innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
                 appData.Estados.map((e, i) => {
-                    const nom = typeof e === 'object' ? getProp(e, ['Nombre_Estado', 'Estado', 1]) : e;
-                    const col = typeof e === 'object' ? getProp(e, ['Color_Hex', 'Color', 2]) || '#3b82f6' : '#3b82f6';
+                    const nom = typeof e === 'object' ? (e.Nombre_Estado || e.Estado || e[1] || '') : e;
+                    const col = typeof e === 'object' ? (e.Color_Hex || e.Color || e[2] || '#3b82f6') : '#3b82f6';
                     return `<div class="py-2.5 flex justify-between items-center text-xs border-b border-slate-100">
                         <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full" style="background-color: ${col}"></span><span class="font-medium text-slate-800">${nom}</span></div>
                         <div class="space-x-1 flex items-center">
@@ -367,7 +695,7 @@
 
             document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
                 appData.Origenes.map((o, i) => {
-                    const tipo = typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o;
+                    const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1] || '') : o;
                     return `<div class="py-2.5 flex justify-between items-center text-xs border-b border-slate-100">
                         <span class="font-medium text-slate-800">${tipo}</span>
                         <div class="space-x-1 flex items-center">
@@ -379,10 +707,10 @@
 
             document.getElementById('manageAlarmasList').innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
                 appData.Alarmas.map((a, i) => {
-                    const nom = typeof a === 'object' ? getProp(a, ['Nombre_Alarma', 1]) : a;
-                    const min = typeof a === 'object' ? getProp(a, ['Dias_Min', 2]) || 0 : 0;
-                    const max = typeof a === 'object' ? getProp(a, ['Dias_Max', 3]) || 0 : 0;
-                    const col = typeof a === 'object' ? getProp(a, ['Color_Hex', 4]) || '#ef4444' : '#ef4444';
+                    const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
+                    const min = typeof a === 'object' ? (a.Dias_Min || a[2] || 0) : 0;
+                    const max = typeof a === 'object' ? (a.Dias_Max || a[3] || 0) : 0;
+                    const col = typeof a === 'object' ? (a.Color_Hex || a[4] || '#ef4444') : '#ef4444';
                     return `<div class="py-2.5 flex justify-between items-center text-xs border-b border-slate-100">
                         <div>
                             <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background-color: ${col}"></span><span class="font-medium text-slate-800">${nom}</span></div>
@@ -552,3 +880,5 @@
             if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
         }
     </script>
+</body>
+</html>
