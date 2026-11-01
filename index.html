@@ -88,7 +88,6 @@
                         <option value="">Todos los Orígenes</option>
                     </select>
                     
-                    <!-- Botones de Acciones Masivas (Excel y Correo) -->
                     <div class="flex items-center space-x-2 ml-auto">
                         <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-md transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
                             <i class="fa-solid fa-file-excel text-sm"></i>
@@ -131,8 +130,55 @@
             </div>
         </section>
 
-        <!-- TAB 2: DASHBOARD -->
+        <!-- TAB 2: DASHBOARD EJECUTIVO Y REPORTES -->
         <section id="tab-dashboard" class="hidden space-y-6">
+            
+            <!-- Panel de Filtros del Reporte / Dashboard -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-filter text-blue-600"></i>
+                        <span>Filtros del Reporte Ejecutivo</span>
+                    </h3>
+                    <button onclick="resetDashboardFilters()" class="text-xs text-slate-500 hover:text-blue-600 font-semibold transition"><i class="fa-solid fa-rotate-right mr-1"></i> Restablecer Filtros</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 text-xs">
+                    <div>
+                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Fecha Inicial</label>
+                        <input type="date" id="dashFechaInicio" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Fecha Final</label>
+                        <input type="date" id="dashFechaFin" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Personal</label>
+                        <select id="dashFiltroPersonal" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Tipo Documento</label>
+                        <select id="dashFiltroOrigen" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Estado</label>
+                        <select id="dashFiltroEstado" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Alarma / Plazo</label>
+                        <select id="dashFiltroAlarma" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas de Resumen KPI -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
@@ -172,16 +218,23 @@
                 </div>
             </div>
 
+            <!-- Dos Tipos de Gráficas Requeridas: Barra y Circular -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4 text-xs uppercase tracking-wider">Documentos por Estado</h3>
-                    <div class="h-72 flex items-center justify-center">
+                    <h3 class="font-bold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
+                        <span>Gráfico Circular (Distribución por Estado)</span>
+                        <i class="fa-solid fa-chart-pie text-blue-600"></i>
+                    </h3>
+                    <div class="h-80 flex items-center justify-center">
                         <canvas id="chartEstados"></canvas>
                     </div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4 text-xs uppercase tracking-wider">Documentos por Tipo de Origen</h3>
-                    <div class="h-72 flex items-center justify-center">
+                    <h3 class="font-bold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
+                        <span>Gráfico de Barras (Distribución por Tipo de Documento / Origen)</span>
+                        <i class="fa-solid fa-chart-column text-blue-600"></i>
+                    </h3>
+                    <div class="h-80 flex items-center justify-center">
                         <canvas id="chartOrigenes"></canvas>
                     </div>
                 </div>
@@ -462,7 +515,7 @@
         function renderAll() {
             renderTable(appData.Documentos);
             populateSelects();
-            renderStats();
+            renderStatsAndCharts();
             renderCatalogsManagement();
         }
 
@@ -507,6 +560,64 @@
                 const docOrigen = String(getProp(doc, ['Origen_Tipo', 2]) || '');
                 return (numDoc.includes(query) || asunto.includes(query) || resp.includes(query)) && (!estado || docEstado === estado) && (!origen || docOrigen === origen);
             });
+        }
+
+        // --- FILTRADO AVANZADO PARA EL DASHBOARD / REPORTE ---
+        function obtenerDocumentosDashboardFiltrados() {
+            const fInicio = document.getElementById('dashFechaInicio').value;
+            const fFin = document.getElementById('dashFechaFin').value;
+            const pers = document.getElementById('dashFiltroPersonal').value;
+            const orig = document.getElementById('dashFiltroOrigen').value;
+            const est = document.getElementById('dashFiltroEstado').value;
+            const alar = document.getElementById('dashFiltroAlarma').value;
+
+            return appData.Documentos.filter(doc => {
+                const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
+                
+                // Rango de fechas
+                if (fInicio && fechaIng && fechaIng < fInicio) return false;
+                if (fFin && fechaIng && fechaIng > fFin) return false;
+
+                // Personal (Responsable)
+                const docResp = String(getProp(doc, ['Responsable', 8]) || '');
+                if (pers && docResp !== pers) return false;
+
+                // Tipo Documento (Origen)
+                const docOrig = String(getProp(doc, ['Origen_Tipo', 2]) || '');
+                if (orig && docOrig !== orig) return false;
+
+                // Estado
+                const docEst = String(getProp(doc, ['Estado', 9]) || '');
+                if (est && docEst !== est) return false;
+
+                // Alarma / Rango de días transcurridos
+                if (alar) {
+                    const plazos = calcularPlazos(fechaIng);
+                    const dTrans = plazos.diasTranscurridos;
+                    // Buscar la alarma seleccionada
+                    const alarmaObj = appData.Alarmas.find(a => {
+                        const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
+                        return nom === alar;
+                    });
+                    if (alarmaObj && typeof alarmaObj === 'object') {
+                        const dMin = parseInt(alarmaObj.Dias_Min || alarmaObj[2] || 0);
+                        const dMax = parseInt(alarmaObj.Dias_Max || alarmaObj[3] || 9999);
+                        if (dTrans < dMin || dTrans > dMax) return false;
+                    }
+                }
+
+                return true;
+            });
+        }
+
+        function resetDashboardFilters() {
+            document.getElementById('dashFechaInicio').value = '';
+            document.getElementById('dashFechaFin').value = '';
+            document.getElementById('dashFiltroPersonal').value = '';
+            document.getElementById('dashFiltroOrigen').value = '';
+            document.getElementById('dashFiltroEstado').value = '';
+            document.getElementById('dashFiltroAlarma').value = '';
+            renderCharts();
         }
 
         // --- FUNCIONALIDAD 1: EXPORTAR A EXCEL (.xlsx real) ---
@@ -564,7 +675,7 @@
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
         }
 
-        // --- FUNCIONALIDAD 3: ENVIAR REGISTRO INDIVIDUAL (PARA CONOCIMIENTO - SIN FIRMA DUPLICADA) ---
+        // --- FUNCIONALIDAD 3: ENVIAR REGISTRO INDIVIDUAL (PARA CONOCIMIENTO) ---
         function enviarCorreoIndividual(idx) {
             const doc = appData.Documentos[idx];
             if (!doc) return;
@@ -588,10 +699,8 @@
                 }
             }
 
-            // Asunto: [Carta] + [Entidad / Origen] + [Estado]
             const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
             
-            // Cuerpo limpio para que Outlook adjunte tu firma automáticamente sin duplicados
             let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe remite el siguiente documento para su conocimiento:\n\n` +
                 `- Nro. Documento: ${numDoc}\n` +
                 `- Entidad / Origen: ${entidad}\n` +
@@ -660,6 +769,7 @@
         }
 
         function populateSelects() {
+            // Selectores de la tabla principal
             const estSel = document.getElementById('filterEstado');
             const origSel = document.getElementById('filterOrigen');
             const currentEst = estSel.value;
@@ -668,15 +778,37 @@
             const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 'Estado', 1]) : e).filter(Boolean);
             const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o).filter(Boolean);
             const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 'Nombre', 1]) : p).filter(Boolean);
+            const alarmasNombres = appData.Alarmas.map(a => typeof a === 'object' ? getProp(a, ['Nombre_Alarma', 1]) : a).filter(Boolean);
 
             estSel.innerHTML = '<option value="">Todos los Estados</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
             origSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
             estSel.value = currentEst;
             origSel.value = currentOrig;
 
+            // Selectores del Modal de Documento
             document.getElementById('formOrigenTipo').innerHTML = origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
             document.getElementById('formResponsable').innerHTML = personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
             document.getElementById('formEstado').innerHTML = estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
+
+            // Selectores del Panel de Filtros del Dashboard / Reporte (con "Todos" incluido)
+            const dashPers = document.getElementById('dashFiltroPersonal');
+            const dashOrig = document.getElementById('dashFiltroOrigen');
+            const dashEst = document.getElementById('dashFiltroEstado');
+            const dashAlar = document.getElementById('dashFiltroAlarma');
+            const curDPers = dashPers.value;
+            const curDOrig = dashOrig.value;
+            const curDEst = dashEst.value;
+            const curDAlar = dashAlar.value;
+
+            dashPers.innerHTML = '<option value="">Todos</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+            dashOrig.innerHTML = '<option value="">Todos</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+            dashEst.innerHTML = '<option value="">Todos</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
+            dashAlar.innerHTML = '<option value="">Todos</option>' + alarmasNombres.map(a => `<option value="${a}">${a}</option>`).join('');
+
+            dashPers.value = curDPers;
+            dashOrig.value = curDOrig;
+            dashEst.value = curDEst;
+            dashAlar.value = curDAlar;
         }
 
         function filterDocuments() {
@@ -684,10 +816,13 @@
             renderTable(filtered);
         }
 
-        function renderStats() {
-            document.getElementById('stat-total').innerText = appData.Documentos.length;
+        function renderStatsAndCharts() {
+            const docsFiltrados = obtenerDocumentosDashboardFiltrados();
+
+            // KPIs
+            document.getElementById('stat-total').innerText = docsFiltrados.length;
             let tramite = 0, atendido = 0, evaluacion = 0;
-            appData.Documentos.forEach(doc => {
+            docsFiltrados.forEach(doc => {
                 const est = String(getProp(doc, ['Estado', 9]) || '').toLowerCase();
                 if (est.includes('tramit')) tramite++;
                 if (est.includes('atendido') || est.includes('concluido')) atendido++;
@@ -696,6 +831,62 @@
             document.getElementById('stat-tramite').innerText = tramite;
             document.getElementById('stat-atendido').innerText = atendido;
             document.getElementById('stat-evaluacion').innerText = evaluacion;
+
+            // Datos para Gráficas
+            const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 'Estado', 1]) : e).filter(Boolean);
+            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o).filter(Boolean);
+            
+            const estadoCounts = {}; estadosNombres.forEach(e => estadoCounts[e] = 0);
+            docsFiltrados.forEach(doc => { const est = getProp(doc, ['Estado', 9]) || 'Otros'; estadoCounts[est] = (estadoCounts[est] || 0) + 1; });
+            
+            const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
+            docsFiltrados.forEach(doc => { const orig = getProp(doc, ['Origen_Tipo', 2]) || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
+
+            if (chartsInstance.estados) chartsInstance.estados.destroy();
+            if (chartsInstance.origenes) chartsInstance.origenes.destroy();
+
+            // 1. Gráfico Circular (Doughnut)
+            chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
+                type: 'doughnut',
+                data: { 
+                    labels: Object.keys(estadoCounts), 
+                    datasets: [{ 
+                        data: Object.values(estadoCounts), 
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899', '#8b5cf6'], 
+                        borderWidth: 2, 
+                        borderColor: '#ffffff' 
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { weight: '700' } } } } 
+                }
+            });
+
+            // 2. Gráfico de Barras (Bar)
+            chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
+                type: 'bar',
+                data: { 
+                    labels: Object.keys(origenCounts), 
+                    datasets: [{ 
+                        label: 'Cantidad de Documentos', 
+                        data: Object.values(origenCounts), 
+                        backgroundColor: '#3b82f6', 
+                        borderRadius: 8 
+                    }] 
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } 
+                }
+            });
+        }
+
+        function renderCharts() {
+            renderStatsAndCharts();
         }
 
         function openDocFormModal(idx = null) {
@@ -962,31 +1153,8 @@
             const activeBtn = document.getElementById(`tab-btn-${tabId}`);
             activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-semibold');
             activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-bold');
-            if (tabId === 'dashboard') renderCharts();
+            if (tabId === 'dashboard') renderStatsAndCharts();
             if (tabId === 'catalogos') renderCatalogsManagement();
-        }
-
-        function renderCharts() {
-            const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 'Estado', 1]) : e).filter(Boolean);
-            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o).filter(Boolean);
-            const estadoCounts = {}; estadosNombres.forEach(e => estadoCounts[e] = 0);
-            appData.Documentos.forEach(doc => { const est = getProp(doc, ['Estado', 9]) || 'Otros'; estadoCounts[est] = (estadoCounts[est] || 0) + 1; });
-            const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
-            appData.Documentos.forEach(doc => { const orig = getProp(doc, ['Origen_Tipo', 2]) || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
-
-            if (chartsInstance.estados) chartsInstance.estados.destroy();
-            if (chartsInstance.origenes) chartsInstance.origenes.destroy();
-
-            chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
-                type: 'doughnut',
-                data: { labels: Object.keys(estadoCounts), datasets: [{ data: Object.values(estadoCounts), backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899'], borderWidth: 2, borderColor: '#ffffff' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { weight: '700' } } } } }
-            });
-            chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
-                type: 'bar',
-                data: { labels: Object.keys(origenCounts), datasets: [{ label: 'Documentos', data: Object.values(origenCounts), backgroundColor: '#3b82f6', borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
-            });
         }
 
         function openConfigModal() { document.getElementById('inputBackendUrl').value = getBackendUrl(); document.getElementById('configModal').classList.remove('hidden'); }
