@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-50">
+<html lang="es" class="h-full bg-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,35 +8,41 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        /* Estilos corporativos refinados */
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
 </head>
-<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-50">
+<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
-    <!-- Header Principal -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
-                    <i class="fa-solid fa-bolt text-lg"></i>
+    <!-- Header Principal Institucional -->
+    <header class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-600/30 ring-2 ring-blue-400/20">
+                    <i class="fa-solid fa-bolt text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-slate-900 text-lg leading-tight">HIDRANDINA - Control de Documentos</h1>
-                    <div class="flex items-center space-x-2 mt-0.5">
-                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-500 animate-pulse"></span> Sincronizando...
+                    <h1 class="font-bold text-white text-lg sm:text-xl tracking-tight leading-tight">HIDRANDINA - Departamento de Ventas y Clientes Menores</h1>
+                    <div class="flex flex-wrap items-center space-x-3 mt-1 text-xs text-slate-300">
+                        <span class="font-medium text-blue-400"><i class="fa-solid fa-user-shield mr-1"></i> Autor: Ing. Johnny Quevin Camacho Mori</span>
+                        <span class="text-slate-500">•</span>
+                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-400 animate-pulse"></span> Sincronizando...
                         </span>
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center space-x-2">
-                <button onclick="fetchData()" class="p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition" title="Refrescar Datos">
+                <button onclick="fetchData()" class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition shadow-sm" title="Refrescar Datos">
                     <i class="fa-solid fa-sync text-base"></i>
                 </button>
-                <button onclick="openConfigModal()" class="p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-100 rounded-lg transition" title="Configurar URL Backend">
+                <button onclick="openConfigModal()" class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition shadow-sm" title="Configurar URL Backend">
                     <i class="fa-solid fa-gear text-base"></i>
                 </button>
-                <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition">
+                <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white px-4.5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/25 transition transform active:scale-95">
                     <i class="fa-solid fa-plus"></i>
                     <span>Nuevo Documento</span>
                 </button>
@@ -44,68 +50,68 @@
         </div>
     </header>
 
-    <!-- Navegación por Pestañas -->
-    <nav class="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8">
+    <!-- Navegación por Pestañas Moderna -->
+    <nav class="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 shadow-sm">
         <div class="max-w-7xl mx-auto flex space-x-8">
-            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-1 border-b-2 border-blue-600 text-blue-600 font-semibold text-sm flex items-center space-x-2 transition">
-                <i class="fa-solid fa-file-lines"></i>
+            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-2 border-b-2 border-blue-600 text-blue-600 font-semibold text-sm flex items-center space-x-2 transition">
+                <i class="fa-solid fa-file-lines text-base"></i>
                 <span>Documentos</span>
             </button>
-            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 transition">
-                <i class="fa-solid fa-chart-pie"></i>
-                <span>Dashboard</span>
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center space-x-2 transition">
+                <i class="fa-solid fa-chart-pie text-base"></i>
+                <span>Dashboard Ejecutivo</span>
             </button>
-            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2 transition">
-                <i class="fa-solid fa-database"></i>
+            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center space-x-2 transition">
+                <i class="fa-solid fa-database text-base"></i>
                 <span>Gestión de Catálogos</span>
             </button>
         </div>
     </nav>
 
     <!-- Contenido Principal -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-6">
 
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4.5 rounded-2xl border border-slate-200/80 shadow-sm">
                 <div class="relative w-full sm:w-96">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <i class="fa-solid fa-search"></i>
                     </span>
-                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por documento, asunto, responsable..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por documento, asunto, responsable..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                 </div>
                 <div class="flex items-center space-x-3 w-full sm:w-auto">
-                    <select id="filterEstado" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="filterEstado" onchange="filterDocuments()" class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                         <option value="">Todos los Estados</option>
                     </select>
-                    <select id="filterOrigen" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="filterOrigen" onchange="filterDocuments()" class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                         <option value="">Todos los Orígenes</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Tabla de Registros -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Tabla de Registros Profesional -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                                <th class="py-3 px-3">Nro. Documento</th>
-                                <th class="py-3 px-3">Origen</th>
-                                <th class="py-3 px-3">Asunto</th>
-                                <th class="py-3 px-3">F. Ingreso</th>
-                                <th class="py-3 px-3">F. Vencimiento</th>
-                                <th class="py-3 px-3 text-center">Días Transc.</th>
-                                <th class="py-3 px-3 text-center">Días Exceso</th>
-                                <th class="py-3 px-3">Responsable</th>
-                                <th class="py-3 px-3">Estado</th>
-                                <th class="py-3 px-3">Observaciones</th>
-                                <th class="py-3 px-3 text-right">Acciones</th>
+                            <tr class="bg-slate-50/75 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="py-3.5 px-4">Nro. Documento</th>
+                                <th class="py-3.5 px-4">Origen</th>
+                                <th class="py-3.5 px-4">Asunto</th>
+                                <th class="py-3.5 px-4">F. Ingreso</th>
+                                <th class="py-3.5 px-4">F. Vencimiento</th>
+                                <th class="py-3.5 px-4 text-center">Días Transc.</th>
+                                <th class="py-3.5 px-4 text-center">Días Exceso</th>
+                                <th class="py-3.5 px-4">Responsable</th>
+                                <th class="py-3.5 px-4">Estado</th>
+                                <th class="py-3.5 px-4">Observaciones</th>
+                                <th class="py-3.5 px-4 text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="documentosTableBody" class="divide-y divide-slate-100 text-xs">
                             <tr>
-                                <td colspan="11" class="py-8 text-center text-slate-400">Cargando datos...</td>
+                                <td colspan="11" class="py-12 text-center text-slate-400 font-medium">Cargando registros...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -115,55 +121,55 @@
 
         <!-- TAB 2: DASHBOARD -->
         <section id="tab-dashboard" class="hidden space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Documentos</p>
-                        <h3 id="stat-total" class="text-2xl font-bold text-slate-900 mt-1">0</h3>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Documentos</p>
+                        <h3 id="stat-total" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fa-solid fa-folder-open"></i>
                     </div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">En Tramitación</p>
-                        <h3 id="stat-tramite" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">En Tramitación</p>
+                        <h3 id="stat-tramite" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fa-solid fa-clock"></i>
                     </div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Atendidos</p>
-                        <h3 id="stat-atendido" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Atendidos</p>
+                        <h3 id="stat-atendido" class="text-3xl font-extrabold text-emerald-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">En Evaluación</p>
-                        <h3 id="stat-evaluacion" class="text-2xl font-bold text-indigo-600 mt-1">0</h3>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">En Evaluación</p>
+                        <h3 id="stat-evaluacion" class="text-3xl font-extrabold text-indigo-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-inner">
                         <i class="fa-solid fa-magnifying-glass-chart"></i>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4">Documentos por Estado</h3>
-                    <div class="h-64 flex items-center justify-center">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <h3 class="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Documentos por Estado</h3>
+                    <div class="h-72 flex items-center justify-center">
                         <canvas id="chartEstados"></canvas>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4">Documentos por Tipo de Origen</h3>
-                    <div class="h-64 flex items-center justify-center">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                    <h3 class="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Documentos por Tipo de Origen</h3>
+                    <div class="h-72 flex items-center justify-center">
                         <canvas id="chartOrigenes"></canvas>
                     </div>
                 </div>
@@ -173,48 +179,48 @@
         <!-- TAB 3: GESTIÓN DE CATÁLOGOS -->
         <section id="tab-catalogos" class="hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2 text-blue-600">
-                            <i class="fa-solid fa-users text-lg"></i>
-                            <h3 class="font-bold text-slate-900 text-sm">Personal</h3>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-2 text-blue-600 font-bold text-sm">
+                            <i class="fa-solid fa-users"></i>
+                            <span>Personal</span>
                         </div>
-                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-semibold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
-                    <div id="managePersonalList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+                    <div id="managePersonalList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2 text-indigo-600">
-                            <i class="fa-solid fa-tags text-lg"></i>
-                            <h3 class="font-bold text-slate-900 text-sm">Estados</h3>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-2 text-indigo-600 font-bold text-sm">
+                            <i class="fa-solid fa-tags"></i>
+                            <span>Estados</span>
                         </div>
-                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-semibold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
-                    <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+                    <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2 text-emerald-600">
-                            <i class="fa-solid fa-layer-group text-lg"></i>
-                            <h3 class="font-bold text-slate-900 text-sm">Orígenes</h3>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-2 text-emerald-600 font-bold text-sm">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>Orígenes</span>
                         </div>
-                        <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                        <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-xl font-semibold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
-                    <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+                    <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2 text-rose-600">
-                            <i class="fa-solid fa-bell text-lg"></i>
-                            <h3 class="font-bold text-slate-900 text-sm">Alarmas / Plazos</h3>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-2 text-rose-600 font-bold text-sm">
+                            <i class="fa-solid fa-bell"></i>
+                            <span>Alarmas / Plazos</span>
                         </div>
-                        <button onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-2.5 py-1 rounded-lg font-semibold transition"><i class="fa-solid fa-plus"></i></button>
+                        <button onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-semibold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
-                    <div id="manageAlarmasList" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+                    <div id="manageAlarmasList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
             </div>
         </section>
@@ -222,105 +228,105 @@
     </main>
 
     <!-- MODAL: DOCUMENTO -->
-    <div id="docFormModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center">
+    <div id="docFormModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
                 <h3 id="docModalTitle" class="font-bold text-slate-900 text-lg">Documento</h3>
-                <button onclick="closeDocFormModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeDocFormModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="docForm" onsubmit="saveDocument(event)" class="space-y-3 text-sm">
+            <form id="docForm" onsubmit="saveDocument(event)" class="space-y-4 text-sm">
                 <input type="hidden" id="docIndex">
                 <div>
-                    <label class="font-medium text-slate-700">Nro. Documento *</label>
-                    <input type="text" id="formNumeroDocumento" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="DOC-2026-XXX">
+                    <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Nro. Documento *</label>
+                    <input type="text" id="formNumeroDocumento" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" placeholder="DOC-2026-XXX">
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="font-medium text-slate-700">Tipo de Origen *</label>
-                        <select id="formOrigenTipo" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                        <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Tipo de Origen *</label>
+                        <select id="formOrigenTipo" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition"></select>
                     </div>
                     <div>
-                        <label class="font-medium text-slate-700">Fecha de Ingreso *</label>
-                        <input type="date" id="formFechaIngreso" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    </div>
-                </div>
-                <div>
-                    <label class="font-medium text-slate-700">Asunto / Descripción *</label>
-                    <textarea id="formAsunto" rows="2" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Describa el motivo..."></textarea>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="font-medium text-slate-700">Responsable / Derivación *</label>
-                        <select id="formResponsable" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
-                    </div>
-                    <div>
-                        <label class="font-medium text-slate-700">Estado Actual *</label>
-                        <select id="formEstado" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"></select>
+                        <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Fecha de Ingreso *</label>
+                        <input type="date" id="formFechaIngreso" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
                     </div>
                 </div>
                 <div>
-                    <label class="font-medium text-slate-700">Observaciones</label>
-                    <textarea id="formObservaciones" rows="2" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Comentarios u observaciones..."></textarea>
+                    <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Asunto / Descripción *</label>
+                    <textarea id="formAsunto" rows="2" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" placeholder="Describa el motivo..."></textarea>
                 </div>
-                <div class="flex justify-end space-x-3 pt-3">
-                    <button type="button" onclick="closeDocFormModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm">Guardar en Google Sheets</button>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Responsable *</label>
+                        <select id="formResponsable" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition"></select>
+                    </div>
+                    <div>
+                        <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Estado Actual *</label>
+                        <select id="formEstado" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition"></select>
+                    </div>
+                </div>
+                <div>
+                    <label class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Observaciones</label>
+                    <textarea id="formObservaciones" rows="2" class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" placeholder="Comentarios u observaciones..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeDocFormModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold transition">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition">Guardar en Google Sheets</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL: CATÁLOGO -->
-    <div id="catalogModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <div class="flex justify-between items-center">
+    <div id="catalogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl space-y-5 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
                 <h3 id="catalogModalTitle" class="font-bold text-slate-900 text-lg">Gestionar Catálogo</h3>
-                <button onclick="closeCatalogModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeCatalogModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <form id="catalogForm" onsubmit="saveCatalogItem(event)" class="space-y-3 text-sm">
+            <form id="catalogForm" onsubmit="saveCatalogItem(event)" class="space-y-4 text-sm">
                 <input type="hidden" id="catalogType">
                 <input type="hidden" id="catalogOldIndex">
                 <div>
-                    <label id="catalogLabelName" class="font-medium text-slate-700">Nombre / Valor *</label>
-                    <input type="text" id="catalogInputValue" required class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <label id="catalogLabelName" class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Nombre / Valor *</label>
+                    <input type="text" id="catalogInputValue" required class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
                 </div>
                 <div id="catalogFieldSecondaryContainer">
-                    <label id="catalogLabelSecondary" class="font-medium text-slate-700">Campo Secundario</label>
-                    <div id="inputSecondaryWrapper" class="mt-1 flex items-center space-x-2">
-                        <input type="text" id="catalogInputSecondary" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <label id="catalogLabelSecondary" class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Campo Secundario</label>
+                    <div id="inputSecondaryWrapper" class="mt-1.5 flex items-center space-x-2">
+                        <input type="text" id="catalogInputSecondary" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
                     </div>
                 </div>
                 <div id="catalogFieldThirdContainer" class="hidden">
-                    <label id="catalogLabelThird" class="font-medium text-slate-700">Campo Tercero</label>
-                    <input type="text" id="catalogInputThird" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <label id="catalogLabelThird" class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Campo Tercero</label>
+                    <input type="text" id="catalogInputThird" class="w-full mt-1.5 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
                 </div>
                 <div id="catalogFieldFourthContainer" class="hidden">
-                    <label id="catalogLabelFourth" class="font-medium text-slate-700">Color Alarma</label>
-                    <div class="mt-1 flex items-center space-x-2">
-                        <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-10 p-1 border border-slate-200 rounded-xl cursor-pointer bg-white" onchange="document.getElementById('catalogInputFourthText').value = this.value">
-                        <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
+                    <label id="catalogLabelFourth" class="font-semibold text-slate-700 text-xs uppercase tracking-wider">Color Alarma</label>
+                    <div class="mt-1.5 flex items-center space-x-2">
+                        <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputFourthText').value = this.value">
+                        <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
                     </div>
                 </div>
-                <div class="flex justify-end space-x-3 pt-2">
-                    <button type="button" onclick="closeCatalogModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
-                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700">Guardar Cambios</button>
+                <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeCatalogModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold transition">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-600/20 transition">Guardar Cambios</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- MODAL: CONFIGURACIÓN -->
-    <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
-            <div class="flex justify-between items-center">
+    <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
                 <h3 class="font-bold text-slate-900 text-lg">Configuración Apps Script</h3>
-                <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <button onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p class="text-sm text-slate-500">URL del Google Apps Script:</p>
-            <input type="text" id="inputBackendUrl" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <div class="flex justify-end space-x-3 pt-2">
-                <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
-                <button onclick="saveBackendUrl()" class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-semibold">Guardar</button>
+            <p class="text-sm text-slate-500">URL del Google Apps Script enlazado:</p>
+            <input type="text" id="inputBackendUrl" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+            <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
+                <button onclick="closeConfigModal()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
+                <button onclick="saveBackendUrl()" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-semibold shadow-lg shadow-blue-600/20 transition">Guardar</button>
             </div>
         </div>
     </div>
@@ -368,14 +374,14 @@
         function setConnectionStatus(status, text) {
             const badge = document.getElementById('connection-badge');
             if (status === 'active') {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-500"></span> ${text}`;
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400"></span> ${text}`;
             } else if (status === 'error') {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-rose-500"></span> ${text}`;
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-rose-400"></span> ${text}`;
             } else {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-500 animate-pulse"></span> ${text}`;
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-400 animate-pulse"></span> ${text}`;
             }
         }
 
@@ -479,7 +485,7 @@
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="py-8 text-center text-slate-400">Sin documentos registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" class="py-12 text-center text-slate-400 font-medium">Sin documentos registrados.</td></tr>`;
                 return;
             }
             tbody.innerHTML = docs.map((doc, idx) => {
@@ -507,24 +513,24 @@
 
                 return `
                     <tr class="hover:bg-slate-50/80 transition">
-                        <td class="py-3 px-3 font-semibold text-slate-900">${numDoc}</td>
-                        <td class="py-3 px-3 text-slate-600"><span class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">${origen}</span></td>
-                        <td class="py-3 px-3 text-slate-800 max-w-[180px] truncate" title="${asunto}">${asunto}</td>
-                        <td class="py-3 px-3 text-slate-500">${fechaIng}</td>
-                        <td class="py-3 px-3 font-medium text-slate-700">${fechaVenc}</td>
-                        <td class="py-3 px-3 text-center"><span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">${diasTrans} días</span></td>
-                        <td class="py-3 px-3 text-center">
+                        <td class="py-4 px-4 font-bold text-slate-900">${numDoc}</td>
+                        <td class="py-4 px-4 text-slate-600"><span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">${origen}</span></td>
+                        <td class="py-4 px-4 text-slate-800 max-w-[200px] truncate font-medium" title="${asunto}">${asunto}</td>
+                        <td class="py-4 px-4 text-slate-500 font-medium">${fechaIng}</td>
+                        <td class="py-4 px-4 font-semibold text-slate-700">${fechaVenc}</td>
+                        <td class="py-4 px-4 text-center"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px]">${diasTrans} días</span></td>
+                        <td class="py-4 px-4 text-center">
                             ${diasExc > 0 && !isConcluido ? 
-                                `<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-bold animate-pulse">+${diasExc} días</span>` : 
-                                `<span class="text-emerald-600 font-medium">0 días</span>`
+                                `<span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 font-extrabold text-[11px] border border-rose-200 animate-pulse">+${diasExc} días</span>` : 
+                                `<span class="text-emerald-600 font-semibold text-[11px]">0 días</span>`
                             }
                         </td>
-                        <td class="py-3 px-3 text-slate-700 font-medium">${responsable}</td>
-                        <td class="py-3 px-3"><span class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">${estado}</span></td>
-                        <td class="py-3 px-3 text-slate-600 max-w-[150px] truncate" title="${observaciones}">${observaciones}</td>
-                        <td class="py-3 px-3 text-right space-x-1">
-                            <button onclick="editDocument(${idx})" class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deleteDocument(${idx})" class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                        <td class="py-4 px-4 text-slate-700 font-medium">${responsable}</td>
+                        <td class="py-4 px-4"><span class="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/60">${estado}</span></td>
+                        <td class="py-4 px-4 text-slate-600 max-w-[160px] truncate" title="${observaciones}">${observaciones}</td>
+                        <td class="py-4 px-4 text-right space-x-1">
+                            <button onclick="editDocument(${idx})" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition shadow-sm" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="deleteDocument(${idx})" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition shadow-sm" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -660,65 +666,64 @@
         }
 
         function renderCatalogsManagement() {
-            // RENDERIZADO DE PERSONAL CON CORREO ELECTRÓNICO VISIBLE
-            document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+            document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Personal.map((p, i) => {
                     const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
                     const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : '';
                     const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
                     
-                    return `<div class="py-2.5 flex justify-between items-center text-xs border-b border-slate-100">
+                    return `<div class="py-3 flex justify-between items-center text-xs">
                         <div>
-                            <span class="font-semibold text-slate-900">${nom}</span>
+                            <span class="font-bold text-slate-900">${nom}</span>
                             ${cargo ? '<br><span class="text-slate-600 font-medium">'+cargo+'</span>' : ''}
-                            ${correo ? '<br><span class="text-blue-600 font-medium text-[11px]"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
+                            ${correo ? '<br><span class="text-blue-600 font-semibold text-[11px]"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
                         </div>
                         <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Personal', ${i})" class="p-1 text-slate-400 hover:text-blue-600 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Personal', ${i})" class="p-1 text-slate-400 hover:text-rose-600 transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="editCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>`;
                 }).join('');
 
-            document.getElementById('manageEstadosList').innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+            document.getElementById('manageEstadosList').innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Estados.map((e, i) => {
                     const nom = typeof e === 'object' ? (e.Nombre_Estado || e.Estado || e[1] || '') : e;
                     const col = typeof e === 'object' ? (e.Color_Hex || e.Color || e[2] || '#3b82f6') : '#3b82f6';
-                    return `<div class="py-2.5 flex justify-between items-center text-xs border-b border-slate-100">
-                        <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full" style="background-color: ${col}"></span><span class="font-medium text-slate-800">${nom}</span></div>
+                    return `<div class="py-3 flex justify-between items-center text-xs">
+                        <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${col}"></span><span class="font-bold text-slate-800">${nom}</span></div>
                         <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Estados', ${i})" class="p-1 text-slate-400 hover:text-blue-600 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Estados', ${i})" class="p-1 text-slate-400 hover:text-rose-600 transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="editCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>`;
                 }).join('');
 
-            document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+            document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Origenes.map((o, i) => {
                     const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1] || '') : o;
-                    return `<div class="py-2.5 flex justify-between items-center text-xs border-b border-slate-100">
-                        <span class="font-medium text-slate-800">${tipo}</span>
+                    return `<div class="py-3 flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-800">${tipo}</span>
                         <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Origenes', ${i})" class="p-1 text-slate-400 hover:text-blue-600 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Origenes', ${i})" class="p-1 text-slate-400 hover:text-rose-600 transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="editCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>`;
                 }).join('');
 
-            document.getElementById('manageAlarmasList').innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-2">Sin registros</p>' :
+            document.getElementById('manageAlarmasList').innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Alarmas.map((a, i) => {
                     const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
                     const min = typeof a === 'object' ? (a.Dias_Min || a[2] || 0) : 0;
                     const max = typeof a === 'object' ? (a.Dias_Max || a[3] || 0) : 0;
                     const col = typeof a === 'object' ? (a.Color_Hex || a[4] || '#ef4444') : '#ef4444';
-                    return `<div class="py-2.5 flex justify-between items-center text-xs border-b border-slate-100">
+                    return `<div class="py-3 flex justify-between items-center text-xs">
                         <div>
-                            <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full" style="background-color: ${col}"></span><span class="font-medium text-slate-800">${nom}</span></div>
-                            <span class="text-slate-400 text-[10px]">Rango: ${min} - ${max} días</span>
+                            <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${col}"></span><span class="font-bold text-slate-800">${nom}</span></div>
+                            <span class="text-slate-400 text-[11px] font-medium mt-0.5 block">Rango: ${min} - ${max} días</span>
                         </div>
                         <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Alarmas', ${i})" class="p-1 text-slate-400 hover:text-blue-600 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Alarmas', ${i})" class="p-1 text-slate-400 hover:text-rose-600 transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="editCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>`;
                 }).join('');
@@ -743,24 +748,24 @@
             if (type === 'Personal') {
                 lblName.innerText = "Nombre Completo *";
                 lblSec.innerText = "Cargo / Área";
-                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">`;
+                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">`;
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
             } else if (type === 'Estados') {
                 lblName.innerText = "Nombre Estado *";
                 lblSec.innerText = "Color de Estado";
                 secWrapper.innerHTML = `
-                    <input type="color" id="colorPickerSec" value="#3b82f6" class="w-12 h-10 p-1 border border-slate-200 rounded-xl cursor-pointer bg-white" onchange="document.getElementById('catalogInputSecondary').value = this.value">
-                    <input type="text" id="catalogInputSecondary" value="#3b82f6" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none" oninput="document.getElementById('colorPickerSec').value = this.value">
+                    <input type="color" id="colorPickerSec" value="#3b82f6" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputSecondary').value = this.value">
+                    <input type="text" id="catalogInputSecondary" value="#3b82f6" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition" oninput="document.getElementById('colorPickerSec').value = this.value">
                 `;
             } else if (type === 'Origenes') {
                 lblName.innerText = "Tipo de Origen *";
                 lblSec.innerText = "Descripción";
-                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">`;
+                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">`;
             } else if (type === 'Alarmas') {
                 lblName.innerText = "Nombre Alarma *";
                 lblSec.innerText = "Días Mínimos";
-                secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">`;
+                secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">`;
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Días Máximos";
                 document.getElementById('catalogInputThird').value = "15";
@@ -863,13 +868,13 @@
 
             chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
                 type: 'doughnut',
-                data: { labels: Object.keys(estadoCounts), datasets: [{ data: Object.values(estadoCounts), backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899'] }] },
-                options: { responsive: true, maintainAspectRatio: false }
+                data: { labels: Object.keys(estadoCounts), datasets: [{ data: Object.values(estadoCounts), backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899'], borderWidth: 2, borderColor: '#ffffff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { weight: '600' } } } } }
             });
             chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
                 type: 'bar',
                 data: { labels: Object.keys(origenCounts), datasets: [{ label: 'Documentos', data: Object.values(origenCounts), backgroundColor: '#3b82f6', borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
             });
         }
 
