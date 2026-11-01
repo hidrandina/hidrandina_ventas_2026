@@ -318,13 +318,13 @@
             <p class="text-sm text-slate-500">URL del Google Apps Script:</p>
             <input type="text" id="inputBackendUrl" class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <div class="flex justify-end space-x-3 pt-2">
-                <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100">Cancelar</button>
+                <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
                 <button onclick="saveBackendUrl()" class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 font-semibold">Guardar</button>
             </div>
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT CON MAPEO UNIFICADO -->
+    <!-- LÓGICA JAVASCRIPT ROBUSTA Y PRECISA -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -378,13 +378,14 @@
             }
         }
 
-        // Extractor universal de propiedades de objetos para evitar fallos por variaciones de minúsculas/mayúsculas/índices
+        // Extractor universal y seguro de propiedades (compatible con objetos y arrays posicionales de Google Sheets)
         function getProp(obj, keys) {
-            if (!obj) return undefined;
+            if (!obj) return '';
+            if (typeof obj !== 'object') return obj;
             for (let k of keys) {
                 if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
             }
-            return undefined;
+            return '';
         }
 
         window.handleGASResponse = function(data) {
@@ -447,7 +448,7 @@
             renderCatalogsManagement();
         }
 
-        // CÁLCULO ESTRICTO DE PLAZOS Y EXCESOS
+        // CÁLCULO MATEMÁTICO ESTRICTO DE FECHAS
         function calcularPlazos(fechaIngresoStr) {
             if (!fechaIngresoStr) return { vencimiento: '-', diasTranscurridos: 0, diasExceso: 0 };
             const cleanDateStr = String(fechaIngresoStr).split('T')[0];
@@ -461,6 +462,7 @@
             const diffTime = hoy - ingreso;
             const diasTranscurridos = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
 
+            // Plazo límite (por defecto 15 días o tomado del catálogo de alarmas)
             let diasLimite = 15;
             if (appData.Alarmas && appData.Alarmas.length > 0) {
                 const maxAlarm = appData.Alarmas.reduce((max, a) => Math.max(max, parseInt(getProp(a, ['Dias_Max', 'dias_max', 3]) || 15)), 0);
@@ -497,10 +499,10 @@
                 const fechaVenc = (rawVenc && rawVenc !== 'NaN-aN-aN' && !String(rawVenc).match(/[a-zA-Z]/)) ? String(rawVenc).split('T')[0] : plazos.vencimiento;
 
                 const rawTrans = getProp(doc, ['Dias_Trancurridos', 'dias_trancurridos', 'Dias_Transcurridos', 6]);
-                const diasTrans = (rawTrans !== undefined && !isNaN(rawTrans)) ? parseInt(rawTrans) : plazos.diasTranscurridos;
+                const diasTrans = (rawTrans !== undefined && rawTrans !== '' && !isNaN(rawTrans)) ? parseInt(rawTrans) : plazos.diasTranscurridos;
 
                 const rawExc = getProp(doc, ['Dias_Exceso', 'dias_exceso', 7]);
-                const diasExc = (rawExc !== undefined && !isNaN(rawExc)) ? parseInt(rawExc) : plazos.diasExceso;
+                const diasExc = (rawExc !== undefined && rawExc !== '' && !isNaN(rawExc)) ? parseInt(rawExc) : plazos.diasExceso;
 
                 const responsable = getProp(doc, ['Responsable', 'responsable', 'RESPONSABLE', 8]) || '-';
                 const estado = getProp(doc, ['Estado', 'estado', 'ESTADO', 9]) || '-';
@@ -609,21 +611,24 @@
             e.preventDefault();
             const numDoc = document.getElementById('formNumeroDocumento').value.trim();
             const fechaIng = document.getElementById('formFechaIngreso').value;
+            const origenTipo = document.getElementById('formOrigenTipo').value;
+            const asunto = document.getElementById('formAsunto').value;
             const resp = document.getElementById('formResponsable').value;
             const est = document.getElementById('formEstado').value;
+            const obs = document.getElementById('formObservaciones').value;
             const plazos = calcularPlazos(fechaIng);
 
             const newDocObj = {
                 Numero_Documento: numDoc,
-                Origen_Tipo: document.getElementById('formOrigenTipo').value,
-                Asunto: document.getElementById('formAsunto').value,
+                Origen_Tipo: origenTipo,
+                Asunto: asunto,
                 Fecha_Ingreso: fechaIng,
                 Fecha_Vencimiento: plazos.vencimiento,
                 Dias_Trancurridos: plazos.diasTranscurridos,
                 Dias_Exceso: plazos.diasExceso,
                 Responsable: resp,
                 Estado: est,
-                Observaciones: document.getElementById('formObservaciones').value
+                Observaciones: obs
             };
 
             const idx = document.getElementById('docIndex').value;
@@ -637,9 +642,19 @@
             renderAll();
             closeDocFormModal();
 
+            // Sincronización exacta con el backend Google Apps Script
             const params = {
                 action: "saveDoc",
-                ...newDocObj
+                Numero_Documento: numDoc,
+                Origen_Tipo: origenTipo,
+                Asunto: asunto,
+                Fecha_Ingreso: fechaIng,
+                Fecha_Vencimiento: plazos.vencimiento,
+                Dias_Trancurridos: plazos.diasTranscurridos,
+                Dias_Exceso: plazos.diasExceso,
+                Responsable: resp,
+                Estado: est,
+                Observaciones: obs
             };
             executeGASAction(params);
         }
