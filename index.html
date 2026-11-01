@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-50">
+<html lang="es" class="h-full bg-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,37 +12,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style> 
         body { font-family: 'Plus Jakarta Sans', sans-serif; } 
-        .glass-header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        .glass-header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0284c7 100%); }
+        .gradient-card-blue { background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%); }
+        .gradient-card-amber { background: linear-gradient(135deg, #ffffff 0%, #fffbebe6 100%); }
+        .gradient-card-emerald { background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-50 selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
     <!-- Header Principal Institucional -->
-    <header class="glass-header border-b border-slate-800 sticky top-0 z-30 shadow-xl">
+    <header class="glass-header border-b border-indigo-900/50 sticky top-0 z-30 shadow-2xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <div>
-                    <h1 class="font-bold text-white text-base sm:text-xl tracking-tight leading-tight">
-                        HIDRANDINA - Departamento de Ventas y Clientes Menores
+                    <h1 class="font-extrabold text-white text-lg sm:text-xl tracking-tight leading-tight flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-yellow-400"></i>
+                        HIDRANDINA - Depto. Ventas y Clientes Menores
                     </h1>
-                    <div class="flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-300">
-                        <span class="font-medium text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-md border border-blue-500/20"><i class="fa-solid fa-user-shield mr-1.5"></i> Autor: Ing. Johnny Quevin Camacho Mori</span>
-                        <span class="text-slate-600">•</span>
-                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-400 animate-pulse"></span> Sincronizando...
+                    <div class="flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-200">
+                        <span class="font-medium text-blue-200 bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-400/30 backdrop-blur-md">
+                            <i class="fa-solid fa-user-shield mr-1 text-blue-300"></i> Autor: Ing. Johnny Quevin Camacho Mori
+                        </span>
+                        <span class="text-blue-300">•</span>
+                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md">
+                            <span class="w-2 h-2 mr-1.5 rounded-full bg-amber-400 animate-ping"></span> Sincronizando...
                         </span>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2.5">
-                <button onclick="fetchData()" class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition shadow-sm border border-transparent hover:border-white/10" title="Refrescar Datos">
-                    <i class="fa-solid fa-sync text-sm"></i>
+            <div class="flex items-center space-x-3">
+                <button onclick="fetchData()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Refrescar Datos">
+                    <i class="fa-solid fa-arrows-rotate text-sm"></i>
                 </button>
-                <button onclick="openConfigModal()" class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition shadow-sm border border-transparent hover:border-white/10" title="Configurar URL Backend">
-                    <i class="fa-solid fa-gear text-sm"></i>
+                <button onclick="openConfigModal()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
+                    <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-600/30 transition transform active:scale-95 border border-blue-500/50">
+                <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span>Nuevo Documento</span>
                 </button>
@@ -51,18 +57,18 @@
     </header>
 
     <!-- Navegación por Pestañas -->
-    <nav class="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 shadow-sm">
+    <nav class="bg-white border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 shadow-md sticky top-20 z-20">
         <div class="max-w-7xl mx-auto flex space-x-8">
-            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-3 border-b-2 border-blue-600 text-blue-600 font-bold text-sm flex items-center space-x-2.5 transition">
-                <i class="fa-solid fa-file-lines text-base"></i>
-                <span>Documentos</span>
+            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-3 border-b-2 border-blue-600 text-blue-600 font-extrabold text-sm flex items-center space-x-2.5 transition">
+                <i class="fa-solid fa-folder-tree text-lg"></i>
+                <span>Gestión de Documentos</span>
             </button>
-            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-semibold text-sm flex items-center space-x-2.5 transition">
-                <i class="fa-solid fa-chart-pie text-base"></i>
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
+                <i class="fa-solid fa-chart-pie text-lg"></i>
                 <span>Dashboard Ejecutivo</span>
             </button>
-            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-semibold text-sm flex items-center space-x-2.5 transition">
-                <i class="fa-solid fa-database text-base"></i>
+            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
+                <i class="fa-solid fa-sliders text-lg"></i>
                 <span>Gestión de Catálogos</span>
             </button>
         </div>
@@ -73,62 +79,97 @@
 
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                <div class="relative w-full lg:w-72">
+            
+            <!-- Resumen KPI Rápido -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div class="gradient-card-blue p-5 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">Total Documentos</p>
+                        <h3 id="top-stat-total" class="text-3xl font-black text-slate-900 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-blue-500/20">
+                        <i class="fa-solid fa-files"></i>
+                    </div>
+                </div>
+                <div class="gradient-card-amber p-5 rounded-2xl border border-amber-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-amber-600 uppercase tracking-wider">Pendientes</p>
+                        <h3 id="top-stat-pendiente" class="text-3xl font-black text-amber-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-md shadow-amber-500/20">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                </div>
+                <div class="gradient-card-emerald p-5 rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Atendidos</p>
+                        <h3 id="top-stat-atendido" class="text-3xl font-black text-emerald-600 mt-1">0</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-500/20">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros y Herramientas -->
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm">
+                <div class="relative w-full lg:w-80">
                     <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-search"></i>
+                        <i class="fa-solid fa-magnifying-glass"></i>
                     </span>
-                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por documento, asunto..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
+                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar documento, asunto..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                     <!-- Filtro por Personal -->
-                    <select id="filterPersonal" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
+                    <select id="filterPersonal" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todo el Personal</option>
                     </select>
-                    <!-- Filtro por Estado -->
-                    <select id="filterEstado" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
+                    <!-- Filtro por Estado (Pendiente / Atendido) -->
+                    <select id="filterEstado" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Estados</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Atendido">Atendido</option>
                     </select>
                     <!-- Filtro por Origen -->
-                    <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
+                    <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Orígenes</option>
                     </select>
                     
                     <div class="flex items-center space-x-2 ml-auto">
-                        <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-md transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
+                        <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/20 transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
                             <i class="fa-solid fa-file-excel text-sm"></i>
                             <span>Exportar Excel</span>
                         </button>
-                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-md transition transform active:scale-95" title="Enviar lista completa por Correo Electrónico">
-                            <i class="fa-solid fa-envelope text-sm"></i>
-                            <span>Enviar Lista por Correo</span>
+                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/20 transition transform active:scale-95" title="Enviar lista completa por Correo Electrónico">
+                            <i class="fa-solid fa-paper-plane text-sm"></i>
+                            <span>Enviar por Correo</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Tabla de Registros Profesional -->
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <!-- TABLA MEJORADA CON GRID Y CABECERA AZUL DÉGRADÉ -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
-                                <th class="py-4 px-4">Nro. Documento</th>
-                                <th class="py-4 px-4">Origen</th>
-                                <th class="py-4 px-4">Asunto</th>
-                                <th class="py-4 px-4">F. Ingreso</th>
-                                <th class="py-4 px-4">F. Vencimiento</th>
-                                <th class="py-4 px-4 text-center">Días Transc.</th>
-                                <th class="py-4 px-4 text-center">Días Exceso</th>
-                                <th class="py-4 px-4">Responsable</th>
-                                <th class="py-4 px-4">Estado</th>
-                                <th class="py-4 px-4">Observaciones</th>
-                                <th class="py-4 px-4 text-right">Acciones</th>
+                            <tr class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-800 text-[11px] font-black text-white uppercase tracking-wider border-b-2 border-indigo-900">
+                                <th class="py-4 px-4 border-r border-indigo-600/40">Nro. Documento</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40">Origen</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40">Asunto</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40">F. Ingreso</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40">F. Vencimiento</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40 text-center">Días Transc.</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40 text-center">Días Exceso</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40">Responsable</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40">Estado</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40">Observaciones</th>
+                                <th class="py-4 px-4 text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody id="documentosTableBody" class="divide-y divide-slate-100 text-xs">
+                        <tbody id="documentosTableBody" class="divide-y divide-slate-200 text-xs font-medium">
                             <tr>
-                                <td colspan="11" class="py-12 text-center text-slate-400 font-medium">Cargando registros...</td>
+                                <td colspan="11" class="py-12 text-center text-slate-400 font-semibold">Cargando registros...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -136,109 +177,72 @@
             </div>
         </section>
 
-        <!-- TAB 2: DASHBOARD EJECUTIVO Y REPORTES -->
+        <!-- TAB 2: DASHBOARD EJECUTIVO -->
         <section id="tab-dashboard" class="hidden space-y-6">
             
-            <!-- Panel de Filtros del Reporte / Dashboard -->
-            <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+                    <h3 class="font-extrabold text-slate-900 text-sm flex items-center space-x-2">
                         <i class="fa-solid fa-filter text-blue-600"></i>
                         <span>Filtros del Reporte Ejecutivo</span>
                     </h3>
-                    <button onclick="resetDashboardFilters()" class="text-xs text-slate-500 hover:text-blue-600 font-semibold transition"><i class="fa-solid fa-rotate-right mr-1"></i> Restablecer Filtros</button>
+                    <button onclick="resetDashboardFilters()" class="text-xs text-blue-600 hover:text-blue-800 font-bold transition flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-right"></i> Restablecer Filtros
+                    </button>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 text-xs">
                     <div>
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Fecha Inicial</label>
-                        <input type="date" id="dashFechaInicio" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                        <input type="date" id="dashFechaInicio" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition">
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Fecha Final</label>
-                        <input type="date" id="dashFechaFin" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition">
+                        <input type="date" id="dashFechaFin" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition">
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Personal</label>
-                        <select id="dashFiltroPersonal" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                        <select id="dashFiltroPersonal" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                             <option value="">Todos</option>
                         </select>
                     </div>
                     <div>
-                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Tipo Documento</label>
-                        <select id="dashFiltroOrigen" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Origen</label>
+                        <select id="dashFiltroOrigen" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                             <option value="">Todos</option>
                         </select>
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Estado</label>
-                        <select id="dashFiltroEstado" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                        <select id="dashFiltroEstado" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                             <option value="">Todos</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Atendido">Atendido</option>
                         </select>
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Alarma / Plazo</label>
-                        <select id="dashFiltroAlarma" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                        <select id="dashFiltroAlarma" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                             <option value="">Todos</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <!-- Tarjetas de Resumen KPI -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Documentos</p>
-                        <h3 id="stat-total" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
-                    </div>
-                    <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-inner border border-blue-100">
-                        <i class="fa-solid fa-folder-open"></i>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">En Tramitación</p>
-                        <h3 id="stat-tramite" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
-                    </div>
-                    <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shadow-inner border border-amber-100">
-                        <i class="fa-solid fa-clock"></i>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Atendidos</p>
-                        <h3 id="stat-atendido" class="text-3xl font-extrabold text-emerald-600 mt-1">0</h3>
-                    </div>
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-inner border border-emerald-100">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">En Evaluación</p>
-                        <h3 id="stat-evaluacion" class="text-3xl font-extrabold text-indigo-600 mt-1">0</h3>
-                    </div>
-                    <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shadow-inner border border-indigo-100">
-                        <i class="fa-solid fa-magnifying-glass-chart"></i>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dos Tipos de Gráficas Requeridas: Barra y Circular -->
+            <!-- Gráficos de Estadísticas -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
-                        <span>Gráfico Circular (Distribución por Estado)</span>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
+                        <span>Estado de Trámites (Pendientes vs Atendidos)</span>
                         <i class="fa-solid fa-chart-pie text-blue-600"></i>
                     </h3>
                     <div class="h-80 flex items-center justify-center">
                         <canvas id="chartEstados"></canvas>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
-                    <h3 class="font-bold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
-                        <span>Gráfico de Barras (Distribución por Tipo de Documento / Origen)</span>
-                        <i class="fa-solid fa-chart-column text-blue-600"></i>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
+                        <span>Distribución por Origen / Tipo de Documento</span>
+                        <i class="fa-solid fa-chart-column text-indigo-600"></i>
                     </h3>
                     <div class="h-80 flex items-center justify-center">
                         <canvas id="chartOrigenes"></canvas>
@@ -250,9 +254,9 @@
         <!-- TAB 3: GESTIÓN DE CATÁLOGOS -->
         <section id="tab-catalogos" class="hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-blue-600 font-bold text-sm">
+                        <div class="flex items-center space-x-2 text-blue-600 font-extrabold text-sm">
                             <i class="fa-solid fa-users"></i>
                             <span>Personal</span>
                         </div>
@@ -261,20 +265,19 @@
                     <div id="managePersonalList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-indigo-600 font-bold text-sm">
+                        <div class="flex items-center space-x-2 text-indigo-600 font-extrabold text-sm">
                             <i class="fa-solid fa-tags"></i>
-                            <span>Estados</span>
+                            <span>Estados (Fijos)</span>
                         </div>
-                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-emerald-600 font-bold text-sm">
+                        <div class="flex items-center space-x-2 text-emerald-600 font-extrabold text-sm">
                             <i class="fa-solid fa-layer-group"></i>
                             <span>Orígenes</span>
                         </div>
@@ -283,9 +286,9 @@
                     <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
 
-                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-rose-600 font-bold text-sm">
+                        <div class="flex items-center space-x-2 text-rose-600 font-extrabold text-sm">
                             <i class="fa-solid fa-bell"></i>
                             <span>Alarmas / Plazos</span>
                         </div>
@@ -302,46 +305,49 @@
     <div id="docFormModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-                <h3 id="docModalTitle" class="font-bold text-slate-900 text-lg">Documento</h3>
+                <h3 id="docModalTitle" class="font-extrabold text-slate-900 text-lg">Documento</h3>
                 <button onclick="closeDocFormModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="docForm" onsubmit="saveDocument(event)" class="space-y-4 text-sm">
                 <input type="hidden" id="docIndex">
                 <div>
                     <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nro. Documento *</label>
-                    <input type="text" id="formNumeroDocumento" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" placeholder="DOC-2026-XXX">
+                    <input type="text" id="formNumeroDocumento" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="DOC-2026-XXX">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Tipo de Origen *</label>
-                        <select id="formOrigenTipo" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner"></select>
+                        <select id="formOrigenTipo" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold"></select>
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Fecha de Ingreso *</label>
-                        <input type="date" id="formFechaIngreso" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">
+                        <input type="date" id="formFechaIngreso" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
                     </div>
                 </div>
                 <div>
                     <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Asunto / Descripción *</label>
-                    <textarea id="formAsunto" rows="2" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" placeholder="Describa el motivo..."></textarea>
+                    <textarea id="formAsunto" rows="2" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Describa el motivo..."></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Responsable *</label>
-                        <select id="formResponsable" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner"></select>
+                        <select id="formResponsable" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold"></select>
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Estado Actual *</label>
-                        <select id="formEstado" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner"></select>
+                        <select id="formEstado" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-extrabold text-blue-600">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Atendido">Atendido</option>
+                        </select>
                     </div>
                 </div>
                 <div>
                     <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Observaciones</label>
-                    <textarea id="formObservaciones" rows="2" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" placeholder="Comentarios u observaciones..."></textarea>
+                    <textarea id="formObservaciones" rows="2" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Comentarios u observaciones..."></textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeDocFormModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar en Google Sheets</button>
+                    <button type="button" onclick="closeDocFormModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar en Google Sheets</button>
                 </div>
             </form>
         </div>
@@ -351,7 +357,7 @@
     <div id="catalogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl space-y-5 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-                <h3 id="catalogModalTitle" class="font-bold text-slate-900 text-lg">Gestionar Catálogo</h3>
+                <h3 id="catalogModalTitle" class="font-extrabold text-slate-900 text-lg">Gestionar Catálogo</h3>
                 <button onclick="closeCatalogModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="catalogForm" onsubmit="saveCatalogItem(event)" class="space-y-4 text-sm">
@@ -359,28 +365,28 @@
                 <input type="hidden" id="catalogOldIndex">
                 <div>
                     <label id="catalogLabelName" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nombre / Valor *</label>
-                    <input type="text" id="catalogInputValue" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">
+                    <input type="text" id="catalogInputValue" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
                 </div>
                 <div id="catalogFieldSecondaryContainer">
                     <label id="catalogLabelSecondary" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Campo Secundario</label>
                     <div id="inputSecondaryWrapper" class="mt-1.5 flex items-center space-x-2">
-                        <input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">
+                        <input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
                     </div>
                 </div>
                 <div id="catalogFieldThirdContainer" class="hidden">
                     <label id="catalogLabelThird" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Campo Tercero</label>
-                    <input type="text" id="catalogInputThird" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">
+                    <input type="text" id="catalogInputThird" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
                 </div>
                 <div id="catalogFieldFourthContainer" class="hidden">
                     <label id="catalogLabelFourth" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Color Alarma</label>
                     <div class="mt-1.5 flex items-center space-x-2">
                         <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputFourthText').value = this.value">
-                        <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
+                        <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
                     </div>
                 </div>
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeCatalogModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar Cambios</button>
+                    <button type="button" onclick="closeCatalogModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar Cambios</button>
                 </div>
             </form>
         </div>
@@ -390,14 +396,14 @@
     <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-4 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-                <h3 class="font-bold text-slate-900 text-lg">Configuración Apps Script</h3>
+                <h3 class="font-extrabold text-slate-900 text-lg">Configuración Apps Script</h3>
                 <button onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p class="text-sm text-slate-500">URL del Google Apps Script enlazado:</p>
-            <input type="text" id="inputBackendUrl" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
+            <p class="text-sm font-semibold text-slate-500">URL del Google Apps Script enlazado:</p>
+            <input type="text" id="inputBackendUrl" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
             <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
-                <button onclick="closeConfigModal()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
-                <button onclick="saveBackendUrl()" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar</button>
+                <button onclick="closeConfigModal()" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
+                <button onclick="saveBackendUrl()" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-extrabold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar</button>
             </div>
         </div>
     </div>
@@ -413,7 +419,7 @@
         let appData = {
             Documentos: [],
             Personal: [],
-            Estados: [],
+            Estados: ["Pendiente", "Atendido"],
             Origenes: [],
             Alarmas: []
         };
@@ -428,7 +434,6 @@
         function loadLocalCache() {
             if (localStorage.getItem('hidrandina_docs_cache')) appData.Documentos = JSON.parse(localStorage.getItem('hidrandina_docs_cache'));
             if (localStorage.getItem('hidrandina_pers_cache')) appData.Personal = JSON.parse(localStorage.getItem('hidrandina_pers_cache'));
-            if (localStorage.getItem('hidrandina_ests_cache')) appData.Estados = JSON.parse(localStorage.getItem('hidrandina_ests_cache'));
             if (localStorage.getItem('hidrandina_orig_cache')) appData.Origenes = JSON.parse(localStorage.getItem('hidrandina_orig_cache'));
             if (localStorage.getItem('hidrandina_alar_cache')) appData.Alarmas = JSON.parse(localStorage.getItem('hidrandina_alar_cache'));
             if (appData.Documentos.length > 0) renderAll();
@@ -437,7 +442,6 @@
         function saveLocalCache() {
             localStorage.setItem('hidrandina_docs_cache', JSON.stringify(appData.Documentos));
             localStorage.setItem('hidrandina_pers_cache', JSON.stringify(appData.Personal));
-            localStorage.setItem('hidrandina_ests_cache', JSON.stringify(appData.Estados));
             localStorage.setItem('hidrandina_orig_cache', JSON.stringify(appData.Origenes));
             localStorage.setItem('hidrandina_alar_cache', JSON.stringify(appData.Alarmas));
         }
@@ -445,14 +449,14 @@
         function setConnectionStatus(status, text) {
             const badge = document.getElementById('connection-badge');
             if (status === 'active') {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400"></span> ${text}`;
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md";
+                badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400"></span> ${text}`;
             } else if (status === 'error') {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-rose-400"></span> ${text}`;
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-rose-500/20 text-rose-300 border border-rose-400/30 backdrop-blur-md";
+                badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-rose-400"></span> ${text}`;
             } else {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-amber-400 animate-pulse"></span> ${text}`;
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md";
+                badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-amber-400 animate-ping"></span> ${text}`;
             }
         }
 
@@ -470,7 +474,6 @@
                 if (data.Registros) appData.Documentos = data.Registros;
                 if (data.Catalogos) {
                     appData.Personal = data.Catalogos.Personal || data.Catalogos.Responsables || appData.Personal;
-                    appData.Estados = data.Catalogos.Estados || appData.Estados;
                     appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
                     appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
                 }
@@ -624,7 +627,6 @@
             renderCharts();
         }
 
-        // --- FUNCIONALIDAD 1: EXPORTAR A EXCEL (.xlsx real) ---
         function exportarExcel() {
             const docs = obtenerDocumentosFiltradosActuales();
             if (!docs || docs.length === 0) {
@@ -644,7 +646,7 @@
                     "Días Transcurridos": plazos.diasTranscurridos,
                     "Días Exceso": plazos.diasExceso,
                     "Responsable": getProp(doc, ['Responsable', 8]) || '-',
-                    "Estado": getProp(doc, ['Estado', 9]) || '-',
+                    "Estado": getProp(doc, ['Estado', 9]) || 'Pendiente',
                     "Observaciones": getProp(doc, ['Observaciones', 10]) || '-'
                 };
             });
@@ -656,7 +658,6 @@
             XLSX.writeFile(workbook, "Control_Documentos_Hidrandina.xlsx");
         }
 
-        // --- FUNCIONALIDAD 2: ENVIAR LISTA COMPLETA POR CORREO ---
         function enviarListaCorreo() {
             const docs = obtenerDocumentosFiltradosActuales();
             if (!docs || docs.length === 0) {
@@ -665,13 +666,13 @@
             }
 
             const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
-            let cuerpo = `Estimado equipo,\n\nA continuación se presenta el reporte actual para conocimiento y control:\n\n`;
+            let cuerpo = `Estimado equipo,\n\nA continuación se presenta el reporte actual de trámites:\n\n`;
             
             docs.forEach((doc, idx) => {
                 const num = getProp(doc, ['Numero_Documento', 1]);
                 const origen = getProp(doc, ['Origen_Tipo', 2]);
                 const asuntoDoc = getProp(doc, ['Asunto', 3]);
-                const estado = getProp(doc, ['Estado', 9]);
+                const estado = getProp(doc, ['Estado', 9]) || 'Pendiente';
                 const resp = getProp(doc, ['Responsable', 8]);
                 cuerpo += `${idx + 1}. [${num}] - ${origen} | Asunto: ${asuntoDoc} | Estado: ${estado} | Responsable: ${resp}\n`;
             });
@@ -679,14 +680,13 @@
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
         }
 
-        // --- FUNCIONALIDAD 3: ENVIAR REGISTRO INDIVIDUAL (PARA CONOCIMIENTO) ---
         function enviarCorreoIndividual(idx) {
             const doc = appData.Documentos[idx];
             if (!doc) return;
 
             const numDoc = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || 'DOC';
             const entidad = getProp(doc, ['Origen_Tipo', 2]) || 'Entidad';
-            const estado = getProp(doc, ['Estado', 9]) || 'Estado';
+            const estado = getProp(doc, ['Estado', 9]) || 'Pendiente';
             const responsableNombre = getProp(doc, ['Responsable', 8]) || '';
             const asuntoDoc = getProp(doc, ['Asunto', 3]) || '';
             const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
@@ -716,12 +716,14 @@
             window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
         }
 
+        // TABLA CON BORDES DE REJILLA EN CELDA (GRID VISIBLE) Y FILAS INTERCALADAS
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="py-12 text-center text-slate-400 font-medium">Sin documentos registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos registrados.</td></tr>`;
                 return;
             }
+
             tbody.innerHTML = docs.map((doc, idx) => {
                 const numDoc = getProp(doc, ['Numero_Documento', 'numero_documento', 'Numero_Expediente', 'NRO_DOCUMENTO', 1]) || '-';
                 const origen = getProp(doc, ['Origen_Tipo', 'origen_tipo', 'ORIGEN', 'Origen', 2]) || '-';
@@ -741,31 +743,39 @@
                 const diasExc = (rawExc !== undefined && rawExc !== '' && !isNaN(rawExc)) ? parseInt(rawExc) : plazos.diasExceso;
 
                 const responsable = getProp(doc, ['Responsable', 'responsable', 'RESPONSABLE', 8]) || '-';
-                const estado = getProp(doc, ['Estado', 'estado', 'ESTADO', 9]) || '-';
+                const rawEstado = getProp(doc, ['Estado', 'estado', 'ESTADO', 9]) || 'Pendiente';
+                const isAtendido = String(rawEstado).toLowerCase().includes('atendido') || String(rawEstado).toLowerCase().includes('concluido');
+                const estado = isAtendido ? 'Atendido' : 'Pendiente';
+
                 const observaciones = getProp(doc, ['Observaciones', 'observaciones', 'OBSERVACIONES', 10]) || '-';
-                const isConcluido = String(estado).toLowerCase().includes('atendido') || String(estado).toLowerCase().includes('concluido');
+                const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
 
                 return `
-                    <tr class="hover:bg-slate-50/80 transition">
-                        <td class="py-4 px-4 font-bold text-slate-900">${numDoc}</td>
-                        <td class="py-4 px-4 text-slate-600"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">${origen}</span></td>
-                        <td class="py-4 px-4 text-slate-800 max-w-[200px] truncate font-medium" title="${asunto}">${asunto}</td>
-                        <td class="py-4 px-4 text-slate-500 font-medium">${fechaIng}</td>
-                        <td class="py-4 px-4 font-semibold text-slate-700">${fechaVenc}</td>
-                        <td class="py-4 px-4 text-center"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px]">${diasTrans} días</span></td>
-                        <td class="py-4 px-4 text-center">
-                            ${diasExc > 0 && !isConcluido ? 
-                                `<span class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 font-extrabold text-[11px] border border-rose-200 animate-pulse">+${diasExc} días</span>` : 
-                                `<span class="text-emerald-600 font-semibold text-[11px]">0 días</span>`
+                    <tr class="${bgRow} hover:bg-blue-50/60 transition duration-150">
+                        <td class="py-3.5 px-4 font-extrabold text-blue-900 border-r border-slate-200/80">${numDoc}</td>
+                        <td class="py-3.5 px-4 border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-blue-100/70 text-blue-800 border border-blue-200/50">${origen}</span></td>
+                        <td class="py-3.5 px-4 text-slate-800 max-w-[220px] truncate font-medium border-r border-slate-200/80" title="${asunto}">${asunto}</td>
+                        <td class="py-3.5 px-4 text-slate-600 font-semibold border-r border-slate-200/80">${fechaIng}</td>
+                        <td class="py-3.5 px-4 font-bold text-slate-700 border-r border-slate-200/80">${fechaVenc}</td>
+                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans} días</span></td>
+                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
+                            ${diasExc > 0 && !isAtendido ? 
+                                `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc} días</span>` : 
+                                `<span class="text-emerald-600 font-extrabold text-[11px]">0 días</span>`
                             }
                         </td>
-                        <td class="py-4 px-4 text-slate-700 font-medium">${responsable}</td>
-                        <td class="py-4 px-4"><span class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200/60">${estado}</span></td>
-                        <td class="py-4 px-4 text-slate-600 max-w-[160px] truncate" title="${observaciones}">${observaciones}</td>
-                        <td class="py-4 px-4 text-right space-x-1">
-                            <button onclick="enviarCorreoIndividual(${idx})" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition shadow-sm" title="Enviar por Correo para Conocimiento"><i class="fa-solid fa-envelope"></i></button>
-                            <button onclick="editDocument(${idx})" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition shadow-sm" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button onclick="deleteDocument(${idx})" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition shadow-sm" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                        <td class="py-3.5 px-4 text-slate-700 font-semibold border-r border-slate-200/80">${responsable}</td>
+                        <td class="py-3.5 px-4 border-r border-slate-200/80">
+                            ${isAtendido ? 
+                                `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Atendido</span>` : 
+                                `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 border border-amber-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Pendiente</span>`
+                            }
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-600 max-w-[160px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
+                        <td class="py-3.5 px-4 text-center space-x-1">
+                            <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
+                            <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
                         </td>
                     </tr>
                 `;
@@ -774,46 +784,36 @@
 
         function populateSelects() {
             const persSel = document.getElementById('filterPersonal');
-            const estSel = document.getElementById('filterEstado');
             const origSel = document.getElementById('filterOrigen');
             const currentPers = persSel.value;
-            const currentEst = estSel.value;
             const currentOrig = origSel.value;
 
-            const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 'Estado', 1]) : e).filter(Boolean);
             const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o).filter(Boolean);
             const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 'Nombre', 1]) : p).filter(Boolean);
             const alarmasNombres = appData.Alarmas.map(a => typeof a === 'object' ? getProp(a, ['Nombre_Alarma', 1]) : a).filter(Boolean);
 
             persSel.innerHTML = '<option value="">Todo el Personal</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
-            estSel.innerHTML = '<option value="">Todos los Estados</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
             origSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
             
             persSel.value = currentPers;
-            estSel.value = currentEst;
             origSel.value = currentOrig;
 
             document.getElementById('formOrigenTipo').innerHTML = origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
             document.getElementById('formResponsable').innerHTML = personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
-            document.getElementById('formEstado').innerHTML = estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
 
             const dashPers = document.getElementById('dashFiltroPersonal');
             const dashOrig = document.getElementById('dashFiltroOrigen');
-            const dashEst = document.getElementById('dashFiltroEstado');
             const dashAlar = document.getElementById('dashFiltroAlarma');
             const curDPers = dashPers.value;
             const curDOrig = dashOrig.value;
-            const curDEst = dashEst.value;
             const curDAlar = dashAlar.value;
 
             dashPers.innerHTML = '<option value="">Todos</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
             dashOrig.innerHTML = '<option value="">Todos</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
-            dashEst.innerHTML = '<option value="">Todos</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
             dashAlar.innerHTML = '<option value="">Todos</option>' + alarmasNombres.map(a => `<option value="${a}">${a}</option>`).join('');
 
             dashPers.value = curDPers;
             dashOrig.value = curDOrig;
-            dashEst.value = curDEst;
             dashAlar.value = curDAlar;
         }
 
@@ -825,24 +825,30 @@
         function renderStatsAndCharts() {
             const docsFiltrados = obtenerDocumentosDashboardFiltrados();
 
-            document.getElementById('stat-total').innerText = docsFiltrados.length;
-            let tramite = 0, atendido = 0, evaluacion = 0;
+            let pendiente = 0, atendido = 0;
+            appData.Documentos.forEach(doc => {
+                const est = String(getProp(doc, ['Estado', 9]) || '').toLowerCase();
+                if (est.includes('atendido') || est.includes('concluido')) {
+                    atendido++;
+                } else {
+                    pendiente++;
+                }
+            });
+            document.getElementById('top-stat-total').innerText = appData.Documentos.length;
+            document.getElementById('top-stat-pendiente').innerText = pendiente;
+            document.getElementById('top-stat-atendido').innerText = atendido;
+
+            let dashPendiente = 0, dashAtendido = 0;
             docsFiltrados.forEach(doc => {
                 const est = String(getProp(doc, ['Estado', 9]) || '').toLowerCase();
-                if (est.includes('tramit')) tramite++;
-                if (est.includes('atendido') || est.includes('concluido')) atendido++;
-                if (est.includes('evaluacion') || est.includes('evaluación')) evaluacion++;
+                if (est.includes('atendido') || est.includes('concluido')) {
+                    dashAtendido++;
+                } else {
+                    dashPendiente++;
+                }
             });
-            document.getElementById('stat-tramite').innerText = tramite;
-            document.getElementById('stat-atendido').innerText = atendido;
-            document.getElementById('stat-evaluacion').innerText = evaluacion;
 
-            const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 'Estado', 1]) : e).filter(Boolean);
             const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o).filter(Boolean);
-            
-            const estadoCounts = {}; estadosNombres.forEach(e => estadoCounts[e] = 0);
-            docsFiltrados.forEach(doc => { const est = getProp(doc, ['Estado', 9]) || 'Otros'; estadoCounts[est] = (estadoCounts[est] || 0) + 1; });
-            
             const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
             docsFiltrados.forEach(doc => { const orig = getProp(doc, ['Origen_Tipo', 2]) || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
 
@@ -852,18 +858,18 @@
             chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
                 type: 'doughnut',
                 data: { 
-                    labels: Object.keys(estadoCounts), 
+                    labels: ['Pendiente', 'Atendido'], 
                     datasets: [{ 
-                        data: Object.values(estadoCounts), 
-                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ec4899', '#8b5cf6'], 
-                        borderWidth: 2, 
+                        data: [dashPendiente, dashAtendido], 
+                        backgroundColor: ['#f59e0b', '#10b981'], 
+                        borderWidth: 3, 
                         borderColor: '#ffffff' 
                     }] 
                 },
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { weight: '700' } } } } 
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { weight: '800' } } } } 
                 }
             });
 
@@ -874,7 +880,7 @@
                     datasets: [{ 
                         label: 'Cantidad de Documentos', 
                         data: Object.values(origenCounts), 
-                        backgroundColor: '#3b82f6', 
+                        backgroundColor: '#4338ca', 
                         borderRadius: 8 
                     }] 
                 },
@@ -903,12 +909,15 @@
                 document.getElementById('formAsunto').value = getProp(doc, ['Asunto', 3]) || '';
                 document.getElementById('formFechaIngreso').value = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
                 document.getElementById('formResponsable').value = getProp(doc, ['Responsable', 8]) || '';
-                document.getElementById('formEstado').value = getProp(doc, ['Estado', 9]) || '';
+                
+                const rawEst = getProp(doc, ['Estado', 9]) || 'Pendiente';
+                document.getElementById('formEstado').value = String(rawEst).toLowerCase().includes('atendido') ? 'Atendido' : 'Pendiente';
                 document.getElementById('formObservaciones').value = getProp(doc, ['Observaciones', 10]) || '';
             } else {
                 document.getElementById('docModalTitle').innerText = "Nuevo Documento";
                 document.getElementById('docIndex').value = "";
                 document.getElementById('formFechaIngreso').value = new Date().toISOString().split('T')[0];
+                document.getElementById('formEstado').value = "Pendiente";
             }
             document.getElementById('docFormModal').classList.remove('hidden');
         }
@@ -979,7 +988,7 @@
                     return `<div class="py-3 flex justify-between items-center text-xs">
                         <div>
                             <span class="font-bold text-slate-900">${nom}</span>
-                            ${cargo ? '<br><span class="text-slate-600 font-medium">'+cargo+'</span>' : ''}
+                            ${cargo ? '<br><span class="text-slate-500 font-medium">'+cargo+'</span>' : ''}
                             ${correo ? '<br><span class="text-blue-600 font-semibold text-[11px]"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
                         </div>
                         <div class="space-x-1 flex items-center">
@@ -989,18 +998,14 @@
                     </div>`;
                 }).join('');
 
-            document.getElementById('manageEstadosList').innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Estados.map((e, i) => {
-                    const nom = typeof e === 'object' ? (e.Nombre_Estado || e.Estado || e[1] || '') : e;
-                    const col = typeof e === 'object' ? (e.Color_Hex || e.Color || e[2] || '#3b82f6') : '#3b82f6';
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${col}"></span><span class="font-bold text-slate-800">${nom}</span></div>
-                        <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>`;
-                }).join('');
+            document.getElementById('manageEstadosList').innerHTML = `
+                <div class="py-3 flex justify-between items-center text-xs">
+                    <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm"></span><span class="font-extrabold text-amber-800">Pendiente</span></div>
+                </div>
+                <div class="py-3 flex justify-between items-center text-xs">
+                    <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span><span class="font-extrabold text-emerald-800">Atendido</span></div>
+                </div>
+            `;
 
             document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Origenes.map((o, i) => {
@@ -1052,24 +1057,17 @@
             if (type === 'Personal') {
                 lblName.innerText = "Nombre Completo *";
                 lblSec.innerText = "Cargo / Área";
-                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">`;
+                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
-            } else if (type === 'Estados') {
-                lblName.innerText = "Nombre Estado *";
-                lblSec.innerText = "Color de Estado";
-                secWrapper.innerHTML = `
-                    <input type="color" id="colorPickerSec" value="#3b82f6" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputSecondary').value = this.value">
-                    <input type="text" id="catalogInputSecondary" value="#3b82f6" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner" oninput="document.getElementById('colorPickerSec').value = this.value">
-                `;
             } else if (type === 'Origenes') {
                 lblName.innerText = "Tipo de Origen *";
                 lblSec.innerText = "Descripción";
-                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">`;
+                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
             } else if (type === 'Alarmas') {
                 lblName.innerText = "Nombre Alarma *";
                 lblSec.innerText = "Días Mínimos";
-                secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner">`;
+                secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Días Máximos";
                 document.getElementById('catalogInputThird').value = "15";
@@ -1084,12 +1082,6 @@
                     document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 'Nombre', 1]) || '';
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 'Cargo', 2]) || '';
                     document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
-                } else if (type === 'Estados') {
-                    const col = getProp(item, ['Color_Hex', 'Color', 2]) || '#3b82f6';
-                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Estado', 'Estado', 1]) || '';
-                    document.getElementById('catalogInputSecondary').value = col;
-                    const cp = document.getElementById('colorPickerSec');
-                    if(cp) cp.value = col;
                 } else if (type === 'Origenes') {
                     document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 'Origen', 1]) || '';
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 2]) || '';
@@ -1120,7 +1112,7 @@
 
             const oldIndex = document.getElementById('catalogOldIndex').value;
             const oldVal = (oldIndex !== "" && appData[type][oldIndex]) ? 
-                (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Nombre', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
+                (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Nombre', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
                 : val;
 
             closeCatalogModal();
@@ -1139,7 +1131,7 @@
 
         function deleteCatalogItem(type, index) {
             const item = appData[type][index];
-            const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
+            const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
             if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
                 executeGASAction({ action: "deleteCatalog", type: type, value: val });
             }
@@ -1148,13 +1140,13 @@
         function switchTab(tabId) {
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-bold');
-                btn.classList.add('border-transparent', 'text-slate-500', 'font-semibold');
+                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
+                btn.classList.add('border-transparent', 'text-slate-500', 'font-bold');
             });
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-semibold');
-            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-bold');
+            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-bold');
+            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
             if (tabId === 'dashboard') renderStatsAndCharts();
             if (tabId === 'catalogos') renderCatalogsManagement();
         }
