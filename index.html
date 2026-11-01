@@ -6,6 +6,8 @@
     <title>HIDRANDINA - Control de Documentos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Librería SheetJS para exportar archivos Excel reales (.xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style> 
@@ -15,13 +17,13 @@
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-50 selection:bg-blue-600 selection:text-white">
 
-    <!-- Header Principal Institucional Elegante (Sin logo) -->
+    <!-- Header Principal Institucional -->
     <header class="glass-header border-b border-slate-800 sticky top-0 z-30 shadow-xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <div>
-                    <h1 class="font-bold text-white text-base sm:text-xl tracking-tight leading-tight flex items-center space-x-2">
-                        <span>HIDRANDINA - Departamento de Ventas y Clientes Menores</span>
+                    <h1 class="font-bold text-white text-base sm:text-xl tracking-tight leading-tight">
+                        HIDRANDINA - Departamento de Ventas y Clientes Menores
                     </h1>
                     <div class="flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-300">
                         <span class="font-medium text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-md border border-blue-500/20"><i class="fa-solid fa-user-shield mr-1.5"></i> Autor: Ing. Johnny Quevin Camacho Mori</span>
@@ -48,7 +50,7 @@
         </div>
     </header>
 
-    <!-- Navegación por Pestañas Moderna -->
+    <!-- Navegación por Pestañas -->
     <nav class="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 shadow-sm">
         <div class="max-w-7xl mx-auto flex space-x-8">
             <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-3 border-b-2 border-blue-600 text-blue-600 font-bold text-sm flex items-center space-x-2.5 transition">
@@ -71,20 +73,32 @@
 
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-                <div class="relative w-full sm:w-96">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div class="relative w-full lg:w-80">
                     <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                         <i class="fa-solid fa-search"></i>
                     </span>
-                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por documento, asunto, responsable..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
+                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar por documento, asunto..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
                 </div>
-                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                     <select id="filterEstado" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Estados</option>
                     </select>
                     <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Orígenes</option>
                     </select>
+                    
+                    <!-- Botones de Acciones Masivas (Excel y Correo) -->
+                    <div class="flex items-center space-x-2 ml-auto">
+                        <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-md transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
+                            <i class="fa-solid fa-file-excel text-sm"></i>
+                            <span>Exportar Excel</span>
+                        </button>
+                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-3 rounded-xl text-xs font-bold shadow-md transition transform active:scale-95" title="Enviar lista completa por Correo Electrónico">
+                            <i class="fa-solid fa-envelope text-sm"></i>
+                            <span>Enviar Lista por Correo</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -480,6 +494,120 @@
             return { vencimiento: vencimientoFormatted, diasTranscurridos, diasExceso };
         }
 
+        function obtenerDocumentosFiltradosActuales() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const estado = document.getElementById('filterEstado').value;
+            const origen = document.getElementById('filterOrigen').value;
+
+            return appData.Documentos.filter(doc => {
+                const numDoc = String(getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '').toLowerCase();
+                const asunto = String(getProp(doc, ['Asunto', 3]) || '').toLowerCase();
+                const resp = String(getProp(doc, ['Responsable', 8]) || '').toLowerCase();
+                const docEstado = String(getProp(doc, ['Estado', 9]) || '');
+                const docOrigen = String(getProp(doc, ['Origen_Tipo', 2]) || '');
+                return (numDoc.includes(query) || asunto.includes(query) || resp.includes(query)) && (!estado || docEstado === estado) && (!origen || docOrigen === origen);
+            });
+        }
+
+        // --- FUNCIONALIDAD 1: EXPORTAR A EXCEL (.xlsx real) ---
+        function exportarExcel() {
+            const docs = obtenerDocumentosFiltradosActuales();
+            if (!docs || docs.length === 0) {
+                alert("No hay registros para exportar.");
+                return;
+            }
+
+            const datosFormateados = docs.map(doc => {
+                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 'fecha_ingreso', 4]) || '';
+                const plazos = calcularPlazos(fechaIngRaw);
+                return {
+                    "Nro. Documento": getProp(doc, ['Numero_Documento', 1]) || '-',
+                    "Origen": getProp(doc, ['Origen_Tipo', 2]) || '-',
+                    "Asunto": getProp(doc, ['Asunto', 3]) || '-',
+                    "Fecha Ingreso": fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-',
+                    "Fecha Vencimiento": plazos.vencimiento,
+                    "Días Transcurridos": plazos.diasTranscurridos,
+                    "Días Exceso": plazos.diasExceso,
+                    "Responsable": getProp(doc, ['Responsable', 8]) || '-',
+                    "Estado": getProp(doc, ['Estado', 9]) || '-',
+                    "Observaciones": getProp(doc, ['Observaciones', 10]) || '-'
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Documentos Hidrandina");
+            
+            // Descargar archivo Excel real
+            XLSX.writeFile(workbook, "Control_Documentos_Hidrandina.xlsx");
+        }
+
+        // --- FUNCIONALIDAD 2: ENVIAR LISTA COMPLETA POR CORREO ---
+        function enviarListaCorreo() {
+            const docs = obtenerDocumentosFiltradosActuales();
+            if (!docs || docs.length === 0) {
+                alert("No hay registros en la lista para enviar.");
+                return;
+            }
+
+            const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
+            let cuerpo = `Estimado equipo,\n\nA continuación se presenta el reporte actual de control de documentos (% de registros filtrados: ${docs.length}):\n\n`;
+            
+            docs.forEach((doc, idx) => {
+                const num = getProp(doc, ['Numero_Documento', 1]);
+                const origen = getProp(doc, ['Origen_Tipo', 2]);
+                const asuntoDoc = getProp(doc, ['Asunto', 3]);
+                const estado = getProp(doc, ['Estado', 9]);
+                const resp = getProp(doc, ['Responsable', 8]);
+                cuerpo += `${idx + 1}. [${num}] - ${origen} | Asunto: ${asuntoDoc} | Estado: ${estado} | Responsable: ${resp}\n`;
+            });
+
+            cuerpo += `\nAtentamente,\nIng. Johnny Quevin Camacho Mori\nDepartamento de Ventas y Clientes Menores - Hidrandina`;
+            
+            window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
+        }
+
+        // --- FUNCIONALIDAD 3: ENVIAR REGISTRO INDIVIDUAL POR CORREO (Buscando email del responsable) ---
+        function enviarCorreoIndividual(idx) {
+            const doc = appData.Documentos[idx];
+            if (!doc) return;
+
+            const numDoc = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || 'DOC';
+            const entidad = getProp(doc, ['Origen_Tipo', 2]) || 'Entidad';
+            const estado = getProp(doc, ['Estado', 9]) || 'Estado';
+            const responsableNombre = getProp(doc, ['Responsable', 8]) || '';
+            const asuntoDoc = getProp(doc, ['Asunto', 3]) || '';
+            const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
+            const observaciones = getProp(doc, ['Observaciones', 10]) || '';
+
+            // Buscar correo electrónico del responsable en el catálogo de Personal
+            let correoDestino = '';
+            if (appData.Personal && appData.Personal.length > 0) {
+                const persEncontrado = appData.Personal.find(p => {
+                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
+                    return nom.toLowerCase() === responsableNombre.toLowerCase();
+                });
+                if (persEncontrado && typeof persEncontrado === 'object') {
+                    correoDestino = persEncontrado.Correo_Electronico || persEncontrado.Correo || persEncontrado[3] || '';
+                }
+            }
+
+            // Asunto solicitado: [Carta] + [Entidad / Origen] + [Estado]
+            const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
+            
+            let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe le asigna y notifica el seguimiento del siguiente documento:\n\n` +
+                `- Nro. Documento: ${numDoc}\n` +
+                `- Entidad / Origen: ${entidad}\n` +
+                `- Asunto: ${asuntoDoc}\n` +
+                `- Fecha de Ingreso: ${fechaIng}\n` +
+                `- Estado Actual: ${estado}\n` +
+                `- Observaciones: ${observaciones}\n\n` +
+                `Por favor gestionar la atención dentro del plazo establecido.\n\n` +
+                `Atentamente,\nIng. Johnny Quevin Camacho Mori\nJefe del Departamento de Ventas y Clientes Menores - Hidrandina`;
+
+            window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
+        }
+
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
@@ -527,6 +655,7 @@
                         <td class="py-4 px-4"><span class="px-3 py-1 rounded-full text-[11px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200/60">${estado}</span></td>
                         <td class="py-4 px-4 text-slate-600 max-w-[160px] truncate" title="${observaciones}">${observaciones}</td>
                         <td class="py-4 px-4 text-right space-x-1">
+                            <button onclick="enviarCorreoIndividual(${idx})" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition shadow-sm" title="Enviar por Correo al Responsable"><i class="fa-solid fa-envelope"></i></button>
                             <button onclick="editDocument(${idx})" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition shadow-sm" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button onclick="deleteDocument(${idx})" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition shadow-sm" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                         </td>
@@ -556,18 +685,7 @@
         }
 
         function filterDocuments() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const estado = document.getElementById('filterEstado').value;
-            const origen = document.getElementById('filterOrigen').value;
-
-            const filtered = appData.Documentos.filter(doc => {
-                const numDoc = String(getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '').toLowerCase();
-                const asunto = String(getProp(doc, ['Asunto', 3]) || '').toLowerCase();
-                const resp = String(getProp(doc, ['Responsable', 8]) || '').toLowerCase();
-                const docEstado = String(getProp(doc, ['Estado', 9]) || '');
-                const docOrigen = String(getProp(doc, ['Origen_Tipo', 2]) || '');
-                return (numDoc.includes(query) || asunto.includes(query) || resp.includes(query)) && (!estado || docEstado === estado) && (!origen || docOrigen === origen);
-            });
+            const filtered = obtenerDocumentosFiltradosActuales();
             renderTable(filtered);
         }
 
