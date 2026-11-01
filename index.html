@@ -375,7 +375,7 @@
             if (data) {
                 if (data.Registros) appData.Documentos = data.Registros;
                 if (data.Catalogos) {
-                    appData.Personal = data.Catalogos.Personal || appData.Personal;
+                    appData.Personal = data.Catalogos.Personal || data.Catalogos.Responsables || appData.Personal;
                     appData.Estados = data.Catalogos.Estados || appData.Estados;
                     appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
                 }
@@ -484,10 +484,9 @@
             const currentEst = estSel.value;
             const currentOrig = origSel.value;
 
-            // Extraer nombres de estados y orígenes de los objetos de catálogo
             const estadosNombres = appData.Estados.map(e => e.Nombre_Estado || e);
             const origenesNombres = appData.Origenes.map(o => o.Tipo_Origen || o);
-            const personalNombres = appData.Personal.map(p => p.Nombre_Completo || p);
+            const personalNombres = appData.Personal.map(p => p.Nombre_Completo || p.Nombre || p);
 
             estSel.innerHTML = '<option value="">Todos los Estados</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
             origSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
@@ -603,44 +602,78 @@
         }
 
         function renderCatalogsManagement() {
-            document.getElementById('managePersonalList').innerHTML = appData.Personal.map((p, i) => `
-                <div class="py-2.5 flex items-center justify-between text-sm">
-                    <div>
-                        <span class="font-medium text-slate-800"><i class="fa-solid fa-user text-blue-500 mr-2"></i> ${p.Nombre_Completo || p}</span>
-                        <p class="text-xs text-slate-500 ml-5">${p.Cargo_Area || ''} ${p.Correo_Electronico ? '(' + p.Correo_Electronico + ')' : ''}</p>
-                    </div>
-                    <div class="space-x-1">
-                        <button onclick="editCatalogItem('Personal', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteCatalogItem('Personal', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `).join('') || '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
+            // Renderizado robusto de Personal
+            const personalList = document.getElementById('managePersonalList');
+            if (!appData.Personal || appData.Personal.length === 0) {
+                personalList.innerHTML = '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
+            } else {
+                personalList.innerHTML = appData.Personal.map((p, i) => {
+                    const nombre = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p.RESPONSABLE || p[1] || 'Sin Nombre') : p;
+                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || '') : '';
+                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || '') : '';
+                    
+                    return `
+                        <div class="py-2.5 flex items-center justify-between text-sm border-b border-slate-100 last:border-none">
+                            <div>
+                                <span class="font-medium text-slate-800"><i class="fa-solid fa-user text-blue-500 mr-2"></i> ${nombre}</span>
+                                ${(cargo || correo) ? `<p class="text-xs text-slate-500 ml-5">${cargo} ${correo ? '(' + correo + ')' : ''}</p>` : ''}
+                            </div>
+                            <div class="space-x-1 flex items-center">
+                                <button onclick="editCatalogItem('Personal', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteCatalogItem('Personal', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
 
-            document.getElementById('manageEstadosList').innerHTML = appData.Estados.map((e, i) => `
-                <div class="py-2.5 flex items-center justify-between text-sm">
-                    <div class="flex items-center space-x-2">
-                        <span class="w-3 h-3 rounded-full" style="background-color: ${e.Color_Hex || '#3b82f6'}"></span>
-                        <span class="font-medium text-slate-800">${e.Nombre_Estado || e}</span>
-                    </div>
-                    <div class="space-x-1">
-                        <button onclick="editCatalogItem('Estados', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteCatalogItem('Estados', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `).join('') || '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
+            // Renderizado de Estados
+            const estadosList = document.getElementById('manageEstadosList');
+            if (!appData.Estados || appData.Estados.length === 0) {
+                estadosList.innerHTML = '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
+            } else {
+                estadosList.innerHTML = appData.Estados.map((e, i) => {
+                    const nombre = typeof e === 'object' ? (e.Nombre_Estado || e.Estado || e[1] || 'Sin Estado') : e;
+                    const color = typeof e === 'object' ? (e.Color_Hex || e.Color || '#3b82f6') : '#3b82f6';
+                    
+                    return `
+                        <div class="py-2.5 flex items-center justify-between text-sm border-b border-slate-100 last:border-none">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-3 h-3 rounded-full" style="background-color: ${color}"></span>
+                                <span class="font-medium text-slate-800">${nombre}</span>
+                            </div>
+                            <div class="space-x-1 flex items-center">
+                                <button onclick="editCatalogItem('Estados', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteCatalogItem('Estados', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
 
-            document.getElementById('manageOrigenesList').innerHTML = appData.Origenes.map((o, i) => `
-                <div class="py-2.5 flex items-center justify-between text-sm">
-                    <div>
-                        <span class="font-medium text-slate-800"><i class="fa-solid fa-folder text-emerald-500 mr-2"></i> ${o.Tipo_Origen || o}</span>
-                        <p class="text-xs text-slate-500 ml-5">${o.Descripcion || ''}</p>
-                    </div>
-                    <div class="space-x-1">
-                        <button onclick="editCatalogItem('Origenes', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1"><i class="fa-solid fa-pen"></i></button>
-                        <button onclick="deleteCatalogItem('Origenes', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `).join('') || '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
+            // Renderizado de Orígenes
+            const origenesList = document.getElementById('manageOrigenesList');
+            if (!appData.Origenes || appData.Origenes.length === 0) {
+                origenesList.innerHTML = '<p class="text-sm text-slate-400 py-2">Sin registros</p>';
+            } else {
+                origenesList.innerHTML = appData.Origenes.map((o, i) => {
+                    const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1] || 'Sin Origen') : o;
+                    const desc = typeof o === 'object' ? (o.Descripcion || '') : '';
+                    
+                    return `
+                        <div class="py-2.5 flex items-center justify-between text-sm border-b border-slate-100 last:border-none">
+                            <div>
+                                <span class="font-medium text-slate-800"><i class="fa-solid fa-folder text-emerald-500 mr-2"></i> ${tipo}</span>
+                                ${desc ? `<p class="text-xs text-slate-500 ml-5">${desc}</p>` : ''}
+                            </div>
+                            <div class="space-x-1 flex items-center">
+                                <button onclick="editCatalogItem('Origenes', ${i})" class="text-xs text-slate-400 hover:text-blue-600 p-1" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteCatalogItem('Origenes', ${i})" class="text-xs text-slate-400 hover:text-rose-600 p-1" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         function openCatalogModal(type, index = null) {
@@ -674,14 +707,14 @@
                 document.getElementById('catalogOldIndex').value = index;
                 const item = appData[type][index];
                 if (type === 'Personal') {
-                    document.getElementById('catalogInputValue').value = item.Nombre_Completo || item;
-                    document.getElementById('catalogInputSecondary').value = item.Cargo_Area || '';
-                    document.getElementById('catalogInputThird').value = item.Correo_Electronico || '';
+                    document.getElementById('catalogInputValue').value = item.Nombre_Completo || item.Nombre || item;
+                    document.getElementById('catalogInputSecondary').value = item.Cargo_Area || item.Cargo || '';
+                    document.getElementById('catalogInputThird').value = item.Correo_Electronico || item.Correo || '';
                 } else if (type === 'Estados') {
-                    document.getElementById('catalogInputValue').value = item.Nombre_Estado || item;
-                    document.getElementById('catalogInputSecondary').value = item.Color_Hex || '#3b82f6';
+                    document.getElementById('catalogInputValue').value = item.Nombre_Estado || item.Estado || item;
+                    document.getElementById('catalogInputSecondary').value = item.Color_Hex || item.Color || '#3b82f6';
                 } else if (type === 'Origenes') {
-                    document.getElementById('catalogInputValue').value = item.Tipo_Origen || item;
+                    document.getElementById('catalogInputValue').value = item.Tipo_Origen || item.Origen || item;
                     document.getElementById('catalogInputSecondary').value = item.Descripcion || '';
                 }
             } else {
@@ -724,7 +757,7 @@
 
         function deleteCatalogItem(type, index) {
             const item = appData[type][index];
-            const val = typeof item === 'object' ? (item.Nombre_Completo || item.Nombre_Estado || item.Tipo_Origen) : item;
+            const val = typeof item === 'object' ? (item.Nombre_Completo || item.Nombre || item.Nombre_Estado || item.Tipo_Origen) : item;
             if (confirm(`¿Está seguro de eliminar '${val}' del catálogo de ${type} en Google Sheets?`)) {
                 const params = {
                     action: "deleteCatalog",
