@@ -78,7 +78,7 @@
                 <button onclick="fetchData()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Refrescar Datos">
                     <i class="fa-solid fa-arrows-rotate text-sm"></i>
                 </button>
-                <button id="btnManageUsers" onclick="openCatalogModal('Personal')" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Crear y Gestionar Usuarios">
+                <button id="btnManageUsers" onclick="switchTab('catalogos')" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Gestionar Usuarios">
                     <i class="fa-solid fa-users-gear text-sm"></i>
                 </button>
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
@@ -108,7 +108,7 @@
             </button>
             <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
                 <i class="fa-solid fa-sliders text-lg"></i>
-                <span>Gestión de Catálogos</span>
+                <span>Gestión de Catálogos y Usuarios</span>
             </button>
         </div>
     </nav>
@@ -293,18 +293,44 @@
 
         <!-- TAB 3: GESTIÓN DE CATÁLOGOS Y USUARIOS -->
         <section id="tab-catalogos" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-blue-600 font-extrabold text-sm">
-                            <i class="fa-solid fa-users"></i>
-                            <span>Personal y Usuarios</span>
-                        </div>
-                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
+            
+            <!-- SECCIÓN 1: GESTIÓN DE USUARIOS (NUEVA TABLA COMPLETA) -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 text-base flex items-center space-x-2">
+                            <i class="fa-solid fa-users-gear text-blue-600"></i>
+                            <span>Gestión Completa de Usuarios y Personal</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Cree, consulte, edite o elimine las credenciales de acceso de los usuarios del sistema.</p>
                     </div>
-                    <div id="managePersonalList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
+                    <button onclick="openCatalogModal('Personal')" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold shadow-md shadow-blue-500/20 transition transform active:scale-95">
+                        <i class="fa-solid fa-user-plus text-xs"></i>
+                        <span>Nuevo Usuario</span>
+                    </button>
                 </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-[11px] font-black text-slate-600 uppercase tracking-wider border-b border-slate-200">
+                                <th class="py-3 px-4">Nombre Completo</th>
+                                <th class="py-3 px-4">Usuario (Login)</th>
+                                <th class="py-3 px-4">Rol / Cargo</th>
+                                <th class="py-3 px-4">Contraseña</th>
+                                <th class="py-3 px-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="managePersonalTableBody" class="divide-y divide-slate-100 text-xs font-medium">
+                            <tr>
+                                <td colspan="5" class="py-6 text-center text-slate-400 font-semibold">Sin usuarios registrados.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
+            <!-- SECCIÓN 2: OTROS CATÁLOGOS (ORÍGENES Y ALARMAS) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2 text-indigo-600 font-extrabold text-sm">
@@ -1145,24 +1171,31 @@
         function renderCatalogsManagement() {
             if (currentUser && currentUser.rol === 'Registrador') return;
 
-            document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Personal.map((p, i) => {
+            // Renderizar tabla completa de gestión de usuarios
+            const userTableBody = document.getElementById('managePersonalTableBody');
+            if (!appData.Personal || appData.Personal.length === 0) {
+                userTableBody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 font-semibold">Sin usuarios registrados.</td></tr>`;
+            } else {
+                userTableBody.innerHTML = appData.Personal.map((p, i) => {
                     const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
                     const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : 'Registrador';
                     const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
-                    
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <div>
-                            <span class="font-bold text-slate-900">${nom}</span>
-                            <br><span class="text-indigo-600 font-extrabold text-[11px]"><i class="fa-solid fa-user-gear mr-1"></i>${cargo}</span>
-                            ${correo ? '<br><span class="text-slate-500 font-medium text-[11px]"><i class="fa-regular fa-user mr-1"></i>Usuario: '+correo+'</span>' : ''}
-                        </div>
-                        <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>`;
+                    const pass = typeof p === 'object' ? (p.Password || p.Clave || p[4] || '') : '';
+
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-4 font-extrabold text-slate-900">${nom}</td>
+                            <td class="py-3 px-4 text-blue-600 font-bold">${correo || '-'}</td>
+                            <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">${cargo}</span></td>
+                            <td class="py-3 px-4 text-slate-500 font-mono">${pass ? '••••••••' : '-'}</td>
+                            <td class="py-3 px-4 text-center space-x-1">
+                                <button onclick="editCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Usuario"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="deleteCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar Usuario"><i class="fa-solid fa-trash text-xs"></i></button>
+                            </td>
+                        </tr>
+                    `;
                 }).join('');
+            }
 
             document.getElementById('manageEstadosList').innerHTML = `
                 <div class="py-3 flex justify-between items-center text-xs">
