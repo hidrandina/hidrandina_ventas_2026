@@ -78,6 +78,9 @@
                 <button onclick="fetchData()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Refrescar Datos">
                     <i class="fa-solid fa-arrows-rotate text-sm"></i>
                 </button>
+                <button id="btnManageUsers" onclick="openCatalogModal('Personal')" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Crear y Gestionar Usuarios">
+                    <i class="fa-solid fa-users-gear text-sm"></i>
+                </button>
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
@@ -481,7 +484,7 @@
             if (savedSession) {
                 currentUser = JSON.parse(savedSession);
                 document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('lblUsername').innerText = `${currentUser.nombre} (${currentUser.rol})`;
+                document.getElementById('lblUsername').innerText = `${currentUser.nombre}`;
                 applyRolePermissions();
             } else {
                 document.getElementById('loginModal').classList.remove('hidden');
@@ -503,9 +506,9 @@
 
             // Búsqueda en el catálogo de personal / usuarios registrados
             let userFound = appData.Personal.find(p => {
-                const uCorreo = String(getProp(p, ['Correo_Electronico', 'Correo', 3]) || '').trim();
+                const uUsuario = String(getProp(p, ['Correo_Electronico', 'Correo', 3]) || '').trim();
                 const uNombre = String(getProp(p, ['Nombre_Completo', 'Nombre', 1]) || '').trim();
-                return (uCorreo.toLowerCase() === userIn.toLowerCase() || uNombre.toLowerCase() === userIn.toLowerCase());
+                return (uUsuario.toLowerCase() === userIn.toLowerCase() || uNombre.toLowerCase() === userIn.toLowerCase());
             });
 
             if (userFound) {
@@ -529,7 +532,7 @@
             sessionStorage.setItem('hidrandina_active_user', JSON.stringify(currentUser));
             document.getElementById('loginModal').classList.add('hidden');
             document.getElementById('loginErrorMsg').classList.add('hidden');
-            document.getElementById('lblUsername').innerText = `${currentUser.nombre} (${currentUser.rol})`;
+            document.getElementById('lblUsername').innerText = `${currentUser.nombre}`;
             applyRolePermissions();
         }
 
@@ -545,14 +548,17 @@
             const isRegistrador = currentUser.rol === 'Registrador';
             const btnCatalogosNav = document.getElementById('tab-btn-catalogos');
             const btnConfigApp = document.getElementById('btnConfigAppsScript');
+            const btnManageUsers = document.getElementById('btnManageUsers');
 
             if (isRegistrador) {
                 if (btnCatalogosNav) btnCatalogosNav.classList.add('hidden');
                 if (btnConfigApp) btnConfigApp.classList.add('hidden');
+                if (btnManageUsers) btnManageUsers.classList.add('hidden');
                 switchTab('documentos');
             } else {
                 if (btnCatalogosNav) btnCatalogosNav.classList.remove('hidden');
                 if (btnConfigApp) btnConfigApp.classList.remove('hidden');
+                if (btnManageUsers) btnManageUsers.classList.remove('hidden');
             }
             renderTable(appData.Documentos);
         }
@@ -1149,7 +1155,7 @@
                         <div>
                             <span class="font-bold text-slate-900">${nom}</span>
                             <br><span class="text-indigo-600 font-extrabold text-[11px]"><i class="fa-solid fa-user-gear mr-1"></i>${cargo}</span>
-                            ${correo ? '<br><span class="text-slate-500 font-medium text-[11px]"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
+                            ${correo ? '<br><span class="text-slate-500 font-medium text-[11px]"><i class="fa-regular fa-user mr-1"></i>Usuario: '+correo+'</span>' : ''}
                         </div>
                         <div class="space-x-1 flex items-center">
                             <button onclick="editCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
@@ -1201,7 +1207,7 @@
         function openCatalogModal(type, index = null) {
             document.getElementById('catalogForm').reset();
             document.getElementById('catalogType').value = type;
-            document.getElementById('catalogModalTitle').innerText = `Catálogo - ${type}`;
+            document.getElementById('catalogModalTitle').innerText = type === 'Personal' ? 'Gestionar Usuario / Personal' : `Catálogo - ${type}`;
 
             const lblName = document.getElementById('catalogLabelName');
             const lblSec = document.getElementById('catalogLabelSecondary');
