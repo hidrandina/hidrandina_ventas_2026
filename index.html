@@ -20,6 +20,36 @@
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
+    <!-- MODAL DE LOGIN (ACCESO OBLIGATORIO) -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-100 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid fa-bolt text-yellow-300"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-900">HIDRANDINA</h2>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Control de Documentos - Ventas</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4 text-sm">
+                <div id="loginErrorMsg" class="hidden p-3 bg-rose-50 border border-rose-200 text-rose-700 font-bold text-xs rounded-xl text-center">
+                    Usuario o contraseña incorrectos.
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider block mb-1.5">Usuario *</label>
+                    <input type="text" id="loginUsername" required placeholder="Ingrese su usuario" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider block mb-1.5">Contraseña *</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition">
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold rounded-xl shadow-lg shadow-blue-500/30 transition transform active:scale-95">
+                    Iniciar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Header Principal Institucional -->
     <header class="glass-header border-b border-indigo-900/50 sticky top-0 z-30 shadow-2xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -42,15 +72,21 @@
             </div>
 
             <div class="flex items-center space-x-3">
+                <span id="currentUserBadge" class="hidden sm:inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-extrabold bg-white/10 text-white border border-white/20">
+                    <i class="fa-solid fa-circle-user mr-2 text-blue-300"></i> <span id="lblUsername">Invitado</span>
+                </span>
                 <button onclick="fetchData()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Refrescar Datos">
                     <i class="fa-solid fa-arrows-rotate text-sm"></i>
                 </button>
-                <button onclick="openConfigModal()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
+                <button id="btnConfigAppsScript" onclick="openConfigModal()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
                 <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span>Nuevo Documento</span>
+                </button>
+                <button onclick="handleLogout()" class="p-2.5 text-rose-300 hover:text-rose-100 hover:bg-rose-500/20 rounded-xl transition shadow-sm border border-rose-400/30" title="Cerrar Sesión">
+                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
                 </button>
             </div>
         </div>
@@ -252,14 +288,14 @@
             </div>
         </section>
 
-        <!-- TAB 3: GESTIÓN DE CATÁLOGOS -->
+        <!-- TAB 3: GESTIÓN DE CATÁLOGOS Y USUARIOS -->
         <section id="tab-catalogos" class="hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2 text-blue-600 font-extrabold text-sm">
                             <i class="fa-solid fa-users"></i>
-                            <span>Personal</span>
+                            <span>Personal y Usuarios</span>
                         </div>
                         <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
@@ -358,7 +394,7 @@
         </div>
     </div>
 
-    <!-- MODAL: CATÁLOGO -->
+    <!-- MODAL: CATÁLOGO Y REGISTRO DE USUARIOS -->
     <div id="catalogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl space-y-5 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
@@ -383,8 +419,8 @@
                     <input type="text" id="catalogInputThird" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
                 </div>
                 <div id="catalogFieldFourthContainer" class="hidden">
-                    <label id="catalogLabelFourth" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Color Alarma</label>
-                    <div class="mt-1.5 flex items-center space-x-2">
+                    <label id="catalogLabelFourth" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Color / Contraseña</label>
+                    <div id="fourthWrapper" class="mt-1.5 flex items-center space-x-2">
                         <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputFourthText').value = this.value">
                         <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
                     </div>
@@ -421,6 +457,8 @@
             return localStorage.getItem('hidrandina_gas_url') || DEFAULT_GAS_URL;
         }
 
+        let currentUser = null; // Almacena el usuario autenticado
+
         let appData = {
             Documentos: [],
             Personal: [],
@@ -432,9 +470,92 @@
         let chartsInstance = { estados: null, origenes: null };
 
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuthSession();
             loadLocalCache();
             fetchData();
         });
+
+        // AUTENTICACIÓN Y ROLES
+        function checkAuthSession() {
+            const savedSession = sessionStorage.getItem('hidrandina_active_user');
+            if (savedSession) {
+                currentUser = JSON.parse(savedSession);
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('lblUsername').innerText = `${currentUser.nombre} (${currentUser.rol})`;
+                applyRolePermissions();
+            } else {
+                document.getElementById('loginModal').classList.remove('hidden');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const userIn = document.getElementById('loginUsername').value.trim();
+            const passIn = document.getElementById('loginPassword').value.trim();
+            const errDiv = document.getElementById('loginErrorMsg');
+
+            // Usuario maestro fijo Administrador solicitado
+            if (userIn === "jcamachom" && passIn === "9314040") {
+                currentUser = { nombre: "Ing. Johnny Quevin Camacho Mori", usuario: "jcamachom", rol: "Administrador" };
+                saveSessionAndProceed();
+                return;
+            }
+
+            // Búsqueda en el catálogo de personal / usuarios registrados
+            let userFound = appData.Personal.find(p => {
+                const uCorreo = String(getProp(p, ['Correo_Electronico', 'Correo', 3]) || '').trim();
+                const uNombre = String(getProp(p, ['Nombre_Completo', 'Nombre', 1]) || '').trim();
+                return (uCorreo.toLowerCase() === userIn.toLowerCase() || uNombre.toLowerCase() === userIn.toLowerCase());
+            });
+
+            if (userFound) {
+                const passwordMatch = String(getProp(userFound, ['Password', 'Clave', 4]) || '').trim() === passIn;
+                if (passwordMatch) {
+                    const userRole = String(getProp(userFound, ['Cargo_Area', 'Cargo', 2]) || '').includes('Admin') ? 'Administrador' : 'Registrador';
+                    currentUser = {
+                        nombre: getProp(userFound, ['Nombre_Completo', 'Nombre', 1]),
+                        usuario: userIn,
+                        rol: userRole
+                    };
+                    saveSessionAndProceed();
+                    return;
+                }
+            }
+
+            errDiv.classList.remove('hidden');
+        }
+
+        function saveSessionAndProceed() {
+            sessionStorage.setItem('hidrandina_active_user', JSON.stringify(currentUser));
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('loginErrorMsg').classList.add('hidden');
+            document.getElementById('lblUsername').innerText = `${currentUser.nombre} (${currentUser.rol})`;
+            applyRolePermissions();
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem('hidrandina_active_user');
+            currentUser = null;
+            location.reload();
+        }
+
+        function applyRolePermissions() {
+            if (!currentUser) return;
+
+            const isRegistrador = currentUser.rol === 'Registrador';
+            const btnCatalogosNav = document.getElementById('tab-btn-catalogos');
+            const btnConfigApp = document.getElementById('btnConfigAppsScript');
+
+            if (isRegistrador) {
+                if (btnCatalogosNav) btnCatalogosNav.classList.add('hidden');
+                if (btnConfigApp) btnConfigApp.classList.add('hidden');
+                switchTab('documentos');
+            } else {
+                if (btnCatalogosNav) btnCatalogosNav.classList.remove('hidden');
+                if (btnConfigApp) btnConfigApp.classList.remove('hidden');
+            }
+            renderTable(appData.Documentos);
+        }
 
         function loadLocalCache() {
             if (localStorage.getItem('hidrandina_docs_cache')) appData.Documentos = JSON.parse(localStorage.getItem('hidrandina_docs_cache'));
@@ -677,13 +798,11 @@
                 return;
             }
 
-            // Descarga automática del Excel para que el usuario lo adjunte en su gestor de correo
             exportarExcel();
 
             const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
             let cuerpo = `Estimado equipo,\n\nSe adjunta el reporte actual de control de documentos en formato Excel para su revisión y atención.\n\nAtte,\nIng. Johnny Quevin Camacho Mori`;
 
-            // Aviso claro sobre la restricción del navegador para adjuntar archivos automáticamente
             alert("¡Reporte Excel descargado con éxito!\n\nNota de seguridad del navegador: Los navegadores web no permiten adjuntar archivos automáticamente a través de enlaces de correo (mailto). Por favor, adjunta el archivo 'Control_Documentos_Hidrandina.xlsx' recién descargado en tu ventana de Outlook.");
 
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
@@ -731,6 +850,8 @@
                 tbody.innerHTML = `<tr><td colspan="12" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos registrados.</td></tr>`;
                 return;
             }
+
+            const isRegistrador = currentUser && currentUser.rol === 'Registrador';
 
             tbody.innerHTML = docs.map((doc, idx) => {
                 const numDoc = getProp(doc, ['Numero_Documento', 'numero_documento', 'Numero_Expediente', 'NRO_DOCUMENTO', 1]) || '-';
@@ -785,7 +906,10 @@
                         <td class="py-3.5 px-4 text-center space-x-1">
                             <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
                             <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
-                            <button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
+                            ${!isRegistrador ? 
+                                `<button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>` : 
+                                ``
+                            }
                         </td>
                     </tr>
                 `;
@@ -998,6 +1122,10 @@
         function editDocument(idx) { openDocFormModal(idx); }
 
         function deleteDocument(idx) {
+            if (currentUser && currentUser.rol === 'Registrador') {
+                alert("Acceso denegado: El rol 'Registrador' no tiene permisos para eliminar registros.");
+                return;
+            }
             const doc = appData.Documentos[idx];
             const numDoc = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]);
             if (confirm(`¿Eliminar el documento ${numDoc}?`)) {
@@ -1009,17 +1137,19 @@
         }
 
         function renderCatalogsManagement() {
+            if (currentUser && currentUser.rol === 'Registrador') return;
+
             document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Personal.map((p, i) => {
                     const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
-                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : '';
+                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : 'Registrador';
                     const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
                     
                     return `<div class="py-3 flex justify-between items-center text-xs">
                         <div>
                             <span class="font-bold text-slate-900">${nom}</span>
-                            ${cargo ? '<br><span class="text-slate-500 font-medium">'+cargo+'</span>' : ''}
-                            ${correo ? '<br><span class="text-blue-600 font-semibold text-[11px]"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
+                            <br><span class="text-indigo-600 font-extrabold text-[11px]"><i class="fa-solid fa-user-gear mr-1"></i>${cargo}</span>
+                            ${correo ? '<br><span class="text-slate-500 font-medium text-[11px]"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
                         </div>
                         <div class="space-x-1 flex items-center">
                             <button onclick="editCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
@@ -1078,6 +1208,7 @@
             const secContainer = document.getElementById('catalogFieldSecondaryContainer');
             const thirdContainer = document.getElementById('catalogFieldThirdContainer');
             const fourthContainer = document.getElementById('catalogFieldFourthContainer');
+            const fourthWrapper = document.getElementById('fourthWrapper');
 
             secContainer.classList.remove('hidden');
             thirdContainer.classList.add('hidden');
@@ -1086,10 +1217,18 @@
 
             if (type === 'Personal') {
                 lblName.innerText = "Nombre Completo *";
-                lblSec.innerText = "Cargo / Área";
-                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
+                lblSec.innerText = "Rol de Sistema *";
+                secWrapper.innerHTML = `
+                    <select id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-extrabold text-indigo-600">
+                        <option value="Registrador">Registrador</option>
+                        <option value="Administrador">Administrador</option>
+                    </select>
+                `;
                 thirdContainer.classList.remove('hidden');
-                document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
+                document.getElementById('catalogLabelThird').innerText = "Usuario / Login *";
+                fourthContainer.classList.remove('hidden');
+                document.getElementById('catalogLabelFourth').innerText = "Contraseña de Acceso *";
+                fourthWrapper.innerHTML = `<input type="password" id="catalogInputFourthText" placeholder="••••••••" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-semibold">`;
             } else if (type === 'Origenes') {
                 lblName.innerText = "Tipo de Origen *";
                 lblSec.innerText = "Descripción";
@@ -1103,6 +1242,11 @@
                 document.getElementById('catalogInputThird').value = "15";
                 document.getElementById('catalogInputThird').type = "number";
                 fourthContainer.classList.remove('hidden');
+                document.getElementById('catalogLabelFourth').innerText = "Color Alarma";
+                fourthWrapper.innerHTML = `
+                    <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputFourthText').value = this.value">
+                    <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
+                `;
             }
 
             if (index !== null) {
@@ -1110,8 +1254,9 @@
                 const item = appData[type][index];
                 if (type === 'Personal') {
                     document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 'Nombre', 1]) || '';
-                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 'Cargo', 2]) || '';
+                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 'Cargo', 2]) || 'Registrador';
                     document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
+                    document.getElementById('catalogInputFourthText').value = getProp(item, ['Password', 'Clave', 4]) || '';
                 } else if (type === 'Origenes') {
                     document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 'Origen', 1]) || '';
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 2]) || '';
@@ -1121,7 +1266,7 @@
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Dias_Min', 2]) || 0;
                     document.getElementById('catalogInputThird').value = getProp(item, ['Dias_Max', 3]) || 15;
                     document.getElementById('catalogInputFourthText').value = col;
-                    document.getElementById('catalogInputFourthColor').value = col;
+                    if (document.getElementById('catalogInputFourthColor')) document.getElementById('catalogInputFourthColor').value = col;
                 }
             } else {
                 document.getElementById('catalogOldIndex').value = "";
@@ -1160,6 +1305,10 @@
         function editCatalogItem(type, index) { openCatalogModal(type, index); }
 
         function deleteCatalogItem(type, index) {
+            if (currentUser && currentUser.rol === 'Registrador') {
+                alert("Acceso denegado: El rol 'Registrador' no tiene permisos para eliminar registros.");
+                return;
+            }
             const item = appData[type][index];
             const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
             if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
@@ -1168,6 +1317,10 @@
         }
 
         function switchTab(tabId) {
+            if (tabId === 'catalogos' && currentUser && currentUser.rol === 'Registrador') {
+                alert("Acceso restringido solo para Administradores.");
+                return;
+            }
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
@@ -1181,8 +1334,17 @@
             if (tabId === 'catalogos') renderCatalogsManagement();
         }
 
-        function openConfigModal() { document.getElementById('inputBackendUrl').value = getBackendUrl(); document.getElementById('configModal').classList.remove('hidden'); }
+        function openConfigModal() { 
+            if (currentUser && currentUser.rol === 'Registrador') {
+                alert("Acceso restringido solo para Administradores.");
+                return;
+            }
+            document.getElementById('inputBackendUrl').value = getBackendUrl(); 
+            document.getElementById('configModal').classList.remove('hidden'); 
+        }
+
         function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
+        
         function saveBackendUrl() {
             const url = document.getElementById('inputBackendUrl').value.trim();
             if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
