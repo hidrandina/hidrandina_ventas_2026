@@ -294,19 +294,19 @@
         <!-- TAB 3: GESTIÓN DE CATÁLOGOS Y USUARIOS -->
         <section id="tab-catalogos" class="hidden space-y-6">
             
-            <!-- SECCIÓN 1: GESTIÓN DE USUARIOS (NUEVA TABLA COMPLETA) -->
+            <!-- SECCIÓN 1: GESTIÓN DE USUARIOS Y PERSONAL -->
             <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
                     <div>
                         <h3 class="font-extrabold text-slate-900 text-base flex items-center space-x-2">
                             <i class="fa-solid fa-users-gear text-blue-600"></i>
-                            <span>Gestión Completa de Usuarios y Personal</span>
+                            <span>Gestión Completa de Personal y Usuarios</span>
                         </h3>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Cree, consulte, edite o elimine las credenciales de acceso de los usuarios del sistema.</p>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Cree, consulte, edite o elimine personal y sus credenciales (usuario, tipo y clave).</p>
                     </div>
-                    <button onclick="openCatalogModal('Personal')" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold shadow-md shadow-blue-500/20 transition transform active:scale-95">
+                    <button onclick="openPersonalModal()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold shadow-md shadow-blue-500/20 transition transform active:scale-95">
                         <i class="fa-solid fa-user-plus text-xs"></i>
-                        <span>Nuevo Usuario</span>
+                        <span>Nuevo Personal / Usuario</span>
                     </button>
                 </div>
                 <div class="overflow-x-auto">
@@ -314,15 +314,17 @@
                         <thead>
                             <tr class="bg-slate-50 text-[11px] font-black text-slate-600 uppercase tracking-wider border-b border-slate-200">
                                 <th class="py-3 px-4">Nombre Completo</th>
-                                <th class="py-3 px-4">Usuario (Login)</th>
-                                <th class="py-3 px-4">Rol / Cargo</th>
-                                <th class="py-3 px-4">Contraseña</th>
+                                <th class="py-3 px-4">Cargo / Área</th>
+                                <th class="py-3 px-4">Correo</th>
+                                <th class="py-3 px-4">Usuario</th>
+                                <th class="py-3 px-4">Tipo de Usuario</th>
+                                <th class="py-3 px-4">Clave</th>
                                 <th class="py-3 px-4 text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="managePersonalTableBody" class="divide-y divide-slate-100 text-xs font-medium">
                             <tr>
-                                <td colspan="5" class="py-6 text-center text-slate-400 font-semibold">Sin usuarios registrados.</td>
+                                <td colspan="7" class="py-6 text-center text-slate-400 font-semibold">Sin registros.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -423,7 +425,54 @@
         </div>
     </div>
 
-    <!-- MODAL: CATÁLOGO Y REGISTRO DE USUARIOS -->
+    <!-- MODAL: GESTIÓN DE PERSONAL / USUARIOS (EXACTO CON 7 CAMPOS) -->
+    <div id="personalModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+                <h3 id="personalModalTitle" class="font-extrabold text-slate-900 text-lg">Nuevo Personal / Usuario</h3>
+                <button onclick="closePersonalModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="personalForm" onsubmit="savePersonalItem(event)" class="space-y-4 text-sm">
+                <input type="hidden" id="personalOldIndex">
+                <input type="hidden" id="personalOldNombre">
+                <div>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nombre Completo *</label>
+                    <input type="text" id="pNombre" required placeholder="Ej. Franklin Burga Limay" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-semibold">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Cargo / Área *</label>
+                    <input type="text" id="pCargo" required placeholder="Ej. Usos Productivos" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-semibold">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Correo Electrónico *</label>
+                    <input type="email" id="pCorreo" required placeholder="correo@distriluz.com.pe" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-semibold">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Usuario (Login) *</label>
+                        <input type="text" id="pUsuario" required placeholder="usuario123" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-semibold">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Tipo de Usuario *</label>
+                        <select id="pTipoUsuario" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-extrabold text-indigo-600">
+                            <option value="Registrador">Registrador</option>
+                            <option value="Administrador">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave (Contraseña) *</label>
+                    <input type="text" id="pClave" required placeholder="••••••••" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-semibold">
+                </div>
+                <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closePersonalModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar Personal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CATÁLOGO (ORÍGENES Y ALARMAS) -->
     <div id="catalogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl space-y-5 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
@@ -532,15 +581,17 @@
 
             // Búsqueda en el catálogo de personal / usuarios registrados
             let userFound = appData.Personal.find(p => {
-                const uUsuario = String(getProp(p, ['Correo_Electronico', 'Correo', 3]) || '').trim();
+                const uUser = String(getProp(p, ['usuario', 'Usuario', 4]) || '').trim();
+                const uCorreo = String(getProp(p, ['Correo_Electronico', 'Correo', 3]) || '').trim();
                 const uNombre = String(getProp(p, ['Nombre_Completo', 'Nombre', 1]) || '').trim();
-                return (uUsuario.toLowerCase() === userIn.toLowerCase() || uNombre.toLowerCase() === userIn.toLowerCase());
+                return (uUser.toLowerCase() === userIn.toLowerCase() || uCorreo.toLowerCase() === userIn.toLowerCase() || uNombre.toLowerCase() === userIn.toLowerCase());
             });
 
             if (userFound) {
-                const passwordMatch = String(getProp(userFound, ['Password', 'Clave', 4]) || '').trim() === passIn;
+                const passwordMatch = String(getProp(userFound, ['clave', 'Clave', 'Password', 6]) || '').trim() === passIn;
                 if (passwordMatch) {
-                    const userRole = String(getProp(userFound, ['Cargo_Area', 'Cargo', 2]) || '').includes('Admin') ? 'Administrador' : 'Registrador';
+                    const tipoUser = String(getProp(userFound, ['tipousuario', 'TipoUsuario', 5]) || '').trim();
+                    const userRole = (tipoUser.toLowerCase() === 'administrador' || tipoUser.toLowerCase() === 'admin') ? 'Administrador' : 'Registrador';
                     currentUser = {
                         nombre: getProp(userFound, ['Nombre_Completo', 'Nombre', 1]),
                         usuario: userIn,
@@ -1168,29 +1219,113 @@
             }
         }
 
+        // GESTIÓN DE PERSONAL / USUARIOS (7 CAMPOS EXACTOS)
+        function openPersonalModal(index = null) {
+            document.getElementById('personalForm').reset();
+            if (index !== null) {
+                document.getElementById('personalModalTitle').innerText = "Editar Personal / Usuario";
+                document.getElementById('personalOldIndex').value = index;
+                const p = appData.Personal[index];
+                const nom = getProp(p, ['Nombre_Completo', 'Nombre', 1]) || '';
+                document.getElementById('personalOldNombre').value = nom;
+                document.getElementById('pNombre').value = nom;
+                document.getElementById('pCargo').value = getProp(p, ['Cargo_Area', 'Cargo', 2]) || '';
+                document.getElementById('pCorreo').value = getProp(p, ['Correo_Electronico', 'Correo', 3]) || '';
+                document.getElementById('pUsuario').value = getProp(p, ['usuario', 'Usuario', 4]) || '';
+                document.getElementById('pTipoUsuario').value = getProp(p, ['tipousuario', 'TipoUsuario', 5]) || 'Registrador';
+                document.getElementById('pClave').value = getProp(p, ['clave', 'Clave', 'Password', 6]) || '';
+            } else {
+                document.getElementById('personalModalTitle').innerText = "Nuevo Personal / Usuario";
+                document.getElementById('personalOldIndex').value = "";
+                document.getElementById('personalOldNombre').value = "";
+            }
+            document.getElementById('personalModal').classList.remove('hidden');
+        }
+
+        function closePersonalModal() {
+            document.getElementById('personalModal').classList.add('hidden');
+        }
+
+        function savePersonalItem(e) {
+            e.preventDefault();
+            const nom = document.getElementById('pNombre').value.trim();
+            const cargo = document.getElementById('pCargo').value.trim();
+            const correo = document.getElementById('pCorreo').value.trim();
+            const usuario = document.getElementById('pUsuario').value.trim();
+            const tipousuario = document.getElementById('pTipoUsuario').value.trim();
+            const clave = document.getElementById('pClave').value.trim();
+            const oldIndex = document.getElementById('personalOldIndex').value;
+            const oldNombre = document.getElementById('personalOldNombre').value;
+
+            if (!nom) return;
+
+            const personalObj = {
+                Nombre_Completo: nom,
+                Cargo_Area: cargo,
+                Correo_Electronico: correo,
+                usuario: usuario,
+                tipousuario: tipousuario,
+                clave: clave
+            };
+
+            if (oldIndex !== "") {
+                appData.Personal[oldIndex] = personalObj;
+            } else {
+                appData.Personal.push(personalObj);
+            }
+
+            saveLocalCache();
+            renderAll();
+            closePersonalModal();
+
+            executeGASAction({
+                action: "savePersonal",
+                ...personalObj,
+                oldNombre: oldNombre || nom
+            });
+        }
+
+        function deletePersonalItem(index) {
+            if (currentUser && currentUser.rol === 'Registrador') {
+                alert("Acceso denegado.");
+                return;
+            }
+            const p = appData.Personal[index];
+            const nom = getProp(p, ['Nombre_Completo', 'Nombre', 1]);
+            if (confirm(`¿Eliminar al personal ${nom}?`)) {
+                appData.Personal.splice(index, 1);
+                saveLocalCache();
+                renderAll();
+                executeGASAction({ action: "deletePersonal", Nombre_Completo: nom });
+            }
+        }
+
         function renderCatalogsManagement() {
             if (currentUser && currentUser.rol === 'Registrador') return;
 
-            // Renderizar tabla completa de gestión de usuarios
             const userTableBody = document.getElementById('managePersonalTableBody');
             if (!appData.Personal || appData.Personal.length === 0) {
-                userTableBody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400 font-semibold">Sin usuarios registrados.</td></tr>`;
+                userTableBody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 font-semibold">Sin registros.</td></tr>`;
             } else {
                 userTableBody.innerHTML = appData.Personal.map((p, i) => {
-                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
-                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : 'Registrador';
-                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
-                    const pass = typeof p === 'object' ? (p.Password || p.Clave || p[4] || '') : '';
+                    const nom = getProp(p, ['Nombre_Completo', 'Nombre', 1]) || '-';
+                    const cargo = getProp(p, ['Cargo_Area', 'Cargo', 2]) || '-';
+                    const correo = getProp(p, ['Correo_Electronico', 'Correo', 3]) || '-';
+                    const usuario = getProp(p, ['usuario', 'Usuario', 4]) || '-';
+                    const tipousuario = getProp(p, ['tipousuario', 'TipoUsuario', 5]) || 'Registrador';
+                    const clave = getProp(p, ['clave', 'Clave', 'Password', 6]) || '';
 
                     return `
                         <tr class="hover:bg-slate-50 transition">
                             <td class="py-3 px-4 font-extrabold text-slate-900">${nom}</td>
-                            <td class="py-3 px-4 text-blue-600 font-bold">${correo || '-'}</td>
-                            <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">${cargo}</span></td>
-                            <td class="py-3 px-4 text-slate-500 font-mono">${pass ? '••••••••' : '-'}</td>
+                            <td class="py-3 px-4 text-slate-700">${cargo}</td>
+                            <td class="py-3 px-4 text-slate-600">${correo}</td>
+                            <td class="py-3 px-4 text-blue-600 font-bold">${usuario}</td>
+                            <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">${tipousuario}</span></td>
+                            <td class="py-3 px-4 text-slate-500 font-mono">${clave ? '••••••••' : '-'}</td>
                             <td class="py-3 px-4 text-center space-x-1">
-                                <button onclick="editCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Usuario"><i class="fa-solid fa-pen text-xs"></i></button>
-                                <button onclick="deleteCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar Usuario"><i class="fa-solid fa-trash text-xs"></i></button>
+                                <button onclick="openPersonalModal(${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="deletePersonalItem(${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
                             </td>
                         </tr>
                     `;
@@ -1237,10 +1372,11 @@
                 }).join('');
         }
 
+        // Catálogos auxiliares (Origenes y Alarmas)
         function openCatalogModal(type, index = null) {
             document.getElementById('catalogForm').reset();
             document.getElementById('catalogType').value = type;
-            document.getElementById('catalogModalTitle').innerText = type === 'Personal' ? 'Gestionar Usuario / Personal' : `Catálogo - ${type}`;
+            document.getElementById('catalogModalTitle').innerText = `Catálogo - ${type}`;
 
             const lblName = document.getElementById('catalogLabelName');
             const lblSec = document.getElementById('catalogLabelSecondary');
@@ -1254,21 +1390,7 @@
             fourthContainer.classList.add('hidden');
             const secWrapper = document.getElementById('inputSecondaryWrapper');
 
-            if (type === 'Personal') {
-                lblName.innerText = "Nombre Completo *";
-                lblSec.innerText = "Rol de Sistema *";
-                secWrapper.innerHTML = `
-                    <select id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-extrabold text-indigo-600">
-                        <option value="Registrador">Registrador</option>
-                        <option value="Administrador">Administrador</option>
-                    </select>
-                `;
-                thirdContainer.classList.remove('hidden');
-                document.getElementById('catalogLabelThird').innerText = "Usuario / Login *";
-                fourthContainer.classList.remove('hidden');
-                document.getElementById('catalogLabelFourth').innerText = "Contraseña de Acceso *";
-                fourthWrapper.innerHTML = `<input type="password" id="catalogInputFourthText" placeholder="••••••••" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition font-semibold">`;
-            } else if (type === 'Origenes') {
+            if (type === 'Origenes') {
                 lblName.innerText = "Tipo de Origen *";
                 lblSec.innerText = "Descripción";
                 secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
@@ -1291,12 +1413,7 @@
             if (index !== null) {
                 document.getElementById('catalogOldIndex').value = index;
                 const item = appData[type][index];
-                if (type === 'Personal') {
-                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 'Nombre', 1]) || '';
-                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 'Cargo', 2]) || 'Registrador';
-                    document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
-                    document.getElementById('catalogInputFourthText').value = getProp(item, ['Password', 'Clave', 4]) || '';
-                } else if (type === 'Origenes') {
+                if (type === 'Origenes') {
                     document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 'Origen', 1]) || '';
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 2]) || '';
                 } else if (type === 'Alarmas') {
@@ -1321,73 +1438,4 @@
             const val = document.getElementById('catalogInputValue').value.trim();
             const secondary = document.getElementById('catalogInputSecondary').value.trim();
             const third = document.getElementById('catalogInputThird').value.trim();
-            const fourth = document.getElementById('catalogInputFourthText') ? document.getElementById('catalogInputFourthText').value.trim() : '';
-            if (!val) return;
-
-            const oldIndex = document.getElementById('catalogOldIndex').value;
-            const oldVal = (oldIndex !== "" && appData[type][oldIndex]) ? 
-                (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Nombre', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
-                : val;
-
-            closeCatalogModal();
-            executeGASAction({ 
-                action: "saveCatalog", 
-                type: type, 
-                value: val, 
-                oldValue: oldVal,
-                secondary: secondary, 
-                third: third, 
-                fourth: fourth 
-            });
-        }
-
-        function editCatalogItem(type, index) { openCatalogModal(type, index); }
-
-        function deleteCatalogItem(type, index) {
-            if (currentUser && currentUser.rol === 'Registrador') {
-                alert("Acceso denegado: El rol 'Registrador' no tiene permisos para eliminar registros.");
-                return;
-            }
-            const item = appData[type][index];
-            const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
-            if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
-                executeGASAction({ action: "deleteCatalog", type: type, value: val });
-            }
-        }
-
-        function switchTab(tabId) {
-            if (tabId === 'catalogos' && currentUser && currentUser.rol === 'Registrador') {
-                alert("Acceso restringido solo para Administradores.");
-                return;
-            }
-            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
-                btn.classList.add('border-transparent', 'text-slate-500', 'font-bold');
-            });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-bold');
-            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
-            if (tabId === 'dashboard') renderStatsAndCharts();
-            if (tabId === 'catalogos') renderCatalogsManagement();
-        }
-
-        function openConfigModal() { 
-            if (currentUser && currentUser.rol === 'Registrador') {
-                alert("Acceso restringido solo para Administradores.");
-                return;
-            }
-            document.getElementById('inputBackendUrl').value = getBackendUrl(); 
-            document.getElementById('configModal').classList.remove('hidden'); 
-        }
-
-        function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
-        
-        function saveBackendUrl() {
-            const url = document.getElementById('inputBackendUrl').value.trim();
-            if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
-        }
-    </script>
-</body>
-</html>
+            const fourth = document.
