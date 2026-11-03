@@ -6,7 +6,6 @@
     <title>HIDRANDINA - Control de Documentos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Librería SheetJS para exportar archivos Excel reales (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -20,7 +19,7 @@
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
-    <!-- MODAL DE LOGIN (ACCESO OBLIGATORIO) -->
+    <!-- MODAL DE LOGIN -->
     <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-100 space-y-6">
             <div class="text-center space-y-2">
@@ -50,7 +49,7 @@
         </div>
     </div>
 
-    <!-- Header Principal Institucional -->
+    <!-- Header Principal -->
     <header class="glass-header border-b border-indigo-900/50 sticky top-0 z-30 shadow-2xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-4">
@@ -95,7 +94,7 @@
         </div>
     </header>
 
-    <!-- Navegación por Pestañas -->
+    <!-- Navegación -->
     <nav class="bg-white border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 shadow-md sticky top-20 z-20">
         <div class="max-w-7xl mx-auto flex space-x-8">
             <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-3 border-b-2 border-blue-600 text-blue-600 font-extrabold text-sm flex items-center space-x-2.5 transition">
@@ -118,8 +117,6 @@
 
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
-            
-            <!-- Resumen KPI Rápido -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div class="gradient-card-blue p-5 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between">
                     <div>
@@ -150,7 +147,6 @@
                 </div>
             </div>
 
-            <!-- Filtros y Herramientas -->
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm">
                 <div class="relative w-full lg:w-80">
                     <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
@@ -159,27 +155,24 @@
                     <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar documento, asunto..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                    <!-- Filtro por Personal -->
                     <select id="filterPersonal" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todo el Personal</option>
                     </select>
-                    <!-- Filtro por Estado (Pendiente / Atendido) -->
                     <select id="filterEstado" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Estados</option>
                         <option value="Pendiente">Pendiente</option>
                         <option value="Atendido">Atendido</option>
                     </select>
-                    <!-- Filtro por Origen -->
                     <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Orígenes</option>
                     </select>
                     
                     <div class="flex items-center space-x-2 ml-auto">
-                        <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/20 transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
+                        <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/25 transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
                             <i class="fa-solid fa-file-excel text-sm"></i>
                             <span>Exportar Excel</span>
                         </button>
-                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/20 transition transform active:scale-95" title="Preparar correo y descargar Excel para adjuntar">
+                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/25 transition transform active:scale-95" title="Preparar correo y descargar Excel para adjuntar">
                             <i class="fa-solid fa-paper-plane text-sm"></i>
                             <span>Enviar por Correo</span>
                         </button>
@@ -187,7 +180,6 @@
                 </div>
             </div>
 
-            <!-- TABLA CON GRID Y CABECERA AZUL DÉGRADÉ -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -217,9 +209,8 @@
             </div>
         </section>
 
-        <!-- TAB 2: DASHBOARD EJECUTIVO -->
+        <!-- TAB 2: DASHBOARD -->
         <section id="tab-dashboard" class="hidden space-y-6">
-            
             <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="font-extrabold text-slate-900 text-sm flex items-center space-x-2">
@@ -268,7 +259,6 @@
                 </div>
             </div>
 
-            <!-- Gráficos de Estadísticas -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
@@ -291,10 +281,8 @@
             </div>
         </section>
 
-        <!-- TAB 3: GESTIÓN DE CATÁLOGOS Y USUARIOS -->
+        <!-- TAB 3: CATÁLOGOS Y USUARIOS -->
         <section id="tab-catalogos" class="hidden space-y-6">
-            
-            <!-- SECCIÓN 1: GESTIÓN DE USUARIOS (TABLA COMPLETA) -->
             <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
                     <div>
@@ -304,7 +292,7 @@
                         </h3>
                         <p class="text-xs text-slate-500 font-medium mt-0.5">Cree, consulte, edite o elimine el personal, su nombre de usuario, tipo y clave.</p>
                     </div>
-                    <button onclick="openCatalogModal('Personal')" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold shadow-md shadow-blue-500/20 transition transform active:scale-95">
+                    <button onclick="openCatalogModal('Personal')" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold shadow-md shadow-blue-500/25 transition transform active:scale-95">
                         <i class="fa-solid fa-user-plus text-xs"></i>
                         <span>Nuevo Personal / Usuario</span>
                     </button>
@@ -331,7 +319,6 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN 2: OTROS CATÁLOGOS (ESTADOS, ORÍGENES Y ALARMAS) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -369,7 +356,7 @@
 
     </main>
 
-    <!-- MODAL: DOCUMENTO -->
+    <!-- MODAL DOCUMENTO -->
     <div id="docFormModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
@@ -419,13 +406,13 @@
                 </div>
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeDocFormModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar en Google Sheets</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/35 transition">Guardar en Google Sheets</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: CATÁLOGO Y GESTIÓN DE PERSONAL / USUARIOS -->
+    <!-- MODAL CATÁLOGO / PERSONAL -->
     <div id="catalogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
@@ -436,28 +423,27 @@
                 <input type="hidden" id="catalogType">
                 <input type="hidden" id="catalogOldIndex">
                 
-                <!-- Campos dinámicos para Personal / Usuario -->
                 <div id="personalFormFields" class="space-y-4">
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nombre Completo *</label>
-                        <input type="text" id="pNombreCompleto" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="text" id="pNombreCompleto" required class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Cargo / Área *</label>
-                        <input type="text" id="pCargoArea" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="text" id="pCargoArea" required class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Correo Electrónico *</label>
-                        <input type="email" id="pCorreo" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="email" id="pCorreo" required class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nombre de Usuario *</label>
-                            <input type="text" id="pUsuario" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="ej. jcamachom">
+                            <input type="text" id="pUsuario" required class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="ej. fburgal">
                         </div>
                         <div>
                             <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Tipo de Usuario *</label>
-                            <select id="pTipoUsuario" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-extrabold text-indigo-600 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <select id="pTipoUsuario" required class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-extrabold text-indigo-600 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <option value="Registrador">Registrador</option>
                                 <option value="Administrador">Administrador</option>
                             </select>
@@ -465,11 +451,10 @@
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave / Contraseña *</label>
-                        <input type="password" id="pClave" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="••••••••">
+                        <input type="password" id="pClave" required class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="••••••••">
                     </div>
                 </div>
 
-                <!-- Campos para otros catálogos (Orígenes, Alarmas) -->
                 <div id="genericFormFields" class="space-y-4 hidden">
                     <div>
                         <label id="catalogLabelName" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nombre / Valor *</label>
@@ -494,13 +479,13 @@
 
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeCatalogModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar Cambios</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/35 transition">Guardar Cambios</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: CONFIGURACIÓN -->
+    <!-- MODAL CONFIGURACIÓN -->
     <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-4 border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
@@ -516,7 +501,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT -->
+    <!-- SCRIPT JAVASCRIPT -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -524,16 +509,8 @@
             return localStorage.getItem('hidrandina_gas_url') || DEFAULT_GAS_URL;
         }
 
-        let currentUser = null; // Almacena el usuario autenticado
-
-        let appData = {
-            Documentos: [],
-            Personal: [],
-            Estados: ["Pendiente", "Atendido"],
-            Origenes: [],
-            Alarmas: []
-        };
-
+        let currentUser = null;
+        let appData = { Documentos: [], Personal: [], Estados: ["Pendiente", "Atendido"], Origenes: [], Alarmas: [] };
         let chartsInstance = { estados: null, origenes: null };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -542,7 +519,6 @@
             fetchData();
         });
 
-        // AUTENTICACIÓN Y ROLES
         function checkAuthSession() {
             const savedSession = sessionStorage.getItem('hidrandina_active_user');
             if (savedSession) {
@@ -561,14 +537,12 @@
             const passIn = document.getElementById('loginPassword').value.trim();
             const errDiv = document.getElementById('loginErrorMsg');
 
-            // Usuario maestro fijo Administrador solicitado
             if (userIn === "jcamachom" && passIn === "9314040") {
                 currentUser = { nombre: "Ing. Johnny Quevin Camacho Mori", usuario: "jcamachom", rol: "Administrador" };
                 saveSessionAndProceed();
                 return;
             }
 
-            // Búsqueda en el catálogo de personal / usuarios registrados
             let userFound = appData.Personal.find(p => {
                 const uUsuario = String(getProp(p, ['usuario', 'Usuario', 4]) || '').trim();
                 const uNombre = String(getProp(p, ['Nombre_Completo', 'nombre_completo', 1]) || '').trim();
@@ -588,7 +562,6 @@
                     return;
                 }
             }
-
             errDiv.classList.remove('hidden');
         }
 
@@ -608,21 +581,16 @@
 
         function applyRolePermissions() {
             if (!currentUser) return;
-
             const isRegistrador = currentUser.rol === 'Registrador';
-            const btnCatalogosNav = document.getElementById('tab-btn-catalogos');
-            const btnConfigApp = document.getElementById('btnConfigAppsScript');
-            const btnManageUsers = document.getElementById('btnManageUsers');
-
             if (isRegistrador) {
-                if (btnCatalogosNav) btnCatalogosNav.classList.add('hidden');
-                if (btnConfigApp) btnConfigApp.classList.add('hidden');
-                if (btnManageUsers) btnManageUsers.classList.add('hidden');
+                document.getElementById('tab-btn-catalogos').classList.add('hidden');
+                document.getElementById('btnConfigAppsScript').classList.add('hidden');
+                document.getElementById('btnManageUsers').classList.add('hidden');
                 switchTab('documentos');
             } else {
-                if (btnCatalogosNav) btnCatalogosNav.classList.remove('hidden');
-                if (btnConfigApp) btnConfigApp.classList.remove('hidden');
-                if (btnManageUsers) btnManageUsers.classList.remove('hidden');
+                document.getElementById('tab-btn-catalogos').classList.remove('hidden');
+                document.getElementById('btnConfigAppsScript').classList.remove('hidden');
+                document.getElementById('btnManageUsers').classList.remove('hidden');
             }
             renderTable(appData.Documentos);
         }
@@ -669,7 +637,7 @@
             if (data) {
                 if (data.Registros) appData.Documentos = data.Registros;
                 if (data.Catalogos) {
-                    appData.Personal = data.Catalogos.Personal || data.Catalogos.Responsables || appData.Personal;
+                    appData.Personal = data.Catalogos.Personal || appData.Personal;
                     appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
                     appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
                 }
@@ -684,7 +652,6 @@
             const url = getBackendUrl();
             const oldScript = document.getElementById('jsonp-fetch');
             if (oldScript) oldScript.remove();
-
             const script = document.createElement('script');
             script.id = 'jsonp-fetch';
             script.src = `${url}?callback=handleGASResponse&_=${new Date().getTime()}`;
@@ -695,7 +662,6 @@
         function executeGASAction(params, successCallback) {
             setConnectionStatus('sync', 'Guardando...');
             const url = getBackendUrl();
-            
             fetch(url, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -724,21 +690,17 @@
         function calcularPlazos(fechaIngresoStr, fechaVencimientoStr) {
             const cleanIngresoStr = String(fechaIngresoStr || '').split('T')[0];
             const ingreso = new Date(cleanIngresoStr + 'T00:00:00');
-            
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
 
             let diasTranscurridos = 0;
             if (!isNaN(ingreso.getTime())) {
-                const diffTime = hoy - ingreso;
-                diasTranscurridos = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+                diasTranscurridos = Math.max(0, Math.floor((hoy - ingreso) / (1000 * 60 * 60 * 24)));
             }
 
             let vencimientoDate = null;
             const cleanVencStr = String(fechaVencimientoStr || '').split('T')[0];
-            if (cleanVencStr) {
-                vencimientoDate = new Date(cleanVencStr + 'T00:00:00');
-            }
+            if (cleanVencStr) vencimientoDate = new Date(cleanVencStr + 'T00:00:00');
 
             if (!vencimientoDate || isNaN(vencimientoDate.getTime())) {
                 vencimientoDate = new Date(ingreso);
@@ -747,11 +709,8 @@
             vencimientoDate.setHours(0, 0, 0, 0);
             const vencimientoFormatted = vencimientoDate.toISOString().split('T')[0];
 
-            const diffVenc = vencimientoDate - hoy;
-            const diasFaltantes = Math.max(0, Math.ceil(diffVenc / (1000 * 60 * 60 * 24)));
-
-            const diffExc = hoy - vencimientoDate;
-            const diasExceso = Math.max(0, Math.floor(diffExc / (1000 * 60 * 60 * 24)));
+            const diasFaltantes = Math.max(0, Math.ceil((vencimientoDate - hoy) / (1000 * 60 * 60 * 24)));
+            const diasExceso = Math.max(0, Math.floor((hoy - vencimientoDate) / (1000 * 60 * 60 * 24)));
 
             return { vencimiento: vencimientoFormatted, diasTranscurridos, diasFaltantes, diasExceso };
         }
@@ -763,16 +722,14 @@
             const origen = document.getElementById('filterOrigen').value;
 
             return appData.Documentos.filter(doc => {
-                const numDoc = String(getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '').toLowerCase();
+                const numDoc = String(getProp(doc, ['Numero_Documento', 1]) || '').toLowerCase();
                 const asunto = String(getProp(doc, ['Asunto', 3]) || '').toLowerCase();
                 const resp = String(getProp(doc, ['Responsable', 8]) || '');
                 const docEstado = String(getProp(doc, ['Estado', 9]) || '');
                 const docOrigen = String(getProp(doc, ['Origen_Tipo', 2]) || '');
                 
                 return (numDoc.includes(query) || asunto.includes(query) || resp.toLowerCase().includes(query)) && 
-                       (!personal || resp === personal) && 
-                       (!estado || docEstado === estado) && 
-                       (!origen || docOrigen === origen);
+                       (!personal || resp === personal) && (!estado || docEstado === estado) && (!origen || docOrigen === origen);
             });
         }
 
@@ -786,34 +743,11 @@
 
             return appData.Documentos.filter(doc => {
                 const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
-                
                 if (fInicio && fechaIng && fechaIng < fInicio) return false;
                 if (fFin && fechaIng && fechaIng > fFin) return false;
-
-                const docResp = String(getProp(doc, ['Responsable', 8]) || '');
-                if (pers && docResp !== pers) return false;
-
-                const docOrig = String(getProp(doc, ['Origen_Tipo', 2]) || '');
-                if (orig && docOrig !== orig) return false;
-
-                const docEst = String(getProp(doc, ['Estado', 9]) || '');
-                if (est && docEst !== est) return false;
-
-                if (alar) {
-                    const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 'fecha_vencimiento', 5]);
-                    const plazos = calcularPlazos(fechaIng, fechaVencRaw);
-                    const dTrans = plazos.diasTranscurridos;
-                    const alarmaObj = appData.Alarmas.find(a => {
-                        const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
-                        return nom === alar;
-                    });
-                    if (alarmaObj && typeof alarmaObj === 'object') {
-                        const dMin = parseInt(alarmaObj.Dias_Min || alarmaObj[2] || 0);
-                        const dMax = parseInt(alarmaObj.Dias_Max || alarmaObj[3] || 9999);
-                        if (dTrans < dMin || dTrans > dMax) return false;
-                    }
-                }
-
+                if (pers && String(getProp(doc, ['Responsable', 8]) || '') !== pers) return false;
+                if (orig && String(getProp(doc, ['Origen_Tipo', 2]) || '') !== orig) return false;
+                if (est && String(getProp(doc, ['Estado', 9]) || '') !== est) return false;
                 return true;
             });
         }
@@ -830,14 +764,10 @@
 
         function exportarExcel() {
             const docs = obtenerDocumentosFiltradosActuales();
-            if (!docs || docs.length === 0) {
-                alert("No hay registros para exportar.");
-                return;
-            }
-
+            if (!docs.length) { alert("No hay registros para exportar."); return; }
             const datosFormateados = docs.map(doc => {
-                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 'fecha_ingreso', 4]) || '';
-                const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 'fecha_vencimiento', 5]) || '';
+                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 4]) || '';
+                const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 5]) || '';
                 const plazos = calcularPlazos(fechaIngRaw, fechaVencRaw);
                 return {
                     "Nro. Documento": getProp(doc, ['Numero_Documento', 1]) || '-',
@@ -853,133 +783,61 @@
                     "Observaciones": getProp(doc, ['Observaciones', 10]) || '-'
                 };
             });
-
-            const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Documentos Hidrandina");
-            
-            XLSX.writeFile(workbook, "Control_Documentos_Hidrandina.xlsx");
+            const ws = XLSX.utils.json_to_sheet(datosFormateados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Documentos");
+            XLSX.writeFile(wb, "Control_Documentos_Hidrandina.xlsx");
         }
 
         function enviarListaCorreo() {
             const docs = obtenerDocumentosFiltradosActuales();
-            if (!docs || docs.length === 0) {
-                alert("No hay registros en la lista para enviar.");
-                return;
-            }
-
+            if (!docs.length) { alert("No hay registros."); return; }
             exportarExcel();
-
-            const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
-            let cuerpo = `Estimado equipo,\n\nSe adjunta el reporte actual de control de documentos en formato Excel para su revisión y atención.\n\nAtte,\nIng. Johnny Quevin Camacho Mori`;
-
-            alert("¡Reporte Excel descargado con éxito!\n\nNota de seguridad del navegador: Los navegadores web no permiten adjuntar archivos automáticamente a través de enlaces de correo (mailto). Por favor, adjunta el archivo 'Control_Documentos_Hidrandina.xlsx' recién descargado en tu ventana de Outlook.");
-
-            window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
+            window.location.href = `mailto:?subject=${encodeURIComponent("REPORTE: Control de Documentos - Hidrandina")}&body=${encodeURIComponent("Se adjunta el reporte de documentos.")}`;
         }
 
         function enviarCorreoIndividual(idx) {
             const doc = appData.Documentos[idx];
             if (!doc) return;
-
-            const numDoc = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || 'DOC';
-            const entidad = getProp(doc, ['Origen_Tipo', 2]) || 'Entidad';
-            const estado = getProp(doc, ['Estado', 9]) || 'Pendiente';
-            const responsableNombre = getProp(doc, ['Responsable', 8]) || '';
-            const asuntoDoc = getProp(doc, ['Asunto', 3]) || '';
-            const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
-            const observaciones = getProp(doc, ['Observaciones', 10]) || '';
-
-            let correoDestino = '';
-            if (appData.Personal && appData.Personal.length > 0) {
-                const persEncontrado = appData.Personal.find(p => {
-                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
-                    return nom.toLowerCase() === responsableNombre.toLowerCase();
-                });
-                if (persEncontrado && typeof persEncontrado === 'object') {
-                    correoDestino = persEncontrado.Correo_Electronico || persEncontrado.Correo || persEncontrado[3] || '';
-                }
-            }
-
-            const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
-            
-            let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe remite el siguiente documento para su conocimiento:\n\n` +
-                `- Nro. Documento: ${numDoc}\n` +
-                `- Entidad / Origen: ${entidad}\n` +
-                `- Asunto: ${asuntoDoc}\n` +
-                `- Fecha de Ingreso: ${fechaIng}\n` +
-                `- Estado Actual: ${estado}\n` +
-                `- Observaciones: ${observaciones}\n`;
-
-            window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
+            const numDoc = getProp(doc, ['Numero_Documento', 1]) || 'DOC';
+            const resp = getProp(doc, ['Responsable', 8]) || '';
+            const persEncontrado = appData.Personal.find(p => String(getProp(p, ['Nombre_Completo', 'nombre_completo', 1])).toLowerCase() === resp.toLowerCase());
+            const correo = persEncontrado ? getProp(persEncontrado, ['Correo_Electronico', 'correo_electronico', 3]) : '';
+            window.location.href = `mailto:${correo}?subject=${encodeURIComponent(numDoc)}&body=${encodeURIComponent("Estimado(a) " + resp + ", se le remite el documento.")}`;
         }
 
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
-            if (!docs || docs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="12" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos registrados.</td></tr>`;
-                return;
-            }
-
-            const isRegistrador = currentUser && currentUser.rol === 'Registrador';
+            if (!docs.length) { tbody.innerHTML = `<tr><td colspan="12" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos.</td></tr>`; return; }
+            const isReg = currentUser && currentUser.rol === 'Registrador';
 
             tbody.innerHTML = docs.map((doc, idx) => {
-                const numDoc = getProp(doc, ['Numero_Documento', 'numero_documento', 'Numero_Expediente', 'NRO_DOCUMENTO', 1]) || '-';
-                const origen = getProp(doc, ['Origen_Tipo', 'origen_tipo', 'ORIGEN', 'Origen', 2]) || '-';
-                const asunto = getProp(doc, ['Asunto', 'asunto', 'ASUNTO', 3]) || '-';
-                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 'fecha_ingreso', 'FECHA_INGRESO', 4]) || '';
-                const fechaIng = fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-';
-
-                const rawVenc = getProp(doc, ['Fecha_Vencimiento', 'fecha_vencimiento', 5]);
-                const plazos = calcularPlazos(fechaIng, rawVenc);
-                const fechaVenc = plazos.vencimiento;
-
-                const diasTrans = plazos.diasTranscurridos;
-                const diasFalt = plazos.diasFaltantes;
-                const diasExc = plazos.diasExceso;
-
-                const responsable = getProp(doc, ['Responsable', 'responsable', 'RESPONSABLE', 8]) || '-';
-                const rawEstado = getProp(doc, ['Estado', 'estado', 'ESTADO', 9]) || 'Pendiente';
-                const isAtendido = String(rawEstado).toLowerCase().includes('atendido') || String(rawEstado).toLowerCase().includes('concluido');
-
-                const observaciones = getProp(doc, ['Observaciones', 'observaciones', 'OBSERVACIONES', 10]) || '-';
-                const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
+                const numDoc = getProp(doc, ['Numero_Documento', 1]) || '-';
+                const origen = getProp(doc, ['Origen_Tipo', 2]) || '-';
+                const asunto = getProp(doc, ['Asunto', 3]) || '-';
+                const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
+                const plazos = calcularPlazos(fechaIng, getProp(doc, ['Fecha_Vencimiento', 5]));
+                const resp = getProp(doc, ['Responsable', 8]) || '-';
+                const est = String(getProp(doc, ['Estado', 9]) || 'Pendiente');
+                const isAtendido = est.toLowerCase().includes('atendido');
 
                 return `
-                    <tr class="${bgRow} hover:bg-blue-50/60 transition duration-150">
-                        <td class="py-3.5 px-4 font-extrabold text-blue-900 border-r border-slate-200/80">${numDoc}</td>
-                        <td class="py-3.5 px-4 border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-blue-100/70 text-blue-800 border border-blue-200/50">${origen}</span></td>
-                        <td class="py-3.5 px-4 text-slate-800 max-w-[220px] truncate font-medium border-r border-slate-200/80" title="${asunto}">${asunto}</td>
-                        <td class="py-3.5 px-4 text-slate-600 font-semibold border-r border-slate-200/80">${fechaIng}</td>
-                        <td class="py-3.5 px-4 font-bold text-slate-700 border-r border-slate-200/80">${fechaVenc}</td>
-                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans}</span></td>
-                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
-                            ${diasFalt > 0 && !isAtendido ? 
-                                `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt}</span>` : 
-                                `<span class="text-slate-400 font-semibold text-[11px]">0</span>`
-                            }
-                        </td>
-                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
-                            ${diasExc > 0 && !isAtendido ? 
-                                `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc}</span>` : 
-                                `<span class="text-emerald-600 font-extrabold text-[11px]">0</span>`
-                            }
-                        </td>
-                        <td class="py-3.5 px-4 text-slate-700 font-semibold border-r border-slate-200/80">${responsable}</td>
-                        <td class="py-3.5 px-4 border-r border-slate-200/80">
-                            ${isAtendido ? 
-                                `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Atendido</span>` : 
-                                `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 border border-amber-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Pendiente</span>`
-                            }
-                        </td>
-                        <td class="py-3.5 px-4 text-slate-600 max-w-[160px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
+                    <tr class="${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-blue-50/60 transition">
+                        <td class="py-3.5 px-4 font-extrabold text-blue-900 border-r border-slate-200">${numDoc}</td>
+                        <td class="py-3.5 px-4 border-r border-slate-200"><span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-blue-100 text-blue-800">${origen}</span></td>
+                        <td class="py-3.5 px-4 text-slate-800 max-w-[220px] truncate border-r border-slate-200">${asunto}</td>
+                        <td class="py-3.5 px-4 text-slate-600 border-r border-slate-200">${fechaIng}</td>
+                        <td class="py-3.5 px-4 font-bold border-r border-slate-200">${plazos.vencimiento}</td>
+                        <td class="py-3.5 px-4 text-center border-r border-slate-200">${plazos.diasTranscurridos}</td>
+                        <td class="py-3.5 px-4 text-center border-r border-slate-200">${plazos.diasFaltantes}</td>
+                        <td class="py-3.5 px-4 text-center border-r border-slate-200">${plazos.diasExceso > 0 && !isAtendido ? '<span class="text-rose-600 font-black">+' + plazos.diasExceso + '</span>' : '0'}</td>
+                        <td class="py-3.5 px-4 text-slate-700 font-semibold border-r border-slate-200">${resp}</td>
+                        <td class="py-3.5 px-4 border-r border-slate-200">${isAtendido ? '<span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-black">Atendido</span>' : '<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-black">Pendiente</span>'}</td>
+                        <td class="py-3.5 px-4 text-slate-600 truncate border-r border-slate-200">${getProp(doc, ['Observaciones', 10]) || '-'}</td>
                         <td class="py-3.5 px-4 text-center space-x-1">
-                            <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
-                            <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
-                            ${!isRegistrador ? 
-                                `<button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>` : 
-                                ``
-                            }
+                            <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600" title="Correo"><i class="fa-solid fa-envelope"></i></button>
+                            <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            ${!isReg ? `<button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600" title="Eliminar"><i class="fa-solid fa-trash"></i></button>` : ''}
                         </td>
                     </tr>
                 `;
@@ -987,119 +845,57 @@
         }
 
         function populateSelects() {
-            const persSel = document.getElementById('filterPersonal');
-            const origSel = document.getElementById('filterOrigen');
-            const currentPers = persSel.value;
-            const currentOrig = origSel.value;
+            const pSel = document.getElementById('filterPersonal');
+            const oSel = document.getElementById('filterOrigen');
+            const dpSel = document.getElementById('dashFiltroPersonal');
+            const doSel = document.getElementById('dashFiltroOrigen');
+            const daSel = document.getElementById('dashFiltroAlarma');
 
-            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o).filter(Boolean);
-            const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 'Nombre', 1]) : p).filter(Boolean);
-            const alarmasNombres = appData.Alarmas.map(a => typeof a === 'object' ? getProp(a, ['Nombre_Alarma', 1]) : a).filter(Boolean);
+            const personalNombres = appData.Personal.map(p => getProp(p, ['Nombre_Completo', 'nombre_completo', 1])).filter(Boolean);
+            const origenesNombres = appData.Origenes.map(o => getProp(o, ['Tipo_Origen', 'Origen', 1])).filter(Boolean);
+            const alarmasNombres = appData.Alarmas.map(a => getProp(a, ['Nombre_Alarma', 1])).filter(Boolean);
 
-            persSel.innerHTML = '<option value="">Todo el Personal</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
-            origSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
-            
-            persSel.value = currentPers;
-            origSel.value = currentOrig;
+            pSel.innerHTML = '<option value="">Todo el Personal</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+            oSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+            if(dpSel) dpSel.innerHTML = '<option value="">Todos</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+            if(doSel) doSel.innerHTML = '<option value="">Todos</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+            if(daSel) daSel.innerHTML = '<option value="">Todos</option>' + alarmasNombres.map(a => `<option value="${a}">${a}</option>`).join('');
 
             document.getElementById('formOrigenTipo').innerHTML = origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
             document.getElementById('formResponsable').innerHTML = personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
-
-            const dashPers = document.getElementById('dashFiltroPersonal');
-            const dashOrig = document.getElementById('dashFiltroOrigen');
-            const dashAlar = document.getElementById('dashFiltroAlarma');
-            const curDPers = dashPers.value;
-            const curDOrig = dashOrig.value;
-            const curDAlar = dashAlar.value;
-
-            dashPers.innerHTML = '<option value="">Todos</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
-            dashOrig.innerHTML = '<option value="">Todos</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
-            dashAlar.innerHTML = '<option value="">Todos</option>' + alarmasNombres.map(a => `<option value="${a}">${a}</option>`).join('');
-
-            dashPers.value = curDPers;
-            dashOrig.value = curDOrig;
-            dashAlar.value = curDAlar;
         }
 
-        function filterDocuments() {
-            const filtered = obtenerDocumentosFiltradosActuales();
-            renderTable(filtered);
-        }
+        function filterDocuments() { renderTable(obtenerDocumentosFiltradosActuales()); }
 
         function renderStatsAndCharts() {
-            const docsFiltrados = obtenerDocumentosDashboardFiltrados();
-
             let pendiente = 0, atendido = 0;
             appData.Documentos.forEach(doc => {
-                const est = String(getProp(doc, ['Estado', 9]) || '').toLowerCase();
-                if (est.includes('atendido') || est.includes('concluido')) {
-                    atendido++;
-                } else {
-                    pendiente++;
-                }
+                if (String(getProp(doc, ['Estado', 9]) || '').toLowerCase().includes('atendido')) atendido++; else pendiente++;
             });
             document.getElementById('top-stat-total').innerText = appData.Documentos.length;
             document.getElementById('top-stat-pendiente').innerText = pendiente;
             document.getElementById('top-stat-atendido').innerText = atendido;
 
-            let dashPendiente = 0, dashAtendido = 0;
-            docsFiltrados.forEach(doc => {
-                const est = String(getProp(doc, ['Estado', 9]) || '').toLowerCase();
-                if (est.includes('atendido') || est.includes('concluido')) {
-                    dashAtendido++;
-                } else {
-                    dashPendiente++;
-                }
-            });
-
-            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o).filter(Boolean);
+            const origenesNombres = appData.Origenes.map(o => getProp(o, ['Tipo_Origen', 1])).filter(Boolean);
             const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
-            docsFiltrados.forEach(doc => { const orig = getProp(doc, ['Origen_Tipo', 2]) || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
+            appData.Documentos.forEach(doc => { const orig = getProp(doc, ['Origen_Tipo', 2]) || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
 
             if (chartsInstance.estados) chartsInstance.estados.destroy();
             if (chartsInstance.origenes) chartsInstance.origenes.destroy();
 
-            chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
+            chartsInstance.estados = new Chart(document.getElementById('chartEstados'), {
                 type: 'doughnut',
-                data: { 
-                    labels: ['Pendiente', 'Atendido'], 
-                    datasets: [{ 
-                        data: [dashPendiente, dashAtendido], 
-                        backgroundColor: ['#f59e0b', '#10b981'], 
-                        borderWidth: 3, 
-                        borderColor: '#ffffff' 
-                    }] 
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { weight: '800' } } } } 
-                }
+                data: { labels: ['Pendiente', 'Atendido'], datasets: [{ data: [pendiente, atendido], backgroundColor: ['#f59e0b', '#10b981'] }] },
+                options: { responsive: true, maintainAspectRatio: false }
             });
 
-            chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
+            chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes'), {
                 type: 'bar',
-                data: { 
-                    labels: Object.keys(origenCounts), 
-                    datasets: [{ 
-                        label: 'Cantidad de Documentos', 
-                        data: Object.values(origenCounts), 
-                        backgroundColor: '#4338ca', 
-                        borderRadius: 8 
-                    }] 
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } }, 
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } 
-                }
+                data: { labels: Object.keys(origenCounts), datasets: [{ data: Object.values(origenCounts), backgroundColor: '#4338ca', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
-
-        function renderCharts() {
-            renderStatsAndCharts();
-        }
+        function renderCharts() { renderStatsAndCharts(); }
 
         function openDocFormModal(idx = null) {
             document.getElementById('docForm').reset();
@@ -1108,175 +904,85 @@
                 const doc = appData.Documentos[idx];
                 document.getElementById('docModalTitle').innerText = "Editar Documento";
                 document.getElementById('docIndex').value = idx;
-                document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '';
+                document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 1]) || '';
                 document.getElementById('formOrigenTipo').value = getProp(doc, ['Origen_Tipo', 2]) || '';
                 document.getElementById('formAsunto').value = getProp(doc, ['Asunto', 3]) || '';
-                
-                const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
-                document.getElementById('formFechaIngreso').value = fechaIng;
-
-                const fechaVenc = String(getProp(doc, ['Fecha_Vencimiento', 5]) || '').split('T')[0];
-                if (fechaVenc) {
-                    document.getElementById('formFechaVencimiento').value = fechaVenc;
-                } else {
-                    const d = new Date(fechaIng + 'T00:00:00');
-                    d.setDate(d.getDate() + 15);
-                    document.getElementById('formFechaVencimiento').value = d.toISOString().split('T')[0];
-                }
-
+                document.getElementById('formFechaIngreso').value = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
+                document.getElementById('formFechaVencimiento').value = String(getProp(doc, ['Fecha_Vencimiento', 5]) || '').split('T')[0];
                 document.getElementById('formResponsable').value = getProp(doc, ['Responsable', 8]) || '';
-                
-                const rawEst = getProp(doc, ['Estado', 9]) || 'Pendiente';
-                document.getElementById('formEstado').value = String(rawEst).toLowerCase().includes('atendido') ? 'Atendido' : 'Pendiente';
+                document.getElementById('formEstado').value = String(getProp(doc, ['Estado', 9]) || '').toLowerCase().includes('atendido') ? 'Atendido' : 'Pendiente';
                 document.getElementById('formObservaciones').value = getProp(doc, ['Observaciones', 10]) || '';
             } else {
                 document.getElementById('docModalTitle').innerText = "Nuevo Documento";
                 document.getElementById('docIndex').value = "";
-                const todayStr = new Date().toISOString().split('T')[0];
-                document.getElementById('formFechaIngreso').value = todayStr;
-                
-                const dDef = new Date();
-                dDef.setDate(dDef.getDate() + 15);
-                document.getElementById('formFechaVencimiento').value = dDef.toISOString().split('T')[0];
-
-                document.getElementById('formEstado').value = "Pendiente";
+                document.getElementById('formFechaIngreso').value = new Date().toISOString().split('T')[0];
             }
             document.getElementById('docFormModal').classList.remove('hidden');
         }
-
         function closeDocFormModal() { document.getElementById('docFormModal').classList.add('hidden'); }
 
         function saveDocument(e) {
             e.preventDefault();
-            const numDoc = document.getElementById('formNumeroDocumento').value.trim();
-            const fechaIng = document.getElementById('formFechaIngreso').value;
-            const fechaVenc = document.getElementById('formFechaVencimiento').value;
-            const origenTipo = document.getElementById('formOrigenTipo').value;
-            const asunto = document.getElementById('formAsunto').value;
-            const resp = document.getElementById('formResponsable').value;
-            const est = document.getElementById('formEstado').value;
-            const obs = document.getElementById('formObservaciones').value;
-            
-            const plazos = calcularPlazos(fechaIng, fechaVenc);
-
-            const newDocObj = {
-                Numero_Documento: numDoc,
-                Origen_Tipo: origenTipo,
-                Asunto: asunto,
-                Fecha_Ingreso: fechaIng,
-                Fecha_Vencimiento: fechaVenc || plazos.vencimiento,
-                Dias_Trancurridos: plazos.diasTranscurridos,
-                Dias_Exceso: plazos.diasExceso,
-                Responsable: resp,
-                Estado: est,
-                Observaciones: obs
-            };
-
-            const idx = document.getElementById('docIndex').value;
-            if (idx !== "") {
-                appData.Documentos[idx] = newDocObj;
-            } else {
-                appData.Documentos.push(newDocObj);
-            }
-
-            saveLocalCache();
-            renderAll();
-            closeDocFormModal();
-
-            executeGASAction({
+            const payload = {
                 action: "saveDoc",
-                ...newDocObj
-            });
+                Numero_Documento: document.getElementById('formNumeroDocumento').value.trim(),
+                Origen_Tipo: document.getElementById('formOrigenTipo').value,
+                Asunto: document.getElementById('formAsunto').value.trim(),
+                Fecha_Ingreso: document.getElementById('formFechaIngreso').value,
+                Fecha_Vencimiento: document.getElementById('formFechaVencimiento').value,
+                Responsable: document.getElementById('formResponsable').value,
+                Estado: document.getElementById('formEstado').value,
+                Observaciones: document.getElementById('formObservaciones').value.trim()
+            };
+            closeDocFormModal();
+            executeGASAction(payload);
         }
 
         function editDocument(idx) { openDocFormModal(idx); }
 
         function deleteDocument(idx) {
-            if (currentUser && currentUser.rol === 'Registrador') {
-                alert("Acceso denegado: El rol 'Registrador' no tiene permisos para eliminar registros.");
-                return;
-            }
+            if (currentUser && currentUser.rol === 'Registrador') return;
             const doc = appData.Documentos[idx];
-            const numDoc = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]);
-            if (confirm(`¿Eliminar el documento ${numDoc}?`)) {
-                appData.Documentos.splice(idx, 1);
-                saveLocalCache();
-                renderAll();
-                executeGASAction({ action: "deleteDoc", Numero_Documento: numDoc });
-            }
+            const num = getProp(doc, ['Numero_Documento', 1]);
+            if (confirm(`¿Eliminar ${num}?`)) executeGASAction({ action: "deleteDoc", Numero_Documento: num });
         }
 
         function renderCatalogsManagement() {
             if (currentUser && currentUser.rol === 'Registrador') return;
-
-            // Renderizar tabla completa de gestión de personal / usuarios
-            const userTableBody = document.getElementById('managePersonalTableBody');
-            if (!appData.Personal || appData.Personal.length === 0) {
-                userTableBody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 font-semibold">Sin personal registrado.</td></tr>`;
+            const tb = document.getElementById('managePersonalTableBody');
+            if (!appData.Personal.length) {
+                tb.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 font-semibold">Sin personal registrado.</td></tr>`;
             } else {
-                userTableBody.innerHTML = appData.Personal.map((p, i) => {
-                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.nombre_completo || p[1] || '') : p;
-                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p.cargo_area || p[2] || '') : '-';
-                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p.correo_electronico || p[3] || '') : '';
-                    const usuario = typeof p === 'object' ? (p.usuario || p[4] || '') : '';
-                    const tipoUsr = typeof p === 'object' ? (p.tipousuario || p[5] || 'Registrador') : 'Registrador';
-                    const clave = typeof p === 'object' ? (p.clave || p[6] || '') : '';
-
-                    return `
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="py-3 px-4 font-extrabold text-slate-900">${nom}</td>
-                            <td class="py-3 px-4 text-slate-700 font-semibold">${cargo}</td>
-                            <td class="py-3 px-4 text-slate-600">${correo || '-'}</td>
-                            <td class="py-3 px-4 text-blue-600 font-bold">${usuario || '-'}</td>
-                            <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">${tipoUsr}</span></td>
-                            <td class="py-3 px-4 text-slate-500 font-mono">${clave ? '••••••••' : '-'}</td>
-                            <td class="py-3 px-4 text-center space-x-1">
-                                <button onclick="editCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Personal"><i class="fa-solid fa-pen text-xs"></i></button>
-                                <button onclick="deleteCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar Personal"><i class="fa-solid fa-trash text-xs"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
+                tb.innerHTML = appData.Personal.map((p, i) => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-4 font-extrabold text-slate-900">${getProp(p, ['Nombre_Completo', 'nombre_completo', 1])}</td>
+                        <td class="py-3 px-4 text-slate-700">${getProp(p, ['Cargo_Area', 'cargo_area', 2])}</td>
+                        <td class="py-3 px-4 text-slate-600">${getProp(p, ['Correo_Electronico', 'correo_electronico', 3]) || '-'}</td>
+                        <td class="py-3 px-4 text-blue-600 font-bold">${getProp(p, ['usuario', 4]) || '-'}</td>
+                        <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700">${getProp(p, ['tipousuario', 5]) || 'Registrador'}</span></td>
+                        <td class="py-3 px-4 text-slate-500 font-mono">${getProp(p, ['clave', 6]) ? '••••••••' : '-'}</td>
+                        <td class="py-3 px-4 text-center space-x-1">
+                            <button onclick="editCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="deleteCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600"><i class="fa-solid fa-trash text-xs"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
             }
 
-            document.getElementById('manageEstadosList').innerHTML = `
+            document.getElementById('manageEstadosList').innerHTML = `<div class="py-3 flex justify-between text-xs"><span class="font-bold text-amber-800">Pendiente</span><span class="font-bold text-emerald-800">Atendido</span></div>`;
+            document.getElementById('manageOrigenesList').innerHTML = appData.Origenes.map((o, i) => `
                 <div class="py-3 flex justify-between items-center text-xs">
-                    <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm"></span><span class="font-extrabold text-amber-800">Pendiente</span></div>
+                    <span class="font-bold text-slate-800">${getProp(o, ['Tipo_Origen', 1])}</span>
+                    <button onclick="deleteCatalogItem('Origenes', ${i})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button>
                 </div>
+            `).join('') || '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>';
+
+            document.getElementById('manageAlarmasList').innerHTML = appData.Alarmas.map((a, i) => `
                 <div class="py-3 flex justify-between items-center text-xs">
-                    <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span><span class="font-extrabold text-emerald-800">Atendido</span></div>
+                    <span class="font-bold text-slate-800">${getProp(a, ['Nombre_Alarma', 1])}</span>
+                    <button onclick="deleteCatalogItem('Alarmas', ${i})" class="text-rose-500"><i class="fa-solid fa-trash"></i></button>
                 </div>
-            `;
-
-            document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Origenes.map((o, i) => {
-                    const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1] || '') : o;
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <span class="font-bold text-slate-800">${tipo}</span>
-                        <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>`;
-                }).join('');
-
-            document.getElementById('manageAlarmasList').innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Alarmas.map((a, i) => {
-                    const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
-                    const min = typeof a === 'object' ? (a.Dias_Min || a[2] || 0) : 0;
-                    const max = typeof a === 'object' ? (a.Dias_Max || a[3] || 0) : 0;
-                    const col = typeof a === 'object' ? (a.Color_Hex || a[4] || '#ef4444') : '#ef4444';
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <div>
-                            <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${col}"></span><span class="font-bold text-slate-800">${nom}</span></div>
-                            <span class="text-slate-400 text-[11px] font-medium mt-0.5 block">Rango: ${min} - ${max} días</span>
-                        </div>
-                        <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>`;
-                }).join('');
+            `).join('') || '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>';
         }
 
         function openCatalogModal(type, index = null) {
@@ -1284,13 +990,11 @@
             document.getElementById('catalogType').value = type;
             document.getElementById('catalogModalTitle').innerText = type === 'Personal' ? 'Gestionar Personal y Usuario' : `Catálogo - ${type}`;
 
-            const personalFields = document.getElementById('personalFormFields');
-            const genericFields = document.getElementById('genericFormFields');
+            const pf = document.getElementById('personalFormFields');
+            const gf = document.getElementById('genericFormFields');
 
             if (type === 'Personal') {
-                personalFields.classList.remove('hidden');
-                genericFields.classList.add('hidden');
-
+                pf.classList.remove('hidden'); gf.classList.add('hidden');
                 if (index !== null) {
                     document.getElementById('catalogOldIndex').value = index;
                     const item = appData.Personal[index];
@@ -1304,45 +1008,14 @@
                     document.getElementById('catalogOldIndex').value = "";
                 }
             } else {
-                personalFields.classList.add('hidden');
-                genericFields.classList.remove('hidden');
-
-                const lblName = document.getElementById('catalogLabelName');
-                const lblSec = document.getElementById('catalogLabelSecondary');
-                const secContainer = document.getElementById('catalogFieldSecondaryContainer');
-                const thirdContainer = document.getElementById('catalogFieldThirdContainer');
-                const fourthContainer = document.getElementById('catalogFieldFourthContainer');
-
-                secContainer.classList.remove('hidden');
-                thirdContainer.classList.add('hidden');
-                fourthContainer.classList.add('hidden');
-
-                if (type === 'Origenes') {
-                    lblName.innerText = "Tipo de Origen *";
-                    lblSec.innerText = "Descripción";
-                } else if (type === 'Alarmas') {
-                    lblName.innerText = "Nombre Alarma *";
-                    lblSec.innerText = "Días Mínimos";
-                    thirdContainer.classList.remove('hidden');
-                    document.getElementById('catalogLabelThird').innerText = "Días Máximos";
-                    fourthContainer.classList.remove('hidden');
-                    document.getElementById('catalogLabelFourth').innerText = "Color Alarma";
-                }
-
+                pf.classList.add('hidden'); gf.classList.remove('hidden');
+                document.getElementById('catalogFieldSecondaryContainer').classList.remove('hidden');
+                document.getElementById('catalogFieldThirdContainer').classList.add('hidden');
+                document.getElementById('catalogFieldFourthContainer').classList.add('hidden');
                 if (index !== null) {
                     document.getElementById('catalogOldIndex').value = index;
                     const item = appData[type][index];
-                    if (type === 'Origenes') {
-                        document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 'Origen', 1]) || '';
-                        document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 2]) || '';
-                    } else if (type === 'Alarmas') {
-                        document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Alarma', 1]) || '';
-                        document.getElementById('catalogInputSecondary').value = getProp(item, ['Dias_Min', 2]) || 0;
-                        document.getElementById('catalogInputThird').value = getProp(item, ['Dias_Max', 3]) || 15;
-                        const col = getProp(item, ['Color_Hex', 4]) || '#ef4444';
-                        document.getElementById('catalogInputFourthText').value = col;
-                        document.getElementById('catalogInputFourthColor').value = col;
-                    }
+                    document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 'Nombre_Alarma', 1]) || '';
                 } else {
                     document.getElementById('catalogOldIndex').value = "";
                 }
@@ -1356,46 +1029,23 @@
             e.preventDefault();
             const type = document.getElementById('catalogType').value;
             const oldIndex = document.getElementById('catalogOldIndex').value;
-
             let payload = { action: "saveCatalog", type: type };
 
             if (type === 'Personal') {
-                const nombre = document.getElementById('pNombreCompleto').value.trim();
-                const cargo = document.getElementById('pCargoArea').value.trim();
-                const correo = document.getElementById('pCorreo').value.trim();
-                const usuario = document.getElementById('pUsuario').value.trim();
-                const tipousuario = document.getElementById('pTipoUsuario').value.trim();
-                const clave = document.getElementById('pClave').value.trim();
-
-                if (!nombre || !usuario || !clave) {
-                    alert("Por favor complete los campos obligatorios: Nombre, Usuario y Clave.");
-                    return;
-                }
-
-                payload.value = nombre;
-                payload.secondary = cargo;
-                payload.third = correo;
-                payload.fourth = usuario;
-                payload.fifth = tipousuario;
-                payload.sixth = clave;
+                payload.value = document.getElementById('pNombreCompleto').value.trim();
+                payload.secondary = document.getElementById('pCargoArea').value.trim();
+                payload.third = document.getElementById('pCorreo').value.trim();
+                payload.fourth = document.getElementById('pUsuario').value.trim();
+                payload.fifth = document.getElementById('pTipoUsuario').value.trim();
+                payload.sixth = document.getElementById('pClave').value.trim();
 
                 const oldItem = (oldIndex !== "" && appData.Personal[oldIndex]) ? appData.Personal[oldIndex] : null;
-                payload.oldValue = oldItem ? (oldItem.Nombre_Completo || oldItem.nombre_completo || oldItem[1] || '') : '';
+                payload.oldValue = oldItem ? getProp(oldItem, ['Nombre_Completo', 'nombre_completo', 1]) : '';
             } else {
-                const val = document.getElementById('catalogInputValue').value.trim();
-                const secondary = document.getElementById('catalogInputSecondary').value.trim();
-                const third = document.getElementById('catalogInputThird').value.trim();
-                const fourth = document.getElementById('catalogInputFourthText') ? document.getElementById('catalogInputFourthText').value.trim() : '';
-                if (!val) return;
-
+                payload.value = document.getElementById('catalogInputValue').value.trim();
                 const oldItem = (oldIndex !== "" && appData[type][oldIndex]) ? appData[type][oldIndex] : null;
-                const oldVal = oldItem ? (typeof oldItem === 'object' ? (oldItem.Tipo_Origen || oldItem.Nombre_Alarma || oldItem[1]) : oldItem) : val;
-
-                payload.value = val;
-                payload.oldValue = oldVal;
-                payload.secondary = secondary;
-                payload.third = third;
-                payload.fourth = fourth;
+                payload.oldValue = oldItem ? getProp(oldItem, ['Tipo_Origen', 'Nombre_Alarma', 1]) : payload.value;
+                payload.secondary = document.getElementById('catalogInputSecondary').value.trim();
             }
 
             closeCatalogModal();
@@ -1405,46 +1055,24 @@
         function editCatalogItem(type, index) { openCatalogModal(type, index); }
 
         function deleteCatalogItem(type, index) {
-            if (currentUser && currentUser.rol === 'Registrador') {
-                alert("Acceso denegado: El rol 'Registrador' no tiene permisos para eliminar registros.");
-                return;
-            }
+            if (currentUser && currentUser.rol === 'Registrador') return;
             const item = appData[type][index];
-            const val = type === 'Personal' ? (item.Nombre_Completo || item.nombre_completo || item[1]) : (typeof item === 'object' ? (item.Tipo_Origen || item.Nombre_Alarma || item[1]) : item);
-            if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
-                executeGASAction({ action: "deleteCatalog", type: type, value: val });
-            }
+            const val = type === 'Personal' ? getProp(item, ['Nombre_Completo', 'nombre_completo', 1]) : getProp(item, ['Tipo_Origen', 'Nombre_Alarma', 1]);
+            if (confirm(`¿Eliminar '${val}'?`)) executeGASAction({ action: "deleteCatalog", type: type, value: val });
         }
 
         function switchTab(tabId) {
-            if (tabId === 'catalogos' && currentUser && currentUser.rol === 'Registrador') {
-                alert("Acceso restringido solo para Administradores.");
-                return;
-            }
+            if (tabId === 'catalogos' && currentUser && currentUser.rol === 'Registrador') return;
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
-                btn.classList.add('border-transparent', 'text-slate-500', 'font-bold');
-            });
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold'));
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-bold');
-            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
+            document.getElementById(`tab-btn-${tabId}`).classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
             if (tabId === 'dashboard') renderStatsAndCharts();
             if (tabId === 'catalogos') renderCatalogsManagement();
         }
 
-        function openConfigModal() { 
-            if (currentUser && currentUser.rol === 'Registrador') {
-                alert("Acceso restringido solo para Administradores.");
-                return;
-            }
-            document.getElementById('inputBackendUrl').value = getBackendUrl(); 
-            document.getElementById('configModal').classList.remove('hidden'); 
-        }
-
+        function openConfigModal() { document.getElementById('inputBackendUrl').value = getBackendUrl(); document.getElementById('configModal').classList.remove('hidden'); }
         function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
-        
         function saveBackendUrl() {
             const url = document.getElementById('inputBackendUrl').value.trim();
             if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
