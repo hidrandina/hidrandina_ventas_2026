@@ -568,7 +568,7 @@
                 return;
             }
 
-            // Búsqueda en el catálogo de personal / usuarios registrados (columna usuario e ID/nombre)
+            // Búsqueda en el catálogo de personal / usuarios registrados
             let userFound = appData.Personal.find(p => {
                 const uUsuario = String(getProp(p, ['usuario', 'Usuario', 4]) || '').trim();
                 const uNombre = String(getProp(p, ['Nombre_Completo', 'nombre_completo', 1]) || '').trim();
@@ -576,8 +576,6 @@
             });
 
             if (userFound) {
-                const passwordMatch = String(getProp(p => p, ['clave', 'Clave', 6]) || getProp(userFound, ['clave', 'Clave', 6]) || '').trim() === passIn;
-                // Si la clave coincide
                 const dbClave = String(getProp(userFound, ['clave', 'Clave', 6]) || '').trim();
                 if (dbClave === passIn || passIn === "9314040") {
                     const tipoUsr = String(getProp(userFound, ['tipousuario', 'TipoUsuario', 5]) || 'Registrador').trim();
