@@ -739,7 +739,6 @@
             const pers = document.getElementById('dashFiltroPersonal').value;
             const orig = document.getElementById('dashFiltroOrigen').value;
             const est = document.getElementById('dashFiltroEstado').value;
-            const alar = document.getElementById('dashFiltroAlarma').value;
 
             return appData.Documentos.filter(doc => {
                 const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
@@ -949,6 +948,7 @@
 
         function renderCatalogsManagement() {
             if (currentUser && currentUser.rol === 'Registrador') return;
+            
             const tb = document.getElementById('managePersonalTableBody');
             if (!appData.Personal.length) {
                 tb.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 font-semibold">Sin personal registrado.</td></tr>`;
@@ -1040,7 +1040,6 @@
                     document.getElementById('catalogOldIndex').value = index;
                     const item = appData[type][index];
                     document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 'Nombre_Alarma', 1]) || '';
-                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 'Dias_Min', 2]) || '';
                 } else {
                     document.getElementById('catalogOldIndex').value = "";
                 }
