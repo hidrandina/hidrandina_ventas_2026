@@ -612,6 +612,7 @@
 
         function setConnectionStatus(status, text) {
             const badge = document.getElementById('connection-badge');
+            if (!badge) return;
             if (status === 'active') {
                 badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md";
                 badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400"></span> ${text}`;
@@ -733,34 +734,6 @@
             });
         }
 
-        function obtenerDocumentosDashboardFiltrados() {
-            const fInicio = document.getElementById('dashFechaInicio').value;
-            const fFin = document.getElementById('dashFechaFin').value;
-            const pers = document.getElementById('dashFiltroPersonal').value;
-            const orig = document.getElementById('dashFiltroOrigen').value;
-            const est = document.getElementById('dashFiltroEstado').value;
-
-            return appData.Documentos.filter(doc => {
-                const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
-                if (fInicio && fechaIng && fechaIng < fInicio) return false;
-                if (fFin && fechaIng && fechaIng > fFin) return false;
-                if (pers && String(getProp(doc, ['Responsable', 8]) || '') !== pers) return false;
-                if (orig && String(getProp(doc, ['Origen_Tipo', 2]) || '') !== orig) return false;
-                if (est && String(getProp(doc, ['Estado', 9]) || '') !== est) return false;
-                return true;
-            });
-        }
-
-        function resetDashboardFilters() {
-            document.getElementById('dashFechaInicio').value = '';
-            document.getElementById('dashFechaFin').value = '';
-            document.getElementById('dashFiltroPersonal').value = '';
-            document.getElementById('dashFiltroOrigen').value = '';
-            document.getElementById('dashFiltroEstado').value = '';
-            document.getElementById('dashFiltroAlarma').value = '';
-            renderCharts();
-        }
-
         function exportarExcel() {
             const docs = obtenerDocumentosFiltradosActuales();
             if (!docs.length) { alert("No hay registros para exportar."); return; }
@@ -854,14 +827,16 @@
             const origenesNombres = appData.Origenes.map(o => getProp(o, ['Tipo_Origen', 'Origen', 1])).filter(Boolean);
             const alarmasNombres = appData.Alarmas.map(a => getProp(a, ['Nombre_Alarma', 1])).filter(Boolean);
 
-            pSel.innerHTML = '<option value="">Todo el Personal</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
-            oSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+            if(pSel) pSel.innerHTML = '<option value="">Todo el Personal</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+            if(oSel) oSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
             if(dpSel) dpSel.innerHTML = '<option value="">Todos</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
             if(doSel) doSel.innerHTML = '<option value="">Todos</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
             if(daSel) daSel.innerHTML = '<option value="">Todos</option>' + alarmasNombres.map(a => `<option value="${a}">${a}</option>`).join('');
 
-            document.getElementById('formOrigenTipo').innerHTML = origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
-            document.getElementById('formResponsable').innerHTML = personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+            const formOrig = document.getElementById('formOrigenTipo');
+            const formResp = document.getElementById('formResponsable');
+            if(formOrig) formOrig.innerHTML = origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+            if(formResp) formResp.innerHTML = personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
         }
 
         function filterDocuments() { renderTable(obtenerDocumentosFiltradosActuales()); }
@@ -871,9 +846,12 @@
             appData.Documentos.forEach(doc => {
                 if (String(getProp(doc, ['Estado', 9]) || '').toLowerCase().includes('atendido')) atendido++; else pendiente++;
             });
-            document.getElementById('top-stat-total').innerText = appData.Documentos.length;
-            document.getElementById('top-stat-pendiente').innerText = pendiente;
-            document.getElementById('top-stat-atendido').innerText = atendido;
+            const stTotal = document.getElementById('top-stat-total');
+            const stPend = document.getElementById('top-stat-pendiente');
+            const stAten = document.getElementById('top-stat-atendido');
+            if(stTotal) stTotal.innerText = appData.Documentos.length;
+            if(stPend) stPend.innerText = pendiente;
+            if(stAten) stAten.innerText = atendido;
 
             const origenesNombres = appData.Origenes.map(o => getProp(o, ['Tipo_Origen', 1])).filter(Boolean);
             const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
@@ -882,17 +860,24 @@
             if (chartsInstance.estados) chartsInstance.estados.destroy();
             if (chartsInstance.origenes) chartsInstance.origenes.destroy();
 
-            chartsInstance.estados = new Chart(document.getElementById('chartEstados'), {
-                type: 'doughnut',
-                data: { labels: ['Pendiente', 'Atendido'], datasets: [{ data: [pendiente, atendido], backgroundColor: ['#f59e0b', '#10b981'] }] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+            const canvasEst = document.getElementById('chartEstados');
+            const canvasOrig = document.getElementById('chartOrigenes');
 
-            chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes'), {
-                type: 'bar',
-                data: { labels: Object.keys(origenCounts), datasets: [{ data: Object.values(origenCounts), backgroundColor: '#4338ca', borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
+            if(canvasEst) {
+                chartsInstance.estados = new Chart(canvasEst, {
+                    type: 'doughnut',
+                    data: { labels: ['Pendiente', 'Atendido'], datasets: [{ data: [pendiente, atendido], backgroundColor: ['#f59e0b', '#10b981'] }] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            if(canvasOrig) {
+                chartsInstance.origenes = new Chart(canvasOrig, {
+                    type: 'bar',
+                    data: { labels: Object.keys(origenCounts), datasets: [{ data: Object.values(origenCounts), backgroundColor: '#4338ca', borderRadius: 8 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+            }
         }
         function renderCharts() { renderStatsAndCharts(); }
 
@@ -950,63 +935,74 @@
             if (currentUser && currentUser.rol === 'Registrador') return;
             
             const tb = document.getElementById('managePersonalTableBody');
-            if (!appData.Personal.length) {
-                tb.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 font-semibold">Sin personal registrado.</td></tr>`;
-            } else {
-                tb.innerHTML = appData.Personal.map((p, i) => `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-3 px-4 font-extrabold text-slate-900">${getProp(p, ['Nombre_Completo', 'nombre_completo', 1])}</td>
-                        <td class="py-3 px-4 text-slate-700">${getProp(p, ['Cargo_Area', 'cargo_area', 2])}</td>
-                        <td class="py-3 px-4 text-slate-600">${getProp(p, ['Correo_Electronico', 'correo_electronico', 3]) || '-'}</td>
-                        <td class="py-3 px-4 text-blue-600 font-bold">${getProp(p, ['usuario', 4]) || '-'}</td>
-                        <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700">${getProp(p, ['tipousuario', 5]) || 'Registrador'}</span></td>
-                        <td class="py-3 px-4 text-slate-500 font-mono">${getProp(p, ['clave', 6]) ? '••••••••' : '-'}</td>
-                        <td class="py-3 px-4 text-center space-x-1">
-                            <button onclick="editCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600" title="Editar"><i class="fa-solid fa-pen text-xs"></i></button>
-                            <button onclick="deleteCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
+            if (tb) {
+                if (!appData.Personal.length) {
+                    tb.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 font-semibold">Sin personal registrado.</td></tr>`;
+                } else {
+                    tb.innerHTML = appData.Personal.map((p, i) => `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-4 font-extrabold text-slate-900">${getProp(p, ['Nombre_Completo', 'nombre_completo', 1])}</td>
+                            <td class="py-3 px-4 text-slate-700">${getProp(p, ['Cargo_Area', 'cargo_area', 2])}</td>
+                            <td class="py-3 px-4 text-slate-600">${getProp(p, ['Correo_Electronico', 'correo_electronico', 3]) || '-'}</td>
+                            <td class="py-3 px-4 text-blue-600 font-bold">${getProp(p, ['usuario', 4]) || '-'}</td>
+                            <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700">${getProp(p, ['tipousuario', 5]) || 'Registrador'}</span></td>
+                            <td class="py-3 px-4 text-slate-500 font-mono">${getProp(p, ['clave', 6]) ? '••••••••' : '-'}</td>
+                            <td class="py-3 px-4 text-center space-x-1">
+                                <button onclick="editCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600" title="Editar"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="deleteCatalogItem('Personal', ${i})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
             }
 
-            document.getElementById('manageEstadosList').innerHTML = `
-                <div class="py-3 flex justify-between items-center text-xs">
-                    <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm"></span><span class="font-extrabold text-amber-800">Pendiente</span></div>
-                </div>
-                <div class="py-3 flex justify-between items-center text-xs">
-                    <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span><span class="font-extrabold text-emerald-800">Atendido</span></div>
-                </div>
-            `;
+            const estList = document.getElementById('manageEstadosList');
+            if(estList) {
+                estList.innerHTML = `
+                    <div class="py-3 flex justify-between items-center text-xs">
+                        <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm"></span><span class="font-extrabold text-amber-800">Pendiente</span></div>
+                    </div>
+                    <div class="py-3 flex justify-between items-center text-xs">
+                        <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span><span class="font-extrabold text-emerald-800">Atendido</span></div>
+                    </div>
+                `;
+            }
 
-            document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Origenes.map((o, i) => {
-                    const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1] || '') : o;
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <span class="font-bold text-slate-800">${tipo}</span>
-                        <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>`;
-                }).join('');
+            const origList = document.getElementById('manageOrigenesList');
+            if(origList) {
+                origList.innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
+                    appData.Origenes.map((o, i) => {
+                        const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1] || '') : o;
+                        return `<div class="py-3 flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-800">${tipo}</span>
+                            <div class="space-x-1 flex items-center">
+                                <button onclick="editCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>`;
+                    }).join('');
+            }
 
-            document.getElementById('manageAlarmasList').innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Alarmas.map((a, i) => {
-                    const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
-                    const min = typeof a === 'object' ? (a.Dias_Min || a[2] || 0) : 0;
-                    const max = typeof a === 'object' ? (a.Dias_Max || a[3] || 0) : 0;
-                    const col = typeof a === 'object' ? (a.Color_Hex || a[4] || '#ef4444') : '#ef4444';
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <div>
-                            <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${col}"></span><span class="font-bold text-slate-800">${nom}</span></div>
-                            <span class="text-slate-400 text-[11px] font-medium mt-0.5 block">Rango: ${min} - ${max} días</span>
-                        </div>
-                        <div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>`;
-                }).join('');
+            const alarList = document.getElementById('manageAlarmasList');
+            if(alarList) {
+                alarList.innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
+                    appData.Alarmas.map((a, i) => {
+                        const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
+                        const min = typeof a === 'object' ? (a.Dias_Min || a[2] || 0) : 0;
+                        const max = typeof a === 'object' ? (a.Dias_Max || a[3] || 0) : 0;
+                        const col = typeof a === 'object' ? (a.Color_Hex || a[4] || '#ef4444') : '#ef4444';
+                        return `<div class="py-3 flex justify-between items-center text-xs">
+                            <div>
+                                <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${col}"></span><span class="font-bold text-slate-800">${nom}</span></div>
+                                <span class="text-slate-400 text-[11px] font-medium mt-0.5 block">Rango: ${min} - ${max} días</span>
+                            </div>
+                            <div class="space-x-1 flex items-center">
+                                <button onclick="editCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>`;
+                    }).join('');
+            }
         }
 
         function openCatalogModal(type, index = null) {
@@ -1040,6 +1036,7 @@
                     document.getElementById('catalogOldIndex').value = index;
                     const item = appData[type][index];
                     document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 'Nombre_Alarma', 1]) || '';
+                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 'Dias_Min', 2]) || '';
                 } else {
                     document.getElementById('catalogOldIndex').value = "";
                 }
@@ -1068,7 +1065,7 @@
             } else {
                 payload.value = document.getElementById('catalogInputValue').value.trim();
                 const oldItem = (oldIndex !== "" && appData[type][oldIndex]) ? appData[type][oldIndex] : null;
-                payload.oldValue = oldItem ? getProp(oldItem, ['Tipo_Origen', 'Nombre_Alarma', 1]) : payload.value;
+                payload.oldValue = oldItem ? getProp(oldItem, ['Tipo_Origen', 'Nombre_Alarma', 1]) || '' : payload.value;
                 payload.secondary = document.getElementById('catalogInputSecondary').value.trim();
             }
 
@@ -1081,7 +1078,7 @@
         function deleteCatalogItem(type, index) {
             if (currentUser && currentUser.rol === 'Registrador') return;
             const item = appData[type][index];
-            const val = type === 'Personal' ? getProp(item, ['Nombre_Completo', 'nombre_completo', 1]) : getProp(item, ['Tipo_Origen', 'Nombre_Alarma', 1]);
+            const val = type === 'Personal' ? getProp(item, ['Nombre_Completo', 'nombre_completo', 1]) : (item.Tipo_Origen || item.Nombre_Alarma || item[1] || '');
             if (confirm(`¿Eliminar '${val}'?`)) executeGASAction({ action: "deleteCatalog", type: type, value: val });
         }
 
@@ -1089,8 +1086,10 @@
             if (tabId === 'catalogos' && currentUser && currentUser.rol === 'Registrador') return;
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-btn-${tabId}`).classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
+            const targetSec = document.getElementById(`tab-${tabId}`);
+            const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+            if(targetSec) targetSec.classList.remove('hidden');
+            if(targetBtn) targetBtn.classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
             if (tabId === 'dashboard') renderStatsAndCharts();
             if (tabId === 'catalogos') renderCatalogsManagement();
         }
