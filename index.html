@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-slate-100">
 <head>
-    <meta charset="UTF-8"> 
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HIDRANDINA - Control de Documentos</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -120,17 +120,14 @@
                     <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar documento, asunto..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                    <!-- Filtro por Personal -->
                     <select id="filterPersonal" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todo el Personal</option>
                     </select>
-                    <!-- Filtro por Estado (Pendiente / Atendido) -->
                     <select id="filterEstado" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Estados</option>
                         <option value="Pendiente">Pendiente</option>
                         <option value="Atendido">Atendido</option>
                     </select>
-                    <!-- Filtro por Origen -->
                     <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Orígenes</option>
                     </select>
@@ -180,7 +177,6 @@
 
         <!-- TAB 2: DASHBOARD EJECUTIVO -->
         <section id="tab-dashboard" class="hidden space-y-6">
-            
             <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="font-extrabold text-slate-900 text-sm flex items-center space-x-2">
@@ -299,7 +295,6 @@
                 </div>
             </div>
         </section>
-
     </main>
 
     <!-- MODAL: DOCUMENTO -->
@@ -413,7 +408,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT -->
+    <!-- LÓGICA JAVASCRIPT ROBUSTA (METODO GET JSONP PARA EVITAR BLOQUEO CORS) -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -501,26 +496,41 @@
             document.body.appendChild(script);
         }
 
+        // COMUNICACIÓN SEGURA POR GET DINÁMICO (JSONP) QUE EVITA ERRORES DE CORS Y POST
         function executeGASAction(params, successCallback) {
             setConnectionStatus('sync', 'Guardando...');
             const url = getBackendUrl();
             
-            fetch(url, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(params)
-            })
-            .then(() => {
-                setConnectionStatus('active', 'Guardado en Nube');
-                if (successCallback) successCallback();
-                setTimeout(fetchData, 1200);
-            })
-            .catch(err => {
-                console.error(err);
-                setConnectionStatus('active', 'Guardado Local');
-                if (successCallback) successCallback();
-            });
+            const queryString = Object.keys(params)
+                .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+                .join('&');
+
+            const uniqueId = 'jsonp_action_' + new Date().getTime();
+            const oldScript = document.getElementById(uniqueId);
+            if (oldScript) oldScript.remove();
+
+            const script = document.createElement('script');
+            script.id = uniqueId;
+            script.src = `${url}?${queryString}&callback=handleActionResponse&_=${new Date().getTime()}`;
+            
+            window.handleActionResponse = function(response) {
+                if (response && response.success) {
+                    setConnectionStatus('active', 'Guardado en Nube');
+                    if (successCallback) successCallback();
+                    setTimeout(fetchData, 800);
+                } else {
+                    setConnectionStatus('error', 'Error al guardar');
+                    alert("Aviso del Servidor: " + (response ? response.message : "Error desconocido"));
+                }
+                script.remove();
+            };
+
+            script.onerror = () => {
+                setConnectionStatus('error', 'Error de Conexión');
+                alert("No se pudo conectar con el servidor de Google Apps Script.");
+            };
+
+            document.body.appendChild(script);
         }
 
         function renderAll() {
@@ -595,7 +605,6 @@
 
             return appData.Documentos.filter(doc => {
                 const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
-                
                 if (fInicio && fechaIng && fechaIng < fInicio) return false;
                 if (fFin && fechaIng && fechaIng > fFin) return false;
 
@@ -609,7 +618,7 @@
                 if (est && docEst !== est) return false;
 
                 if (alar) {
-                    const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 'fecha_vencimiento', 5]);
+                    const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 5]);
                     const plazos = calcularPlazos(fechaIng, fechaVencRaw);
                     const dTrans = plazos.diasTranscurridos;
                     const alarmaObj = appData.Alarmas.find(a => {
@@ -622,7 +631,6 @@
                         if (dTrans < dMin || dTrans > dMax) return false;
                     }
                 }
-
                 return true;
             });
         }
@@ -645,8 +653,8 @@
             }
 
             const datosFormateados = docs.map(doc => {
-                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 'fecha_ingreso', 4]) || '';
-                const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 'fecha_vencimiento', 5]) || '';
+                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 4]) || '';
+                const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 5]) || '';
                 const plazos = calcularPlazos(fechaIngRaw, fechaVencRaw);
                 return {
                     "Nro. Documento": getProp(doc, ['Numero_Documento', 1]) || '-',
@@ -666,7 +674,6 @@
             const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Documentos Hidrandina");
-            
             XLSX.writeFile(workbook, "Control_Documentos_Hidrandina.xlsx");
         }
 
@@ -676,22 +683,17 @@
                 alert("No hay registros en la lista para enviar.");
                 return;
             }
-
             exportarExcel();
-
             const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
             let cuerpo = `Estimado equipo,\n\nSe adjunta el reporte actual de control de documentos en formato Excel para su revisión y atención.\n\nAtte,\nIng. Johnny Quevin Camacho Mori`;
-
-            alert("¡Reporte Excel descargado con éxito!\n\nNota de seguridad del navegador: Los navegadores web no permiten adjuntar archivos automáticamente a través de enlaces de correo (mailto). Por favor, adjunta el archivo 'Control_Documentos_Hidrandina.xlsx' recién descargado en tu ventana de Outlook.");
-
+            alert("¡Reporte Excel descargado con éxito!\n\nPor favor, adjunta el archivo 'Control_Documentos_Hidrandina.xlsx' en tu gestor de correo.");
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
         }
 
         function enviarCorreoIndividual(idx) {
             const doc = appData.Documentos[idx];
             if (!doc) return;
-
-            const numDoc = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || 'DOC';
+            const numDoc = getProp(doc, ['Numero_Documento', 1]) || 'DOC';
             const entidad = getProp(doc, ['Origen_Tipo', 2]) || 'Entidad';
             const estado = getProp(doc, ['Estado', 9]) || 'Pendiente';
             const responsableNombre = getProp(doc, ['Responsable', 8]) || '';
@@ -711,7 +713,6 @@
             }
 
             const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
-            
             let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe remite el siguiente documento para su conocimiento:\n\n` +
                 `- Nro. Documento: ${numDoc}\n` +
                 `- Entidad / Origen: ${entidad}\n` +
@@ -731,25 +732,23 @@
             }
 
             tbody.innerHTML = docs.map((doc, idx) => {
-                const numDoc = getProp(doc, ['Numero_Documento', 'numero_documento', 'Numero_Expediente', 'NRO_DOCUMENTO', 1]) || '-';
-                const origen = getProp(doc, ['Origen_Tipo', 'origen_tipo', 'ORIGEN', 'Origen', 2]) || '-';
-                const asunto = getProp(doc, ['Asunto', 'asunto', 'ASUNTO', 3]) || '-';
-                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 'fecha_ingreso', 'FECHA_INGRESO', 4]) || '';
+                const numDoc = getProp(doc, ['Numero_Documento', 1]) || '-';
+                const origen = getProp(doc, ['Origen_Tipo', 2]) || '-';
+                const asunto = getProp(doc, ['Asunto', 3]) || '-';
+                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 4]) || '';
                 const fechaIng = fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-';
 
-                const rawVenc = getProp(doc, ['Fecha_Vencimiento', 'fecha_vencimiento', 5]);
+                const rawVenc = getProp(doc, ['Fecha_Vencimiento', 5]);
                 const plazos = calcularPlazos(fechaIng, rawVenc);
                 const fechaVenc = plazos.vencimiento;
-
                 const diasTrans = plazos.diasTranscurridos;
                 const diasFalt = plazos.diasFaltantes;
                 const diasExc = plazos.diasExceso;
 
-                const responsable = getProp(doc, ['Responsable', 'responsable', 'RESPONSABLE', 8]) || '-';
-                const rawEstado = getProp(doc, ['Estado', 'estado', 'ESTADO', 9]) || 'Pendiente';
+                const responsable = getProp(doc, ['Responsable', 8]) || '-';
+                const rawEstado = getProp(doc, ['Estado', 9]) || 'Pendiente';
                 const isAtendido = String(rawEstado).toLowerCase().includes('atendido') || String(rawEstado).toLowerCase().includes('concluido');
-
-                const observaciones = getProp(doc, ['Observaciones', 'observaciones', 'OBSERVACIONES', 10]) || '-';
+                const observaciones = getProp(doc, ['Observaciones', 10]) || '-';
                 const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
 
                 return `
@@ -761,23 +760,14 @@
                         <td class="py-3.5 px-4 font-bold text-slate-700 border-r border-slate-200/80">${fechaVenc}</td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans}</span></td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
-                            ${diasFalt > 0 && !isAtendido ? 
-                                `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt}</span>` : 
-                                `<span class="text-slate-400 font-semibold text-[11px]">0</span>`
-                            }
+                            ${diasFalt > 0 && !isAtendido ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt}</span>` : `<span class="text-slate-400 font-semibold text-[11px]">0</span>`}
                         </td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
-                            ${diasExc > 0 && !isAtendido ? 
-                                `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc}</span>` : 
-                                `<span class="text-emerald-600 font-extrabold text-[11px]">0</span>`
-                            }
+                            ${diasExc > 0 && !isAtendido ? `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc}</span>` : `<span class="text-emerald-600 font-extrabold text-[11px]">0</span>`}
                         </td>
                         <td class="py-3.5 px-4 text-slate-700 font-semibold border-r border-slate-200/80">${responsable}</td>
                         <td class="py-3.5 px-4 border-r border-slate-200/80">
-                            ${isAtendido ? 
-                                `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Atendido</span>` : 
-                                `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 border border-amber-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Pendiente</span>`
-                            }
+                            ${isAtendido ? `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Atendido</span>` : `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 border border-amber-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Pendiente</span>`}
                         </td>
                         <td class="py-3.5 px-4 text-slate-600 max-w-[160px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
                         <td class="py-3.5 px-4 text-center space-x-1">
@@ -796,8 +786,8 @@
             const currentPers = persSel.value;
             const currentOrig = origSel.value;
 
-            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o).filter(Boolean);
-            const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 'Nombre', 1]) : p).filter(Boolean);
+            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
+            const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 1]) : p).filter(Boolean);
             const alarmasNombres = appData.Alarmas.map(a => typeof a === 'object' ? getProp(a, ['Nombre_Alarma', 1]) : a).filter(Boolean);
 
             persSel.innerHTML = '<option value="">Todo el Personal</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
@@ -825,22 +815,15 @@
             dashAlar.value = curDAlar;
         }
 
-        function filterDocuments() {
-            const filtered = obtenerDocumentosFiltradosActuales();
-            renderTable(filtered);
-        }
+        function filterDocuments() { renderTable(obtenerDocumentosFiltradosActuales()); }
 
         function renderStatsAndCharts() {
             const docsFiltrados = obtenerDocumentosDashboardFiltrados();
-
             let pendiente = 0, atendido = 0;
             appData.Documentos.forEach(doc => {
                 const est = String(getProp(doc, ['Estado', 9]) || '').toLowerCase();
-                if (est.includes('atendido') || est.includes('concluido')) {
-                    atendido++;
-                } else {
-                    pendiente++;
-                }
+                if (est.includes('atendido') || est.includes('concluido')) atendido++;
+                else pendiente++;
             });
             document.getElementById('top-stat-total').innerText = appData.Documentos.length;
             document.getElementById('top-stat-pendiente').innerText = pendiente;
@@ -849,14 +832,11 @@
             let dashPendiente = 0, dashAtendido = 0;
             docsFiltrados.forEach(doc => {
                 const est = String(getProp(doc, ['Estado', 9]) || '').toLowerCase();
-                if (est.includes('atendido') || est.includes('concluido')) {
-                    dashAtendido++;
-                } else {
-                    dashPendiente++;
-                }
+                if (est.includes('atendido') || est.includes('concluido')) dashAtendido++;
+                else dashPendiente++;
             });
 
-            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 'Origen', 1]) : o).filter(Boolean);
+            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
             const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
             docsFiltrados.forEach(doc => { const orig = getProp(doc, ['Origen_Tipo', 2]) || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
 
@@ -865,45 +845,18 @@
 
             chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
                 type: 'doughnut',
-                data: { 
-                    labels: ['Pendiente', 'Atendido'], 
-                    datasets: [{ 
-                        data: [dashPendiente, dashAtendido], 
-                        backgroundColor: ['#f59e0b', '#10b981'], 
-                        borderWidth: 3, 
-                        borderColor: '#ffffff' 
-                    }] 
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { weight: '800' } } } } 
-                }
+                data: { labels: ['Pendiente', 'Atendido'], datasets: [{ data: [dashPendiente, dashAtendido], backgroundColor: ['#f59e0b', '#10b981'], borderWidth: 3, borderColor: '#ffffff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { weight: '800' } } } } }
             });
 
             chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
                 type: 'bar',
-                data: { 
-                    labels: Object.keys(origenCounts), 
-                    datasets: [{ 
-                        label: 'Cantidad de Documentos', 
-                        data: Object.values(origenCounts), 
-                        backgroundColor: '#4338ca', 
-                        borderRadius: 8 
-                    }] 
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } }, 
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } 
-                }
+                data: { labels: Object.keys(origenCounts), datasets: [{ label: 'Cantidad de Documentos', data: Object.values(origenCounts), backgroundColor: '#4338ca', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
             });
         }
 
-        function renderCharts() {
-            renderStatsAndCharts();
-        }
+        function renderCharts() { renderStatsAndCharts(); }
 
         function openDocFormModal(idx = null) {
             document.getElementById('docForm').reset();
@@ -912,7 +865,7 @@
                 const doc = appData.Documentos[idx];
                 document.getElementById('docModalTitle').innerText = "Editar Documento";
                 document.getElementById('docIndex').value = idx;
-                document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '';
+                document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 1]) || '';
                 document.getElementById('formOrigenTipo').value = getProp(doc, ['Origen_Tipo', 2]) || '';
                 document.getElementById('formAsunto').value = getProp(doc, ['Asunto', 3]) || '';
                 
@@ -929,7 +882,6 @@
                 }
 
                 document.getElementById('formResponsable').value = getProp(doc, ['Responsable', 8]) || '';
-                
                 const rawEst = getProp(doc, ['Estado', 9]) || 'Pendiente';
                 document.getElementById('formEstado').value = String(rawEst).toLowerCase().includes('atendido') ? 'Atendido' : 'Pendiente';
                 document.getElementById('formObservaciones').value = getProp(doc, ['Observaciones', 10]) || '';
@@ -938,11 +890,9 @@
                 document.getElementById('docIndex').value = "";
                 const todayStr = new Date().toISOString().split('T')[0];
                 document.getElementById('formFechaIngreso').value = todayStr;
-                
                 const dDef = new Date();
                 dDef.setDate(dDef.getDate() + 15);
                 document.getElementById('formFechaVencimiento').value = dDef.toISOString().split('T')[0];
-
                 document.getElementById('formEstado').value = "Pendiente";
             }
             document.getElementById('docFormModal').classList.remove('hidden');
@@ -960,10 +910,10 @@
             const resp = document.getElementById('formResponsable').value;
             const est = document.getElementById('formEstado').value;
             const obs = document.getElementById('formObservaciones').value;
-            
             const plazos = calcularPlazos(fechaIng, fechaVenc);
 
             const newDocObj = {
+                action: "saveDoc",
                 Numero_Documento: numDoc,
                 Origen_Tipo: origenTipo,
                 Asunto: asunto,
@@ -977,27 +927,20 @@
             };
 
             const idx = document.getElementById('docIndex').value;
-            if (idx !== "") {
-                appData.Documentos[idx] = newDocObj;
-            } else {
-                appData.Documentos.push(newDocObj);
-            }
+            if (idx !== "") appData.Documentos[idx] = newDocObj;
+            else appData.Documentos.push(newDocObj);
 
             saveLocalCache();
             renderAll();
             closeDocFormModal();
-
-            executeGASAction({
-                action: "saveDoc",
-                ...newDocObj
-            });
+            executeGASAction(newDocObj);
         }
 
         function editDocument(idx) { openDocFormModal(idx); }
 
         function deleteDocument(idx) {
             const doc = appData.Documentos[idx];
-            const numDoc = getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]);
+            const numDoc = getProp(doc, ['Numero_Documento', 1]);
             if (confirm(`¿Eliminar el documento ${numDoc}?`)) {
                 appData.Documentos.splice(idx, 1);
                 saveLocalCache();
@@ -1009,10 +952,9 @@
         function renderCatalogsManagement() {
             document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Personal.map((p, i) => {
-                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
-                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : '';
-                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
-                    
+                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p[1] || '') : p;
+                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p[2] || '') : '';
+                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p[3] || '') : '';
                     return `<div class="py-3 flex justify-between items-center text-xs">
                         <div>
                             <span class="font-bold text-slate-900">${nom}</span>
@@ -1027,17 +969,13 @@
                 }).join('');
 
             document.getElementById('manageEstadosList').innerHTML = `
-                <div class="py-3 flex justify-between items-center text-xs">
-                    <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm"></span><span class="font-extrabold text-amber-800">Pendiente</span></div>
-                </div>
-                <div class="py-3 flex justify-between items-center text-xs">
-                    <div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span><span class="font-extrabold text-emerald-800">Atendido</span></div>
-                </div>
+                <div class="py-3 flex justify-between items-center text-xs"><div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm"></span><span class="font-extrabold text-amber-800">Pendiente</span></div></div>
+                <div class="py-3 flex justify-between items-center text-xs"><div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span><span class="font-extrabold text-emerald-800">Atendido</span></div></div>
             `;
 
             document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Origenes.map((o, i) => {
-                    const tipo = typeof o === 'object' ? (o.Tipo_Origen || o.Origen || o[1] || '') : o;
+                    const tipo = typeof o === 'object' ? (o.Tipo_Origen || o[1] || '') : o;
                     return `<div class="py-3 flex justify-between items-center text-xs">
                         <span class="font-bold text-slate-800">${tipo}</span>
                         <div class="space-x-1 flex items-center">
@@ -1107,11 +1045,11 @@
                 document.getElementById('catalogOldIndex').value = index;
                 const item = appData[type][index];
                 if (type === 'Personal') {
-                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 'Nombre', 1]) || '';
-                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 'Cargo', 2]) || '';
-                    document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
+                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 1]) || '';
+                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 2]) || '';
+                    document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 3]) || '';
                 } else if (type === 'Origenes') {
-                    document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 'Origen', 1]) || '';
+                    document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 1]) || '';
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 2]) || '';
                 } else if (type === 'Alarmas') {
                     const col = getProp(item, ['Color_Hex', 4]) || '#ef4444';
@@ -1140,7 +1078,7 @@
 
             const oldIndex = document.getElementById('catalogOldIndex').value;
             const oldVal = (oldIndex !== "" && appData[type][oldIndex]) ? 
-                (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Nombre', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
+                (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
                 : val;
 
             closeCatalogModal();
@@ -1159,7 +1097,7 @@
 
         function deleteCatalogItem(type, index) {
             const item = appData[type][index];
-            const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
+            const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
             if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
                 executeGASAction({ action: "deleteCatalog", type: type, value: val });
             }
