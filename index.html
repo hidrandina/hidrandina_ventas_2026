@@ -86,9 +86,9 @@
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <a id="btnNuevoDocHeader" href="https://drive.google.com" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Abrir Google Drive">
-                    <i class="fa-solid fa-folder-open text-xs"></i>
-                    <span>Abrir Google Drive / Base de Datos</span>
+                <a id="btnNuevoDocHeader" href="https://docs.google.com/forms/d/e/1FAIpQLSd.../viewform" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Registrar documento y adjuntar archivos">
+                    <i class="fa-solid fa-file-arrow-up text-xs"></i>
+                    <span>Nuevo Doc. / Adjuntar (Google Form)</span>
                 </a>
             </div>
         </div>
@@ -363,7 +363,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT JAVASCRIPT Y CONTROL DE CONexión -->
+    <!-- SCRIPT JAVASCRIPT COMPLETO -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -799,6 +799,12 @@
             window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
         }
 
+        function editDocument(idx) {
+            const doc = appData.Documentos[idx];
+            const numDoc = getProp(doc, ['Numero_Documento', 1]) || '';
+            alert(`Para editar el documento ${numDoc}, puede actualizarlo directamente desde su Google Sheet o mediante el registro en el Formulario.`);
+        }
+
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
@@ -878,10 +884,11 @@
                         </td>
                         <td class="py-3.5 px-4 border-r border-slate-200/80">${linksHtml}</td>
                         <td class="py-3.5 px-4 text-slate-600 max-w-[140px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
-                        <td class="py-3.5 px-4 text-center space-x-1">
+                        <td class="py-3.5 px-4 text-center space-x-1 whitespace-nowrap">
                             <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
                             ${canEditOrDelete ? `
-                                <button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
+                                <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar Documento"><i class="fa-solid fa-trash text-xs"></i></button>
                             ` : ''}
                         </td>
                     </tr>
