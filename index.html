@@ -86,7 +86,8 @@
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <a id="btnNuevoDocHeader" href="https://docs.google.com/forms/d/e/TU_FORMULARIO_ID/viewform" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Registrar documento y adjuntar archivos de forma segura">
+                <!-- BOTÓN NUEVO DOCUMENTO (REEMPLAZAR AQUÍ CON LA URL DE SU GOOGLE FORM REAL SI LO DESEA) -->
+                <a id="btnNuevoDocHeader" href="https://docs.google.com/forms/d/e/1FAIpQLSd.../viewform" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Registrar documento y adjuntar archivos de forma segura">
                     <i class="fa-solid fa-file-arrow-up text-xs"></i>
                     <span>Nuevo Doc. / Adjuntar (Google Form)</span>
                 </a>
@@ -363,7 +364,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT JAVASCRIPT CORREGIDO Y ROBUSTO -->
+    <!-- SCRIPT JAVASCRIPT ROBUSTO -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -466,7 +467,6 @@
             const uInput = document.getElementById('loginUsuario').value.trim();
             const cInput = document.getElementById('loginClave').value.trim();
 
-            // Validación directa del Administrador Principal (Ing. Johnny Camacho Mori) con su clave maestra
             if (uInput.toLowerCase() === 'jcamachom' && cInput === '9314040') {
                 currentUser = { nombre: 'Johnny Camacho Mori', usuario: 'jcamachom', tipo: 'Administrador' };
                 localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
@@ -478,7 +478,6 @@
                 return;
             }
 
-            // Búsqueda en el personal cargado o en el caché local
             const encontrado = appData.Personal.find(p => {
                 const usu = String(typeof p === 'object' ? (p.usuario || p.Usuario || p[4] || '') : '').trim();
                 const cla = String(typeof p === 'object' ? (p.clave || p.Clave || p[5] || '') : '').trim();
