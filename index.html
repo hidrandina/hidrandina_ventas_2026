@@ -332,9 +332,10 @@
                     <p id="adjuntoSeccionAyuda" class="text-xs text-slate-600">Adjunta la carta o documento recibido que origina el registro.</p>
                     <input id="adjuntoTipo" type="hidden" value="Ingreso" />
                     <label id="adjuntoSeleccionLabel" class="block font-bold text-xs text-slate-700">Seleccionar archivo(s) de sustento</label>
-                    <input id="adjuntoFiles" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff" onchange="renderizarArchivosPendientes()" class="block w-full text-xs text-slate-700 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:font-bold" />
+                    <input id="adjuntoFiles" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff" onchange="agregarArchivosSeleccionados(event)" class="block w-full text-xs text-slate-700 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:font-bold" />
                     <div id="previsualizacionPendientes" class="space-y-2" aria-live="polite"></div>
                     <p class="text-[11px] text-slate-500">PDF, Word e imágenes. Máximo 10 MB por archivo. Previsualiza cada archivo antes de guardar.</p>
+                    <p class="text-xs text-blue-700 font-semibold">Puedes seleccionar varios archivos a la vez o volver a pulsar «Elegir archivos» para agregar más sin perder los anteriores. Puedes quitar cualquier archivo antes de guardar.</p>
                     <div id="adjuntosExistentes" class="space-y-1"></div>
                     <p id="adjuntoProgreso" class="text-xs font-bold text-blue-700" role="status"></p>
                 </div>
@@ -1041,6 +1042,7 @@
 
         function openDocFormModal(idx = null) {
             document.getElementById('docForm').reset();
+            archivosEnCola = [];
             limpiarPrevisualizaciones();
             document.getElementById('adjuntoFiles').value = '';
             document.getElementById('adjuntoProgreso').textContent = '';
@@ -1172,7 +1174,33 @@
         }
 
         // Vista previa LOCAL antes de enviar a Drive. Nunca sube el archivo por abrir el visor.
+        let archivosEnCola = [];
         let urlsPrevias = [];
+        function agregarArchivosSeleccionados() {
+            const input = document.getElementById('adjuntoFiles');
+            const nuevos = Array.from(input.files || []);
+            for (const archivo of nuevos) {
+                if (!/\.(pdf|doc|docx|png|jpg|jpeg|gif|webp|bmp|tif|tiff)$/i.test(archivo.name)) {
+                    alert('Solo se permiten PDF, Word o imágenes: ' + archivo.name);
+                    continue;
+                }
+                if (!archivo.size || archivo.size > 10 * 1024 * 1024) {
+                    alert('El archivo debe tener contenido y pesar como máximo 10 MB: ' + archivo.name);
+                    continue;
+                }
+                // Evitar que seleccionar por accidente el mismo archivo dos veces lo duplique.
+                const existe = archivosEnCola.some(f => f.name === archivo.name && f.size === archivo.size && f.lastModified === archivo.lastModified);
+                if (!existe) archivosEnCola.push(archivo);
+            }
+            // Limpiar para permitir volver a seleccionar incluso el mismo archivo.
+            input.value = '';
+            renderizarArchivosPendientes();
+        }
+        function quitarArchivoPendiente(indice) {
+            if (indice < 0 || indice >= archivosEnCola.length) return;
+            archivosEnCola.splice(indice, 1);
+            renderizarArchivosPendientes();
+        }
         function limpiarPrevisualizaciones() {
             urlsPrevias.forEach(url => URL.revokeObjectURL(url));
             urlsPrevias = [];
@@ -1182,8 +1210,14 @@
         function renderizarArchivosPendientes() {
             limpiarPrevisualizaciones();
             const cont = document.getElementById('previsualizacionPendientes');
-            const archivos = Array.from(document.getElementById('adjuntoFiles').files);
-            if (!archivos.length) return;
+            const archivos = archivosEnCola;
+            if (!archivos.length) {
+                const ayuda = document.createElement('p');
+                ayuda.className = 'text-xs text-slate-500';
+                ayuda.textContent = 'No hay archivos seleccionados. Puedes agregar varios PDF, Word o imágenes.';
+                cont.appendChild(ayuda);
+                return;
+            }
             const titulo = document.createElement('p');
             titulo.className = 'text-xs font-extrabold text-blue-900';
             titulo.textContent = 'Vista previa ANTES DE GUARDAR (' + archivos.length + ' archivo(s))';
@@ -1195,6 +1229,12 @@
                 meta.className = 'font-semibold text-xs break-all text-slate-900';
                 meta.textContent = (i+1) + '. ' + archivo.name + ' — ' + (archivo.size/1024).toFixed(1) + ' KB';
                 card.appendChild(meta);
+                const quitar = document.createElement('button');
+                quitar.type = 'button';
+                quitar.className = 'text-xs font-bold text-red-700 border border-red-200 bg-red-50 px-3 py-1.5 rounded-lg';
+                quitar.textContent = 'Quitar este archivo';
+                quitar.onclick = () => quitarArchivoPendiente(i);
+                card.appendChild(quitar);
                 const url = URL.createObjectURL(archivo);
                 urlsPrevias.push(url);
                 let visor;
@@ -1374,7 +1414,7 @@
             const plazos = calcularPlazos(fechaIng, fechaVenc);
             const idx = document.getElementById('docIndex').value;
             const numeroAnterior = idx !== '' ? getProp(appData.Documentos[Number(idx)], ['Numero_Documento', 1]) : '';
-            const archivos = Array.from(document.getElementById('adjuntoFiles').files);
+            const archivos = archivosEnCola.slice();
             const tipo = document.getElementById('adjuntoTipo').value;
             if (archivos.some(f => !/\.(pdf|doc|docx|png|jpg|jpeg|gif|webp|bmp|tif|tiff)$/i.test(f.name))) { alert('Solo se permiten PDF, Word o imágenes.'); return; }
             if (archivos.some(f => f.size > 10 * 1024 * 1024)) { alert('Cada archivo debe pesar 10 MB o menos.'); return; }
@@ -1400,7 +1440,7 @@
                     closeDocFormModal();
                     fetchData();
                 } catch (err) {
-                    document.getElementById('adjuntoProgreso').textContent = 'Error en adjuntos: ' + err.message;
+                    document.getElementById('adjuntoProgreso').textContent = 'No se completó la carga: ' + err.message;
                     alert('El documento se guardó en Sheets, pero hubo un problema con uno o más adjuntos: ' + err.message + '\nPuedes editar el documento y volver a adjuntar los archivos que falten.');
                     fetchData();
                 } finally {
