@@ -437,7 +437,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT JAVASCRIPT COMPLETO INTEGRADO -->
+    <!-- SCRIPT JAVASCRIPT COMPLETO INTEGRADO CON FETCH -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -620,68 +620,59 @@
             return '';
         }
 
-        window.handleGASResponse = function(data) {
-            if (data) {
-                if (data.Registros) appData.Documentos = data.Registros;
-                if (data.Catalogos) {
-                    appData.Personal = data.Catalogos.Personal || appData.Personal;
-                    appData.Estados = data.Catalogos.Estados || appData.Estados;
-                    appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
-                    appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
-                }
-                saveLocalCache();
-                setConnectionStatus('active', 'Sincronizado');
-                renderAll();
-            }
-        };
-
-        function fetchData() {
+        // COMUNICACIÓN MODERNA CON FETCH (GET)
+        async function fetchData() {
             setConnectionStatus('sync', 'Conectando...');
             const url = getBackendUrl();
-            const oldScript = document.getElementById('jsonp-fetch');
-            if (oldScript) oldScript.remove();
-
-            const script = document.createElement('script');
-            script.id = 'jsonp-fetch';
-            script.src = `${url}?callback=handleGASResponse&_=${new Date().getTime()}`;
-            script.onerror = () => { setConnectionStatus('error', 'Offline'); renderAll(); };
-            document.body.appendChild(script);
+            try {
+                const response = await fetch(url, { method: 'GET', redirect: 'follow' });
+                const data = await response.json();
+                if (data && data.success) {
+                    if (data.Registros) appData.Documentos = data.Registros;
+                    if (data.Catalogos) {
+                        appData.Personal = data.Catalogos.Personal || appData.Personal;
+                        appData.Estados = data.Catalogos.Estados || appData.Estados;
+                        appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
+                        appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
+                    }
+                    saveLocalCache();
+                    setConnectionStatus('active', 'Sincronizado');
+                    renderAll();
+                } else {
+                    setConnectionStatus('error', 'Offline');
+                    renderAll();
+                }
+            } catch (err) {
+                setConnectionStatus('error', 'Offline');
+                renderAll();
+            }
         }
 
-        function executeGASAction(params, successCallback) {
+        // COMUNICACIÓN MODERNA CON FETCH (POST)
+        async function executeGASAction(params, successCallback) {
             setConnectionStatus('sync', 'Sincronizando...');
             const url = getBackendUrl();
-            
-            const queryString = Object.keys(params)
-                .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
-                .join('&');
 
-            const uniqueId = 'jsonp_action_' + new Date().getTime();
-            const oldScript = document.getElementById(uniqueId);
-            if (oldScript) oldScript.remove();
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify(params)
+                });
+                const result = await response.json();
 
-            const script = document.createElement('script');
-            script.id = uniqueId;
-            script.src = `${url}?${queryString}&callback=handleActionResponse&_=${new Date().getTime()}`;
-            
-            window.handleActionResponse = function(response) {
-                if (response && response.success) {
+                if (result && result.success) {
                     setConnectionStatus('active', 'Sincronizado');
                     if (successCallback) successCallback();
                     setTimeout(fetchData, 800);
                 } else {
                     setConnectionStatus('error', 'Error al guardar');
-                    alert("Aviso del Servidor: " + (response ? response.message : "Error desconocido"));
+                    alert("Aviso del Servidor: " + (result ? result.message : "Error desconocido"));
                 }
-                script.remove();
-            };
-
-            script.onerror = () => {
+            } catch (err) {
                 setConnectionStatus('error', 'Error de Conexión');
                 alert("No se pudo conectar con el servidor.");
-            };
-
-            document.body.appendChild(script);
+            }
         }
 
         function renderAll() {
@@ -1085,7 +1076,6 @@
             }
 
             if (idx !== null) {
-                // EDICIÓN: Ingreso bloqueado para subida, Cierre habilitado para subida
                 inputIngreso.disabled = true;
                 inputIngreso.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
                 inputCierre.disabled = false;
@@ -1128,7 +1118,6 @@
                     containerCie.innerHTML = `<p class="text-[11px] text-emerald-700 font-semibold mt-1">📁 Cierres registrados: <a href="${urlsCierre.split(',')[0].trim()}" target="_blank" class="underline">Ver en Drive</a></p>`;
                 }
             } else {
-                // NUEVO REGISTRO: Ingreso habilitado, Cierre bloqueado para subida
                 inputIngreso.disabled = false;
                 inputIngreso.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
                 inputCierre.disabled = true;
@@ -1156,7 +1145,7 @@
 
         async function saveDocument(e) {
             e.preventDefault();
-            setConnectionStatus('sync', 'Preparando archivos...');
+            setConnectionStatus('sync', 'Guardando documento y archivos...');
 
             const inputIngreso = document.getElementById('inputArchivosIngreso');
             const inputCierre = document.getElementById('inputArchivosCierre');
@@ -1188,8 +1177,8 @@
                 Responsable: resp,
                 Estado: est,
                 Observaciones: obs,
-                Archivos_Ingreso_Json: JSON.stringify(archivosIngresoArr),
-                Archivos_Cierre_Json: JSON.stringify(archivosCierreArr)
+                Archivos_Ingreso: archivosIngresoArr,
+                Archivos_Cierre: archivosCierreArr
             };
 
             if (idx !== "") appData.Documentos[idx] = payload;
