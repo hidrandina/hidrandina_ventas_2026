@@ -17,6 +17,85 @@
         .gradient-card-blue { background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%); }
         .gradient-card-amber { background: linear-gradient(135deg, #ffffff 0%, #fffbebe6 100%); }
         .gradient-card-emerald { background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%); }
+
+/* =========================================================
+   HIDRANDINA | DISEÑO EJECUTIVO 3 - SOLO PRESENTACION
+   No altera acciones, IDs ni funciones JavaScript existentes.
+   ========================================================= */
+:root{--hd-navy:#081447;--hd-dark:#101b56;--hd-mid:#142b79;--hd-blue:#1765ef;--hd-violet:#6647fa;--hd-bg:#ecf2ff;--hd-line:#d9e4fa;--hd-text:#16244e}
+html{scroll-behavior:smooth}
+body{background:linear-gradient(130deg,#dce8ff 0%,#f3f7ff 38%,#e8efff 100%)!important;color:var(--hd-text);min-height:100vh}
+body:before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 88% 12%,#729dff21,transparent 35%),radial-gradient(ellipse at 24% 85%,#4564fd13,transparent 45%);z-index:0}
+.glass-header{position:sticky;top:0;height:70px;z-index:40;background:linear-gradient(110deg,#071441 0%,#101d61 67%,#112b82 100%)!important;box-shadow:0 7px 24px #0b164329;border-bottom:1px solid #5276d04d}
+.glass-header>div{max-width:none!important;height:70px!important;padding-left:30px!important;padding-right:26px!important}
+.glass-header h1{letter-spacing:-.035em;font-size:1.16rem!important}
+.glass-header h1 .fa-bolt{filter:drop-shadow(0 0 5px #f5b70077)}
+.glass-header h1 .hd-app-name{font-weight:500;opacity:.95;letter-spacing:-.02em}
+.glass-header h1 .hd-app-divider{height:23px;border-left:1px solid #8ba0e28c;margin:0 9px}
+.glass-header .hd-header-meta{display:flex;gap:10px;align-items:center;margin-top:3px}
+.glass-header #connection-badge{background:#1b418173!important;color:#bbf7d0!important;border:1px solid #4670b4!important;padding:5px 10px}
+.glass-header #userSessionBadge{border:1px solid #637ab250!important;background:#ffffff14!important;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#btnNuevoDocHeader{background:linear-gradient(120deg,#4155e8,#7442f9)!important;border:1px solid #a99af2a0!important;box-shadow:0 7px 18px #1d14a958!important;border-radius:12px!important}
+#btnNuevoDocHeader:hover{filter:brightness(1.13);transform:translateY(-1px)}
+/* Desktop: use the existing three navigation tabs as an actual sidebar. */
+body>nav{position:fixed!important;top:70px!important;left:0;bottom:0;width:234px;z-index:30;background:linear-gradient(170deg,#0c1748,#0b1854 60%,#121d66)!important;border-right:1px solid #6f83c23b!important;box-shadow:6px 0 25px #101d4830!important;padding:25px 12px!important;overflow:auto}
+body>nav:before{content:'NAVEGACIÓN';font-size:10px;letter-spacing:.18em;font-weight:900;color:#a9b8e9;display:block;margin:4px 14px 18px}
+body>nav:after{content:'HIDRANDINA  •  Ventas y Clientes Menores';font-size:10px;line-height:1.6;color:#b4c5ff;position:absolute;bottom:24px;left:21px;right:13px;border-top:1px solid #abb9e22a;padding-top:16px}
+body>nav>div{display:flex!important;flex-direction:column;max-width:none!important;gap:9px!important}
+body>nav .tab-btn{border:1px solid transparent!important;border-radius:12px!important;width:100%;display:flex;justify-content:flex-start;white-space:normal;text-align:left;padding:13px 12px!important;color:#d6e3ff!important;font-size:12px!important;line-height:1.4;transition:all .2s ease;background:transparent}
+body>nav .tab-btn i{width:21px;text-align:center;color:#a6befc}
+body>nav .tab-btn:hover{background:#4569dd40!important;color:white!important}
+body>nav .tab-btn.border-blue-600{background:linear-gradient(95deg,#146cf5,#2043cb)!important;border:1px solid #6aa2ff70!important;box-shadow:0 5px 16px #1265fb64!important;color:#fff!important}
+body>nav .tab-btn.border-blue-600 i{color:#fff}
+main{position:relative;margin-left:234px!important;max-width:none!important;padding:28px 25px 65px!important;width:calc(100% - 234px)!important}
+main .hd-section-intro{display:flex;align-items:center;gap:15px;margin:0 0 23px}
+.hd-intro-icon{display:grid;place-items:center;background:linear-gradient(135deg,#b2d7ff,#edf6ff);border:1px solid #a6c7ee;border-radius:14px;width:55px;height:55px;box-shadow:0 6px 15px #1d55ba24;color:#2165df;font-size:24px}
+.hd-section-intro h2{font-size:1.6rem;line-height:1.2;font-weight:900;letter-spacing:-.045em;color:#102155}
+.hd-section-intro p{font-size:12px;color:#617297;font-weight:600;margin-top:5px}
+/* Cards */
+#tab-documentos>div:nth-of-type(2){gap:17px}
+#tab-documentos>div:nth-of-type(2)>div{position:relative;overflow:hidden;border-radius:17px!important;box-shadow:0 8px 25px #1e43821b!important;border:1px solid #c4d8f8!important;min-height:121px;padding:20px!important}
+#tab-documentos>div:nth-of-type(2)>div:after{content:'';position:absolute;width:170px;height:100px;border-radius:50%;background:#ffffff57;right:-57px;bottom:-64px;transform:rotate(-28deg);pointer-events:none}
+.gradient-card-blue{background:linear-gradient(110deg,#f4f8ff,#cadeff)!important}
+.gradient-card-amber{background:linear-gradient(110deg,#fffaf0,#ffebc9)!important}
+.gradient-card-emerald{background:linear-gradient(110deg,#f2fff9,#b9f0e4)!important}
+#tab-documentos>div:nth-of-type(2) h3{color:#14204d!important;font-size:2.1rem!important;letter-spacing:-.04em}
+#tab-documentos>div:nth-of-type(2) p{color:#263e78!important;letter-spacing:.02em}
+#tab-documentos>div:nth-of-type(2)>div>div:last-child{border-radius:16px!important;background:#ffffffa8!important;color:#2665e5!important;box-shadow:0 7px 18px #204b9730!important;border:1px solid #ffffff}
+/* Filters */
+#tab-documentos>div:nth-of-type(3),#tab-dashboard>div:first-child{background:#ffffffed!important;border:1px solid #d6e3fa!important;border-radius:19px!important;box-shadow:0 8px 27px #3150911a!important}
+#tab-documentos input,#tab-documentos select,#tab-dashboard select,#tab-dashboard input{background:#f7faff!important;border:1px solid #cbdaf5!important;border-radius:11px!important;box-shadow:none!important;color:#1d3269!important}
+#tab-documentos input:focus,#tab-documentos select:focus,#tab-dashboard input:focus{outline:2px solid #6fa5ff!important}
+#tab-documentos button[onclick="exportarExcel()"]{background:linear-gradient(120deg,#118b87,#09b29c)!important;border-radius:11px!important}
+#tab-documentos button[onclick="enviarListaCorreo()"]{background:linear-gradient(115deg,#455adc,#6b48e9)!important;border-radius:11px!important}
+/* Document table */
+#tab-documentos>div:nth-of-type(4){background:#ffffffeb!important;border:1px solid #d1def7!important;border-radius:18px!important;box-shadow:0 8px 28px #21428f20!important}
+#tab-documentos table{min-width:1110px}
+#tab-documentos thead tr{background:linear-gradient(95deg,#102761,#173c92)!important;color:#fff!important;letter-spacing:.01em!important}
+#tab-documentos thead th{padding:15px 12px!important;border-color:#537cba50!important;font-size:10px!important}
+#tab-documentos tbody tr{transition:background .16s ease}
+#tab-documentos tbody tr:nth-child(odd){background:#f6f9ff}
+#tab-documentos tbody tr:hover{background:#e5efff!important}
+#tab-documentos tbody td{padding-top:15px!important;padding-bottom:15px!important;border-color:#e3eafa}
+#tab-documentos tbody button{border-radius:9px!important}
+/* Dashboard and catalog cards */
+#tab-dashboard .bg-white,#tab-catalogos .bg-white{border:1px solid #d3e2fc!important;border-radius:18px!important;box-shadow:0 7px 25px #213b7c16!important}
+/* All modals: keep original IDs / JavaScript behavior */
+#docFormModal>div,#catalogModal>div,#configModal>div,#loginModal>div{border-radius:22px!important;border:1px solid #d2dff6!important;box-shadow:0 28px 85px #07153b65!important}
+#docFormModal>div,#catalogModal>div{background:linear-gradient(160deg,#fff,#f9fbff)!important}
+#loginModal{background:#081640c9!important}
+#loginModal>div{background:linear-gradient(140deg,#fff,#f1f6ff)!important}
+#docFormModal input,#docFormModal textarea,#docFormModal select,#catalogModal input,#catalogModal select{border:1px solid #cfdcf2!important;background:#f9fbff!important;border-radius:11px!important}
+#docFormModal button[type="submit"],#catalogModal button[type="submit"]{background:linear-gradient(100deg,#2068ec,#6244ee)!important;border-radius:11px!important}
+/* Generic viewer / file list polish without changing actual preview function */
+[id*="preview"], [id*="Preview"]{scrollbar-color:#9db8e5 #edf3ff}
+/* Decorative title for sections without altering functional content */
+#tab-dashboard:before{content:'Dashboard Ejecutivo';display:block;font-size:1.65rem;font-weight:900;letter-spacing:-.04em;color:#112251;margin-bottom:22px}
+#tab-catalogos:before{content:'Gestión de Catálogos';display:block;font-size:1.65rem;font-weight:900;letter-spacing:-.04em;color:#112251;margin-bottom:22px}
+@media(max-width:1100px){body>nav{width:192px}main{margin-left:192px!important;width:calc(100% - 192px)!important;padding:24px 17px 50px!important}.glass-header h1{font-size:1rem!important}.glass-header>div{padding-left:17px!important;padding-right:15px!important}}
+@media(max-width:760px){.glass-header{height:auto;min-height:72px}.glass-header>div{height:auto!important;min-height:72px!important;padding:12px!important;gap:10px;flex-wrap:wrap}.glass-header h1{font-size:.93rem!important}.glass-header .hd-app-name{display:none}body>nav{position:sticky!important;top:0!important;width:100%!important;height:auto!important;padding:8px!important;box-shadow:0 4px 15px #12235b28!important}body>nav:before,body>nav:after{display:none}body>nav>div{flex-direction:row!important;gap:5px!important;overflow-x:auto}body>nav .tab-btn{min-width:140px;padding:11px 8px!important;font-size:11px!important;justify-content:center}main{margin:0!important;width:100%!important;padding:18px 11px 45px!important}.hd-section-intro h2{font-size:1.35rem}#tab-documentos>div:nth-of-type(2){grid-template-columns:1fr!important}#tab-documentos>div:nth-of-type(2)>div{min-height:95px!important}.glass-header #userSessionBadge{max-width:160px}#btnNuevoDocHeader{padding:9px 11px!important;font-size:11px!important}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
     </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
@@ -63,9 +142,9 @@
                 <div>
                     <h1 class="font-extrabold text-white text-lg sm:text-xl tracking-tight leading-tight flex items-center gap-2">
                         <i class="fa-solid fa-bolt text-yellow-400"></i>
-                        HIDRANDINA - Depto. Ventas y Clientes Menores
+                        HIDRANDINA <span class="hd-app-divider" aria-hidden="true"></span> <span class="hd-app-name">Control de Documentos</span>
                     </h1>
-                    <div class="flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-200">
+                    <div class="hd-header-meta flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-200">
                         <span class="font-medium text-blue-200 bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-400/30 backdrop-blur-md">
                             <i class="fa-solid fa-user-shield mr-1 text-blue-300"></i> Autor: Ing. Johnny Quevin Camacho Mori
                         </span>
@@ -119,6 +198,10 @@
 
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
+            <div class="hd-section-intro">
+                <div class="hd-intro-icon"><i class="fa-solid fa-folder-open"></i></div>
+                <div><h2>Gestión de Documentos</h2><p>Seguimiento, control y trazabilidad documental · Ventas y Clientes Menores</p></div>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div class="gradient-card-blue p-5 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between">
                     <div>
