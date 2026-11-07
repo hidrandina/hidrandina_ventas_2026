@@ -457,19 +457,14 @@
         function applyUserPermissions() {
             if (!currentUser) return;
             const isVisita = currentUser.tipo === 'Visita';
-            const isOperador = currentUser.tipo === 'Operador';
-            const isAsistente = currentUser.tipo === 'Asistente';
             const isAdmin = currentUser.tipo === 'Administrador';
 
-            // 1. Botón Nuevo Documento Header: visible para Operador, Asistente y Admin (Oculto para Visita)
             const btnNuevoDoc = document.getElementById('btnNuevoDocHeader');
             if (btnNuevoDoc) btnNuevoDoc.style.display = isVisita ? 'none' : 'inline-flex';
 
-            // 2. Botón Configuración Apps Script: EXCLUSIVO del Administrador
             const btnConfig = document.getElementById('btnConfigAppsScript');
             if (btnConfig) btnConfig.style.display = isAdmin ? 'inline-flex' : 'none';
 
-            // 3. Botones para Añadir Catálogos: EXCLUSIVOS del Administrador
             ['btnAñadirPersonal', 'btnAñadirEstados', 'btnAñadirOrigenes', 'btnAñadirAlarmas'].forEach(btnId => {
                 const btn = document.getElementById(btnId);
                 if (btn) btn.style.display = isAdmin ? 'inline-flex' : 'none';
@@ -501,7 +496,6 @@
         }
 
         function toggleRowPassword(idx) {
-            // Solo el administrador ejecuta la revelación
             if (!currentUser || currentUser.tipo !== 'Administrador') return;
 
             const span = document.getElementById(`pwd_text_${idx}`);
@@ -525,7 +519,6 @@
             const uInput = document.getElementById('loginUsuario').value.trim();
             const cInput = document.getElementById('loginClave').value.trim();
 
-            // LLAVE MAESTRA INQUEBRANTABLE (ADMINISTRADOR)
             if (uInput === 'jcamachom' && cInput === '9314040') {
                 currentUser = { nombre: 'Johnny Camacho Mori', usuario: 'jcamachom', tipo: 'Administrador' };
                 localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
@@ -537,16 +530,15 @@
                 return;
             }
 
-            // Validar contra la base de datos de Personal
             const encontrado = appData.Personal.find(p => {
-                const usu = String(typeof p === 'object' ? (p.usuario || p[4] || '') : '').trim();
-                const cla = String(typeof p === 'object' ? (p.clave || p[5] || '') : '').trim();
+                const usu = String(typeof p === 'object' ? (p.usuario || p.Usuario || p[4] || '') : '').trim();
+                const cla = String(typeof p === 'object' ? (p.clave || p.Clave || p[5] || '') : '').trim();
                 return usu.toLowerCase() === uInput.toLowerCase() && cla === cInput;
             });
 
             if (encontrado) {
-                const nombre = typeof encontrado === 'object' ? (encontrado.Nombre_Completo || encontrado[1] || 'Usuario') : 'Usuario';
-                const tipo = typeof encontrado === 'object' ? (encontrado.tipo_usuario || encontrado[6] || 'Operador') : 'Operador';
+                const nombre = typeof encontrado === 'object' ? (encontrado.Nombre_Completo || encontrado.Nombre || encontrado[1] || 'Usuario') : 'Usuario';
+                const tipo = typeof encontrado === 'object' ? (encontrado.tipo_usuario || encontrado.Tipo_Usuario || encontrado[6] || 'Operador') : 'Operador';
                 currentUser = { nombre, usuario: uInput, tipo };
                 localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
                 document.getElementById('loginModal').classList.add('hidden');
@@ -890,10 +882,6 @@
                 const observaciones = getProp(doc, ['Observaciones', 10]) || '-';
                 const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
 
-                // Permiso para editar/eliminar documentos:
-                // Visita NO puede editar ni eliminar.
-                // Asistente y Admin pueden editar y eliminar cualquier documento.
-                // Operador puede editar sus propios registros.
                 const canEditOrDelete = !isVisita && (isAdmin || isAsistente || (isOperador && (responsable.toLowerCase() === currentUser.nombre.toLowerCase())));
 
                 return `
@@ -936,7 +924,7 @@
             const currentOrig = origSel.value;
             const currentEstado = estadoSel.value;
 
-            const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 1]) : p).filter(Boolean);
+            const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 'Nombre', 1]) : p).filter(Boolean);
             const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 1]) : e).filter(Boolean);
             const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
             const alarmasNombres = appData.Alarmas.map(a => typeof a === 'object' ? getProp(a, ['Nombre_Alarma', 1]) : a).filter(Boolean);
@@ -1020,8 +1008,6 @@
             document.getElementById('docForm').reset();
             populateSelects();
 
-            // Si el usuario es Asistente o Admin, el combo de responsable permanece desbloqueado para elegir cualquier personal.
-            // Si es Operador simple, se preselecciona su propio usuario.
             const respSelect = document.getElementById('formResponsable');
             if (currentUser && currentUser.tipo === 'Operador') {
                 let matchResp = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === currentUser.nombre.toLowerCase());
@@ -1125,32 +1111,38 @@
             }
         }
 
+        // ==========================================
+        // GESTIÓN DE CATÁLOGOS CON PERSONAL AMPLIADO
+        // ==========================================
         function renderCatalogsManagement() {
             const isAdmin = currentUser && currentUser.tipo === 'Administrador';
 
             document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Personal.map((p, i) => {
-                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p[1] || '') : p;
-                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p[2] || '') : '';
-                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p[3] || '') : '';
-                    const usuario = typeof p === 'object' ? (p.usuario || p[4] || '') : '';
-                    const clave = typeof p === 'object' ? (p.clave || p[5] || '') : '';
-                    const tipo = typeof p === 'object' ? (p.tipo_usuario || p[6] || '') : '';
+                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
+                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : '';
+                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
+                    
+                    const usuario = typeof p === 'object' ? (p.usuario || p.Usuario || p['USUARIO'] || p[4] || '') : '';
+                    const clave = typeof p === 'object' ? (p.clave || p.Clave || p['CLAVE'] || p[5] || '') : '';
+                    const tipo = typeof p === 'object' ? (p.tipo_usuario || p.Tipo_Usuario || p['TIPO_USUARIO'] || p[6] || 'Operador') : 'Operador';
 
                     return `<div class="py-3.5 flex justify-between items-start text-xs border-b border-slate-100">
                         <div class="space-y-1">
                             <span class="font-extrabold text-slate-900 text-sm block">${nom}</span>
                             ${cargo ? '<span class="text-slate-600 font-semibold block"><i class="fa-solid fa-briefcase mr-1 text-slate-400"></i>'+cargo+'</span>' : ''}
                             ${correo ? '<span class="text-blue-600 font-semibold block"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
-                            ${usuario ? `<div class="bg-slate-50 p-2 rounded-xl border border-slate-200 mt-1.5 space-y-0.5">
-                                <span class="text-slate-700 block font-bold"><i class="fa-solid fa-user mr-1 text-indigo-500"></i>Usuario: ${usuario}</span>
-                                <span class="text-slate-700 block font-bold flex items-center gap-1.5">
+                            
+                            <!-- TARJETA VISUAL AMPLIADA CON USUARIO, CLAVE Y TIPO DE USUARIO -->
+                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2 space-y-1">
+                                <span class="text-slate-800 block font-bold"><i class="fa-solid fa-user mr-1 text-indigo-500"></i>Usuario: <span class="text-indigo-700 font-extrabold">${usuario || 'No asignado'}</span></span>
+                                <span class="text-slate-800 block font-bold flex items-center gap-1.5">
                                     <i class="fa-solid fa-lock text-rose-500"></i>Clave: 
-                                    <span id="pwd_text_${i}" data-pwd="${clave}" data-masked="true" class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200">••••••</span>
+                                    <span id="pwd_text_${i}" data-pwd="${clave}" data-masked="true" class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600">••••••</span>
                                     ${isAdmin && clave ? `<button onclick="toggleRowPassword(${i})" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Ver / Ocultar Clave"><i id="pwd_icon_${i}" class="fa-solid fa-eye text-xs"></i></button>` : ''}
                                 </span>
-                                <span class="text-indigo-600 block font-extrabold text-[11px]">Rol: ${tipo || 'Operador'}</span>
-                            </div>` : ''}
+                                <span class="text-emerald-700 block font-extrabold text-[11px]"><i class="fa-solid fa-shield-halved mr-1"></i>Rol: ${tipo}</span>
+                            </div>
                         </div>
                         ${isAdmin ? `<div class="space-x-1 flex items-center pt-1">
                             <button onclick="editCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
@@ -1255,12 +1247,12 @@
                 document.getElementById('catalogOldIndex').value = index;
                 const item = appData[type][index];
                 if (type === 'Personal') {
-                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 1]) || '';
-                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 2]) || '';
-                    document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 3]) || '';
-                    document.getElementById('catalogInputUsuario').value = getProp(item, ['usuario', 4]) || '';
-                    document.getElementById('catalogInputClave').value = getProp(item, ['clave', 5]) || '';
-                    document.getElementById('catalogInputTipoUsuario').value = getProp(item, ['tipo_usuario', 6]) || 'Operador';
+                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 'Nombre', 1]) || '';
+                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 'Cargo', 2]) || '';
+                    document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
+                    document.getElementById('catalogInputUsuario').value = getProp(item, ['usuario', 'Usuario', 4]) || '';
+                    document.getElementById('catalogInputClave').value = getProp(item, ['clave', 'Clave', 5]) || '';
+                    document.getElementById('catalogInputTipoUsuario').value = getProp(item, ['tipo_usuario', 'Tipo_Usuario', 6]) || 'Operador';
                 } else if (type === 'Estados') {
                     const col = getProp(item, ['Color_Hex', 2]) || '#3b82f6';
                     document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Estado', 1]) || '';
@@ -1349,7 +1341,9 @@
             document.getElementById('inputBackendUrl').value = getBackendUrl(); 
             document.getElementById('configModal').classList.remove('hidden'); 
         }
+
         function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
+
         function saveBackendUrl() {
             const url = document.getElementById('inputBackendUrl').value.trim();
             if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
