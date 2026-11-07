@@ -1,200 +1,1010 @@
-function doGet(e) {
-  var params = e.parameter || {};
-  var callback = params.callback || "handleGASResponse";
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var result = {
-      success: true,
-      Registros: leerHojaComoObjetos(ss.getSheetByName("Documentos")),
-      Catalogos: {
-        Personal: leerHojaComoObjetos(ss.getSheetByName("Personal")),
-        Estados: leerHojaComoObjetos(ss.getSheetByName("Estados")),
-        Origenes: leerHojaComoObjetos(ss.getSheetByName("Origenes")),
-        Alarmas: leerHojaComoObjetos(ss.getSheetByName("Alarmas"))
-      }
+<script>
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
+
+    function getBackendUrl() {
+        return localStorage.getItem('hidrandina_gas_url') || DEFAULT_GAS_URL;
+    }
+
+    let appData = {
+        Documentos: [],
+        Personal: [],
+        Estados: [],
+        Origenes: [],
+        Alarmas: []
     };
-    var output = callback + "(" + JSON.stringify(result) + ");";
-    return ContentService.createTextOutput(output).setMimeType(ContentService.MimeType.JAVASCRIPT);
-  } catch (err) {
-    var errorResult = { success: false, message: "Error: " + err.toString() };
-    return ContentService.createTextOutput(callback + "(" + JSON.stringify(errorResult) + ");").setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-}
 
-function doPost(e) {
-  try {
-    var data = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var action = data.action;
-    
-    if (action === "saveDoc") {
-      var sheet = ss.getSheetByName("Documentos");
-      var rows = sheet.getDataRange().getValues();
-      var numDoc = String(data.Numero_Documento || "").trim();
-      var foundRow = -1;
-      
-      for (var i = 1; i < rows.length; i++) {
-        if (String(rows[i][1]).trim().toLowerCase() === numDoc.toLowerCase()) {
-          foundRow = i + 1;
-          break;
+    let currentUser = null;
+    let chartsInstance = { estados: null, origenes: null };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadLocalCache();
+        checkSession();
+        fetchData();
+    });
+
+    function checkSession() {
+        const savedUser = localStorage.getItem('hidrandina_current_user');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
+            document.getElementById('userSessionBadge').classList.remove('hidden');
+            applyUserPermissions();
+        } else {
+            document.getElementById('loginModal').classList.remove('hidden');
         }
-      }
-      
-      var urlsIngreso = foundRow > 0 ? (rows[foundRow-1][11] || "") : "";
-      if (data.Archivos_Ingreso && data.Archivos_Ingreso.length > 0) {
-        var subidasIng = guardarArchivosEnDrive(data.Archivos_Ingreso, numDoc, "SUSTENTO");
-        if (subidasIng) urlsIngreso = urlsIngreso ? urlsIngreso + ", " + subidasIng : subidasIng;
-      }
-
-      var urlsCierre = foundRow > 0 ? (rows[foundRow-1][12] || "") : "";
-      if (data.Archivos_Cierre && data.Archivos_Cierre.length > 0) {
-        var subidasCierre = guardarArchivosEnDrive(data.Archivos_Cierre, numDoc, "CIERRE");
-        if (subidasCierre) urlsCierre = urlsCierre ? urlsCierre + ", " + subidasCierre : subidasCierre;
-      }
-      
-      var rowData = [
-        foundRow > 0 ? rows[foundRow-1][0] : rows.length,
-        data.Numero_Documento || "",
-        data.Origen_Tipo || "",
-        data.Asunto || "",
-        data.Fecha_Ingreso || "",
-        data.Fecha_Vencimiento || "",
-        data.Dias_Trancurridos || 0,
-        data.Dias_Exceso || 0,
-        data.Responsable || "",
-        data.Estado || "",
-        data.Observaciones || "",
-        urlsIngreso,
-        urlsCierre
-      ];
-      
-      if (foundRow > 0) {
-        sheet.getRange(foundRow, 1, 1, rowData.length).setValues([rowData]);
-      } else {
-        sheet.appendRow(rowData);
-      }
-      return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
     }
-    
-    if (action === "deleteDoc") {
-      var sheet = ss.getSheetByName("Documentos");
-      var rows = sheet.getDataRange().getValues();
-      var numDoc = String(data.Numero_Documento || "").trim();
-      for (var i = 1; i < rows.length; i++) {
-        if (String(rows[i][1]).trim().toLowerCase() === numDoc.toLowerCase()) {
-          sheet.deleteRow(i + 1);
-          break;
+
+    function applyUserPermissions() {
+        if (!currentUser) return;
+        const isVisita = currentUser.tipo === 'Visita';
+        const isAdmin = currentUser.tipo === 'Administrador';
+
+        const btnNuevoDoc = document.getElementById('btnNuevoDocHeader');
+        if (btnNuevoDoc) btnNuevoDoc.style.display = isVisita ? 'none' : 'inline-flex';
+
+        const btnConfig = document.getElementById('btnConfigAppsScript');
+        if (btnConfig) btnConfig.style.display = isAdmin ? 'inline-flex' : 'none';
+
+        ['btnAñadirPersonal', 'btnAñadirEstados', 'btnAñadirOrigenes', 'btnAñadirAlarmas'].forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) btn.style.display = isAdmin ? 'inline-flex' : 'none';
+        });
+    }
+
+    function toggleLoginPassword() {
+        const input = document.getElementById('loginClave');
+        const icon = document.getElementById('loginEyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fa-solid fa-eye';
+        } else {
+            input.type = 'password';
+            icon.className = 'fa-solid fa-eye-slash';
         }
-      }
-      return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
     }
-    
-    if (action === "saveCatalog") {
-      var sheetName = data.type; 
-      var sheet = ss.getSheetByName(sheetName);
-      if (!sheet) throw "Hoja de catálogo no encontrada: " + sheetName;
-      
-      var rows = sheet.getDataRange().getValues();
-      var val = String(data.value || "").trim();
-      var oldValue = String(data.oldValue || val).trim();
-      var foundRow = -1;
-      
-      for (var i = 1; i < rows.length; i++) {
-        var colVal = String(rows[i][1] !== undefined ? rows[i][1] : rows[i][0]).trim();
-        if (colVal.toLowerCase() === oldValue.toLowerCase()) {
-          foundRow = i + 1;
-          break;
+
+    function toggleModalPassword() {
+        const input = document.getElementById('catalogInputClave');
+        const icon = document.getElementById('modalEyeIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fa-solid fa-eye';
+        } else {
+            input.type = 'password';
+            icon.className = 'fa-solid fa-eye-slash';
         }
-      }
-      
-      var nextId = rows.length > 0 ? rows.length : 1;
-      if (foundRow > 0) nextId = rows[foundRow-1][0];
-      
-      var catalogRowData = [];
-      if (sheetName === "Personal") {
-        catalogRowData = [nextId, val, data.secondary || "", data.third || "", data.usuario || "", data.clave || "", data.tipo_usuario || "Operador"];
-      } else if (sheetName === "Estados") {
-        catalogRowData = [nextId, val, data.secondary || "#3b82f6"];
-      } else if (sheetName === "Origenes") {
-        catalogRowData = [nextId, val, data.secondary || ""];
-      } else if (sheetName === "Alarmas") {
-        catalogRowData = [nextId, val, data.secondary || 0, data.third || 15, data.fourth || "#ef4444"];
-      }
-      
-      if (foundRow > 0) {
-        sheet.getRange(foundRow, 1, 1, catalogRowData.length).setValues([catalogRowData]);
-      } else {
-        sheet.appendRow(catalogRowData);
-      }
-      return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
     }
-    
-    if (action === "deleteCatalog") {
-      var sheetName = data.type;
-      var sheet = ss.getSheetByName(sheetName);
-      var rows = sheet.getDataRange().getValues();
-      var val = String(data.value || "").trim();
-      
-      for (var i = 1; i < rows.length; i++) {
-        var colVal = String(rows[i][1] !== undefined ? rows[i][1] : rows[i][0]).trim();
-        if (colVal.toLowerCase() === val.toLowerCase()) {
-          sheet.deleteRow(i + 1);
-          break;
+
+    function toggleRowPassword(idx) {
+        if (!currentUser || currentUser.tipo !== 'Administrador') return;
+
+        const span = document.getElementById(`pwd_text_${idx}`);
+        const icon = document.getElementById(`pwd_icon_${idx}`);
+        const realPwd = span.getAttribute('data-pwd');
+        const isMasked = span.getAttribute('data-masked') === 'true';
+
+        if (isMasked) {
+            span.innerText = realPwd;
+            span.setAttribute('data-masked', 'false');
+            icon.className = 'fa-solid fa-eye-slash text-xs text-blue-600';
+        } else {
+            span.innerText = '••••••';
+            span.setAttribute('data-masked', 'true');
+            icon.className = 'fa-solid fa-eye text-xs text-slate-400';
         }
-      }
-      return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
     }
 
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
+    function handleLogin(e) {
+        e.preventDefault();
+        const uInput = document.getElementById('loginUsuario').value.trim();
+        const cInput = document.getElementById('loginClave').value.trim();
 
-function leerHojaComoObjetos(sheet) {
-  if (!sheet) return [];
-  var data = sheet.getDataRange().getValues();
-  if (data.length < 2) return [];
-  var headers = data[0];
-  var result = [];
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var obj = {};
-    for (var j = 0; j < headers.length; j++) {
-      var headerName = String(headers[j]).trim();
-      var val = row[j];
-      if (val instanceof Date) {
-        val = Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
-      }
-      obj[headerName] = val;
-      obj[j] = val;
-    }
-    result.push(obj);
-  }
-  return result;
-}
+        if (uInput === 'jcamachom' && cInput === '9314040') {
+            currentUser = { nombre: 'Johnny Camacho Mori', usuario: 'jcamachom', tipo: 'Administrador' };
+            localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
+            document.getElementById('userSessionBadge').classList.remove('hidden');
+            applyUserPermissions();
+            fetchData();
+            return;
+        }
 
-function guardarArchivosEnDrive(archivosBase64, numeroDocumento, tipoCarpeta) {
-  if (!archivosBase64 || archivosBase64.length === 0) return "";
-  try {
-    var folders = DriveApp.getFoldersByName("BD_Documentos_Ventas");
-    var carpetaPrincipal = folders.hasNext() ? folders.next() : DriveApp.createFolder("BD_Documentos_Ventas");
-    var subFolders = carpetaPrincipal.getFoldersByName("Archivos");
-    var carpetaArchivos = subFolders.hasNext() ? subFolders.next() : carpetaPrincipal.createFolder("Archivos");
-    var docFolders = carpetaArchivos.getFoldersByName(numeroDocumento);
-    var carpetaDoc = docFolders.hasNext() ? docFolders.next() : carpetaArchivos.createFolder(numeroDocumento);
-    
-    var urls = [];
-    for (var i = 0; i < archivosBase64.length; i++) {
-      var item = archivosBase64[i];
-      try {
-        var blob = Utilities.newBlob(Utilities.base64Decode(item.data), item.mimeType, tipoCarpeta + "_" + item.name);
-        var archivoDrive = carpetaDoc.createFile(blob);
-        archivoDrive.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        urls.push(archivoDrive.getUrl());
-      } catch(e) {}
+        const encontrado = appData.Personal.find(p => {
+            const usu = String(typeof p === 'object' ? (p.usuario || p.Usuario || p[4] || '') : '').trim();
+            const cla = String(typeof p === 'object' ? (p.clave || p.Clave || p[5] || '') : '').trim();
+            return usu.toLowerCase() === uInput.toLowerCase() && cla === cInput;
+        });
+
+        if (encontrado) {
+            const nombre = typeof encontrado === 'object' ? (encontrado.Nombre_Completo || encontrado.Nombre || encontrado[1] || 'Usuario') : 'Usuario';
+            const tipo = typeof encontrado === 'object' ? (encontrado.tipo_usuario || encontrado.Tipo_Usuario || encontrado[6] || 'Operador') : 'Operador';
+            currentUser = { nombre, usuario: uInput, tipo };
+            localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
+            document.getElementById('userSessionBadge').classList.remove('hidden');
+            applyUserPermissions();
+            fetchData();
+        } else {
+            alert("Usuario o clave incorrectos.");
+        }
     }
-    return urls.join(", ");
-  } catch(err) {
-    return "";
-  }
-}
+
+    function logoutSession() {
+        localStorage.removeItem('hidrandina_current_user');
+        currentUser = null;
+        document.getElementById('loginModal').classList.remove('hidden');
+        document.getElementById('loginUsuario').value = '';
+        document.getElementById('loginClave').value = '';
+    }
+
+    function loadLocalCache() {
+        if (localStorage.getItem('hidrandina_docs_cache')) appData.Documentos = JSON.parse(localStorage.getItem('hidrandina_docs_cache'));
+        if (localStorage.getItem('hidrandina_pers_cache')) appData.Personal = JSON.parse(localStorage.getItem('hidrandina_pers_cache'));
+        if (localStorage.getItem('hidrandina_esta_cache')) appData.Estados = JSON.parse(localStorage.getItem('hidrandina_esta_cache'));
+        if (localStorage.getItem('hidrandina_orig_cache')) appData.Origenes = JSON.parse(localStorage.getItem('hidrandina_orig_cache'));
+        if (localStorage.getItem('hidrandina_alar_cache')) appData.Alarmas = JSON.parse(localStorage.getItem('hidrandina_alar_cache'));
+        if (appData.Documentos.length > 0) renderAll();
+    }
+
+    function saveLocalCache() {
+        localStorage.setItem('hidrandina_docs_cache', JSON.stringify(appData.Documentos));
+        localStorage.setItem('hidrandina_pers_cache', JSON.stringify(appData.Personal));
+        localStorage.setItem('hidrandina_esta_cache', JSON.stringify(appData.Estados));
+        localStorage.setItem('hidrandina_orig_cache', JSON.stringify(appData.Origenes));
+        localStorage.setItem('hidrandina_alar_cache', JSON.stringify(appData.Alarmas));
+    }
+
+    function setConnectionStatus(status, text) {
+        const badge = document.getElementById('connection-badge');
+        if (status === 'active') {
+            badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md";
+            badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400"></span> ${text}`;
+        } else if (status === 'error') {
+            badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-rose-500/20 text-rose-300 border border-rose-400/30 backdrop-blur-md";
+            badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-rose-400"></span> ${text}`;
+        } else {
+            badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md";
+            badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-amber-400 animate-ping"></span> ${text}`;
+        }
+    }
+
+    function getProp(obj, keys) {
+        if (!obj) return '';
+        if (typeof obj !== 'object') return obj;
+        for (let k of keys) {
+            if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+        }
+        return '';
+    }
+
+    window.handleGASResponse = function(data) {
+        if (data) {
+            if (data.Registros) appData.Documentos = data.Registros;
+            if (data.Catalogos) {
+                appData.Personal = data.Catalogos.Personal || appData.Personal;
+                appData.Estados = data.Catalogos.Estados || appData.Estados;
+                appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
+                appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
+            }
+            saveLocalCache();
+            setConnectionStatus('active', 'Sincronizado');
+            renderAll();
+        }
+    };
+
+    function fetchData() {
+        setConnectionStatus('sync', 'Conectando...');
+        const url = getBackendUrl();
+        const oldScript = document.getElementById('jsonp-fetch');
+        if (oldScript) oldScript.remove();
+
+        const script = document.createElement('script');
+        script.id = 'jsonp-fetch';
+        script.src = `${url}?callback=handleGASResponse&_=${new Date().getTime()}`;
+        script.onerror = () => { setConnectionStatus('error', 'Offline'); renderAll(); };
+        document.body.appendChild(script);
+    }
+
+    function executeGASAction(params, successCallback) {
+        setConnectionStatus('sync', 'Sincronizando...');
+        const url = getBackendUrl();
+        
+        const queryString = Object.keys(params)
+            .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+            .join('&');
+
+        const uniqueId = 'jsonp_action_' + new Date().getTime();
+        const oldScript = document.getElementById(uniqueId);
+        if (oldScript) oldScript.remove();
+
+        const script = document.createElement('script');
+        script.id = uniqueId;
+        script.src = `${url}?${queryString}&callback=handleActionResponse&_=${new Date().getTime()}`;
+        
+        window.handleActionResponse = function(response) {
+            if (response && response.success) {
+                setConnectionStatus('active', 'Sincronizado');
+                if (successCallback) successCallback();
+                setTimeout(fetchData, 800);
+            } else {
+                setConnectionStatus('error', 'Error al guardar');
+                alert("Aviso del Servidor: " + (response ? response.message : "Error desconocido"));
+            }
+            script.remove();
+        };
+
+        script.onerror = () => {
+            setConnectionStatus('error', 'Error de Conexión');
+            alert("No se pudo conectar con el servidor.");
+        };
+
+        document.body.appendChild(script);
+    }
+
+    function renderAll() {
+        renderTable(appData.Documentos);
+        populateSelects();
+        renderStatsAndCharts();
+        renderCatalogsManagement();
+        applyUserPermissions();
+    }
+
+    function calcularPlazos(fechaIngresoStr, fechaVencimientoStr) {
+        const cleanIngresoStr = String(fechaIngresoStr || '').split('T')[0];
+        const ingreso = new Date(cleanIngresoStr + 'T00:00:00');
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        let diasTranscurridos = 0;
+        if (!isNaN(ingreso.getTime())) {
+            const diffTime = hoy - ingreso;
+            diasTranscurridos = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+        }
+
+        let vencimientoDate = null;
+        const cleanVencStr = String(fechaVencimientoStr || '').split('T')[0];
+        if (cleanVencStr) vencimientoDate = new Date(cleanVencStr + 'T00:00:00');
+
+        if (!vencimientoDate || isNaN(vencimientoDate.getTime())) {
+            vencimientoDate = new Date(ingreso);
+            vencimientoDate.setDate(vencimientoDate.getDate() + 15);
+        }
+        vencimientoDate.setHours(0, 0, 0, 0);
+        const vencimientoFormatted = vencimientoDate.toISOString().split('T')[0];
+
+        const diffVenc = vencimientoDate - hoy;
+        const diasFaltantes = Math.max(0, Math.ceil(diffVenc / (1000 * 60 * 60 * 24)));
+        const diffExc = hoy - vencimientoDate;
+        const diasExceso = Math.max(0, Math.floor(diffExc / (1000 * 60 * 60 * 24)));
+
+        return { vencimiento: vencimientoFormatted, diasTranscurridos, diasFaltantes, diasExceso };
+    }
+
+    function obtenerDocumentosFiltradosActuales() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const personal = document.getElementById('filterPersonal').value;
+        const estado = document.getElementById('filterEstado').value;
+        const origen = document.getElementById('filterOrigen').value;
+
+        return appData.Documentos.filter(doc => {
+            const numDoc = String(getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '').toLowerCase();
+            const asunto = String(getProp(doc, ['Asunto', 3]) || '').toLowerCase();
+            const resp = String(getProp(doc, ['Responsable', 8]) || '');
+            const docEstado = String(getProp(doc, ['Estado', 9]) || '');
+            const docOrigen = String(getProp(doc, ['Origen_Tipo', 2]) || '');
+            
+            return (numDoc.includes(query) || asunto.includes(query) || resp.toLowerCase().includes(query)) && 
+                   (!personal || resp === personal) && 
+                   (!estado || docEstado === estado) && 
+                   (!origen || docOrigen === origen);
+        });
+    }
+
+    function obtenerDocumentosDashboardFiltrados() {
+        const fInicio = document.getElementById('dashFechaInicio').value;
+        const fFin = document.getElementById('dashFechaFin').value;
+        const pers = document.getElementById('dashFiltroPersonal').value;
+        const orig = document.getElementById('dashFiltroOrigen').value;
+        const est = document.getElementById('dashFiltroEstado').value;
+        const alar = document.getElementById('dashFiltroAlarma').value;
+
+        return appData.Documentos.filter(doc => {
+            const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
+            if (fInicio && fechaIng && fechaIng < fInicio) return false;
+            if (fFin && fechaIng && fechaIng > fFin) return false;
+
+            const docResp = String(getProp(doc, ['Responsable', 8]) || '');
+            if (pers && docResp !== pers) return false;
+
+            const docOrig = String(getProp(doc, ['Origen_Tipo', 2]) || '');
+            if (orig && docOrig !== orig) return false;
+
+            const docEst = String(getProp(doc, ['Estado', 9]) || '');
+            if (est && docEst !== est) return false;
+
+            if (alar) {
+                const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 5]);
+                const plazos = calcularPlazos(fechaIng, fechaVencRaw);
+                const dTrans = plazos.diasTranscurridos;
+                const alarmaObj = appData.Alarmas.find(a => {
+                    const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
+                    return nom === alar;
+                });
+                if (alarmaObj && typeof alarmaObj === 'object') {
+                    const dMin = parseInt(alarmaObj.Dias_Min || alarmaObj[2] || 0);
+                    const dMax = parseInt(alarmaObj.Dias_Max || alarmaObj[3] || 9999);
+                    if (dTrans < dMin || dTrans > dMax) return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    function resetDashboardFilters() {
+        document.getElementById('dashFechaInicio').value = '';
+        document.getElementById('dashFechaFin').value = '';
+        document.getElementById('dashFiltroPersonal').value = '';
+        document.getElementById('dashFiltroOrigen').value = '';
+        document.getElementById('dashFiltroEstado').value = '';
+        document.getElementById('dashFiltroAlarma').value = '';
+        renderCharts();
+    }
+
+    function exportarExcel() {
+        const docs = obtenerDocumentosFiltradosActuales();
+        if (!docs || docs.length === 0) { alert("No hay registros para exportar."); return; }
+
+        const datosFormateados = docs.map(doc => {
+            const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 4]) || '';
+            const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 5]) || '';
+            const plazos = calcularPlazos(fechaIngRaw, fechaVencRaw);
+            return {
+                "Nro. Documento": getProp(doc, ['Numero_Documento', 1]) || '-',
+                "Origen": getProp(doc, ['Origen_Tipo', 2]) || '-',
+                "Asunto": getProp(doc, ['Asunto', 3]) || '-',
+                "Fecha Ingreso": fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-',
+                "Fecha Vencimiento": plazos.vencimiento,
+                "Días Transcurridos": plazos.diasTranscurridos,
+                "Días Faltantes": plazos.diasFaltantes,
+                "Días Exceso": plazos.diasExceso,
+                "Responsable": getProp(doc, ['Responsable', 8]) || '-',
+                "Estado": getProp(doc, ['Estado', 9]) || 'Pendiente',
+                "Urls Sustento": getProp(doc, ['Urls_Ingreso', 11]) || '-',
+                "Urls Cierre": getProp(doc, ['Urls_Cierre', 12]) || '-',
+                "Observaciones": getProp(doc, ['Observaciones', 10]) || '-'
+            };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Documentos Hidrandina");
+        XLSX.writeFile(workbook, "Control_Documentos_Hidrandina.xlsx");
+    }
+
+    function enviarListaCorreo() {
+        const docs = obtenerDocumentosFiltradosActuales();
+        if (!docs || docs.length === 0) { alert("No hay registros en la lista para enviar."); return; }
+        exportarExcel();
+        const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
+        let cuerpo = `Estimado equipo,\n\nSe adjunta el reporte actual de control de documentos en formato Excel para su revisión y atención.\n\nAtte,\nIng. Johnny Quevin Camacho Mori`;
+        alert("¡Reporte Excel descargado con éxito!\n\nPor favor, adjunta el archivo 'Control_Documentos_Hidrandina.xlsx' en tu gestor de correo.");
+        window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
+    }
+
+    function enviarCorreoIndividual(idx) {
+        const doc = appData.Documentos[idx];
+        if (!doc) return;
+        const numDoc = getProp(doc, ['Numero_Documento', 1]) || 'DOC';
+        const entidad = getProp(doc, ['Origen_Tipo', 2]) || 'Entidad';
+        const estado = getProp(doc, ['Estado', 9]) || 'Pendiente';
+        const responsableNombre = getProp(doc, ['Responsable', 8]) || '';
+        const asuntoDoc = getProp(doc, ['Asunto', 3]) || '';
+        const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
+        const observaciones = getProp(doc, ['Observaciones', 10]) || '';
+
+        let correoDestino = '';
+        if (appData.Personal && appData.Personal.length > 0) {
+            const persEncontrado = appData.Personal.find(p => {
+                const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
+                return nom.toLowerCase() === responsableNombre.toLowerCase();
+            });
+            if (persEncontrado && typeof persEncontrado === 'object') {
+                correoDestino = persEncontrado.Correo_Electronico || persEncontrado.Correo || persEncontrado[3] || '';
+            }
+        }
+
+        const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
+        let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe remite el siguiente documento para su conocimiento:\n\n` +
+            `- Nro. Documento: ${numDoc}\n- Entidad / Origen: ${entidad}\n- Asunto: ${asuntoDoc}\n` +
+            `- Fecha de Ingreso: ${fechaIng}\n- Estado Actual: ${estado}\n- Observaciones: ${observaciones}\n`;
+
+        window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
+    }
+
+    function renderTable(docs) {
+        const tbody = document.getElementById('documentosTableBody');
+        if (!docs || docs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="13" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos registrados.</td></tr>`;
+            return;
+        }
+
+        const isVisita = currentUser && currentUser.tipo === 'Visita';
+        const isAsistente = currentUser && currentUser.tipo === 'Asistente';
+        const isAdmin = currentUser && currentUser.tipo === 'Administrador';
+        const isOperador = currentUser && currentUser.tipo === 'Operador';
+
+        tbody.innerHTML = docs.map((doc, idx) => {
+            const numDoc = getProp(doc, ['Numero_Documento', 1]) || '-';
+            const origen = getProp(doc, ['Origen_Tipo', 2]) || '-';
+            const asunto = getProp(doc, ['Asunto', 3]) || '-';
+            const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 4]) || '';
+            const fechaIng = fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-';
+
+            const rawVenc = getProp(doc, ['Fecha_Vencimiento', 5]);
+            const plazos = calcularPlazos(fechaIng, rawVenc);
+            const fechaVenc = plazos.vencimiento;
+            const diasTrans = plazos.diasTranscurridos;
+            const diasFalt = plazos.diasFaltantes;
+            const diasExc = plazos.diasExceso;
+
+            const responsable = getProp(doc, ['Responsable', 8]) || '-';
+            const rawEstado = getProp(doc, ['Estado', 9]) || 'Pendiente';
+            
+            let estadoColor = '#3b82f6';
+            if (appData.Estados && appData.Estados.length > 0) {
+                const estObj = appData.Estados.find(e => {
+                    const nom = typeof e === 'object' ? (e.Nombre_Estado || e[1] || '') : e;
+                    return nom.toLowerCase() === String(rawEstado).toLowerCase();
+                });
+                if (estObj && typeof estObj === 'object') estadoColor = estObj.Color_Hex || estObj[2] || '#3b82f6';
+            }
+
+            const urlsIngreso = getProp(doc, ['Urls_Ingreso', 11]) || '';
+            const urlsCierre = getProp(doc, ['Urls_Cierre', 12]) || '';
+            
+            let linksHtml = '<div class="space-y-1 text-[11px]">';
+            if (urlsIngreso) {
+                linksHtml += `<div class="font-bold text-blue-700"><i class="fa-solid fa-folder-open mr-1"></i>Sustento: <a href="${urlsIngreso.split(',')[0].trim()}" target="_blank" class="underline text-blue-600 hover:text-blue-800">Ver Archivo</a></div>`;
+            }
+            if (urlsCierre) {
+                linksHtml += `<div class="font-bold text-emerald-700"><i class="fa-solid fa-circle-check mr-1"></i>Cierre: <a href="${urlsCierre.split(',')[0].trim()}" target="_blank" class="underline text-emerald-600 hover:text-emerald-800">Ver Archivo</a></div>`;
+            }
+            if (!urlsIngreso && !urlsCierre) {
+                linksHtml = '<span class="text-slate-400">Sin archivos</span>';
+            } else {
+                linksHtml += '</div>';
+            }
+
+            const observaciones = getProp(doc, ['Observaciones', 10]) || '-';
+            const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
+
+            const canEditOrDelete = !isVisita && (isAdmin || isAsistente || (isOperador && (responsable.toLowerCase() === currentUser.nombre.toLowerCase())));
+
+            return `
+                <tr class="${bgRow} hover:bg-blue-50/60 transition duration-150">
+                    <td class="py-3.5 px-4 font-extrabold text-blue-900 border-r border-slate-200/80">${numDoc}</td>
+                    <td class="py-3.5 px-4 border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-blue-100/70 text-blue-800 border border-blue-200/50">${origen}</span></td>
+                    <td class="py-3.5 px-4 text-slate-800 max-w-[200px] truncate font-medium border-r border-slate-200/80" title="${asunto}">${asunto}</td>
+                    <td class="py-3.5 px-4 text-slate-600 font-semibold border-r border-slate-200/80">${fechaIng}</td>
+                    <td class="py-3.5 px-4 font-bold text-slate-700 border-r border-slate-200/80">${fechaVenc}</td>
+                    <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans}</span></td>
+                    <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
+                        ${diasFalt > 0 ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt}</span>` : `<span class="text-slate-400 font-semibold text-[11px]">0</span>`}
+                    </td>
+                    <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
+                        ${diasExc > 0 ? `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc}</span>` : `<span class="text-emerald-600 font-extrabold text-[11px]">0</span>`}
+                    </td>
+                    <td class="py-3.5 px-4 text-slate-700 font-semibold border-r border-slate-200/80">${responsable}</td>
+                    <td class="py-3.5 px-4 border-r border-slate-200/80">
+                        <span class="px-3 py-1 rounded-full text-[11px] font-black text-white shadow-sm flex items-center w-max gap-1.5" style="background-color: ${estadoColor}"><span class="w-2 h-2 rounded-full bg-white"></span>${rawEstado}</span>
+                    </td>
+                    <td class="py-3.5 px-4 border-r border-slate-200/80">${linksHtml}</td>
+                    <td class="py-3.5 px-4 text-slate-600 max-w-[140px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
+                    <td class="py-3.5 px-4 text-center space-x-1">
+                        <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
+                        ${canEditOrDelete ? `
+                            <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function populateSelects() {
+        const persSel = document.getElementById('filterPersonal');
+        const origSel = document.getElementById('filterOrigen');
+        const estadoSel = document.getElementById('filterEstado');
+        
+        const currentPers = persSel.value;
+        const currentOrig = origSel.value;
+        const currentEstado = estadoSel.value;
+
+        const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 'Nombre', 1]) : p).filter(Boolean);
+        const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 1]) : e).filter(Boolean);
+        const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
+        const alarmasNombres = appData.Alarmas.map(a => typeof a === 'object' ? getProp(a, ['Nombre_Alarma', 1]) : a).filter(Boolean);
+
+        persSel.innerHTML = '<option value="">Todo el Personal</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+        estadoSel.innerHTML = '<option value="">Todos los Estados</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
+        origSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+        
+        persSel.value = currentPers;
+        estadoSel.value = currentEstado;
+        origSel.value = currentOrig;
+
+        document.getElementById('formOrigenTipo').innerHTML = '<option value="">-- Seleccione Origen --</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+        document.getElementById('formResponsable').innerHTML = '<option value="">-- Seleccione Responsable --</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+        document.getElementById('formEstado').innerHTML = '<option value="">-- Seleccione Estado --</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
+
+        const dashPers = document.getElementById('dashFiltroPersonal');
+        const dashOrig = document.getElementById('dashFiltroOrigen');
+        const dashEst = document.getElementById('dashFiltroEstado');
+        const dashAlar = document.getElementById('dashFiltroAlarma');
+
+        const curDPers = dashPers.value;
+        const curDOrig = dashOrig.value;
+        const curDEst = dashEst.value;
+        const curDAlar = dashAlar.value;
+
+        dashPers.innerHTML = '<option value="">Todos</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+        dashOrig.innerHTML = '<option value="">Todos</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+        dashEst.innerHTML = '<option value="">Todos</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
+        dashAlar.innerHTML = '<option value="">Todos</option>' + alarmasNombres.map(a => `<option value="${a}">${a}</option>`).join('');
+
+        dashPers.value = curDPers;
+        dashOrig.value = curDOrig;
+        dashEst.value = curDEst;
+        dashAlar.value = curDAlar;
+    }
+
+    function filterDocuments() { renderTable(obtenerDocumentosFiltradosActuales()); }
+
+    function renderStatsAndCharts() {
+        const docsFiltrados = obtenerDocumentosDashboardFiltrados();
+        const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 1]) : e).filter(Boolean);
+        
+        document.getElementById('top-stat-total').innerText = appData.Documentos.length;
+        document.getElementById('top-stat-pendiente').innerText = appData.Documentos.filter(d => String(getProp(d, ['Estado', 9])).toLowerCase().includes('pendiente')).length;
+        document.getElementById('top-stat-atendido').innerText = appData.Documentos.filter(d => String(getProp(d, ['Estado', 9])).toLowerCase().includes('atendido')).length;
+
+        const dashEstadoCounts = {}; 
+        estadosNombres.forEach(e => dashEstadoCounts[e] = 0);
+        docsFiltrados.forEach(doc => {
+            const est = String(getProp(doc, ['Estado', 9]) || '').trim();
+            if (dashEstadoCounts[est] !== undefined) dashEstadoCounts[est]++;
+            else dashEstadoCounts[est] = (dashEstadoCounts[est] || 0) + 1;
+        });
+
+        const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
+        const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
+        docsFiltrados.forEach(doc => { const orig = getProp(doc, ['Origen_Tipo', 2]) || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
+
+        if (chartsInstance.estados) chartsInstance.estados.destroy();
+        if (chartsInstance.origenes) chartsInstance.origenes.destroy();
+
+        const estadoColores = appData.Estados.map(e => typeof e === 'object' ? (e.Color_Hex || e[2] || '#3b82f6') : '#3b82f6');
+
+        chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: Object.keys(dashEstadoCounts), datasets: [{ data: Object.values(dashEstadoCounts), backgroundColor: estadoColores.length ? estadoColores : ['#f59e0b', '#10b981'], borderWidth: 3, borderColor: '#ffffff' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { weight: '800' } } } } }
+        });
+
+        chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
+            type: 'bar',
+            data: { labels: Object.keys(origenCounts), datasets: [{ label: 'Cantidad de Documentos', data: Object.values(origenCounts), backgroundColor: '#4338ca', borderRadius: 8 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
+        });
+    }
+
+    function renderCharts() { renderStatsAndCharts(); }
+
+    async function convertirArchivosABase64(inputElement) {
+        if (!inputElement || !inputElement.files || inputElement.files.length === 0) return [];
+        let promesas = Array.from(inputElement.files).map(file => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64String = reader.result.split(',')[1];
+                    resolve({ name: file.name, mimeType: file.type || 'application/octet-stream', data: base64String });
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        });
+        return await Promise.all(promesas);
+    }
+
+    function openDocFormModal(idx = null) {
+        document.getElementById('docForm').reset();
+        populateSelects();
+
+        const inputIngreso = document.getElementById('inputArchivosIngreso');
+        const inputCierre = document.getElementById('inputArchivosCierre');
+        const containerIng = document.getElementById('containerUrlsIngresoActuales');
+        const containerCie = document.getElementById('containerUrlsCierreActuales');
+
+        containerIng.innerHTML = '';
+        containerCie.innerHTML = '';
+
+        const respSelect = document.getElementById('formResponsable');
+        const isOperador = currentUser && currentUser.tipo === 'Operador';
+        if (isOperador) {
+            let matchResp = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === currentUser.nombre.toLowerCase());
+            if (matchResp) respSelect.value = matchResp.value;
+            respSelect.disabled = true;
+            respSelect.classList.add('bg-slate-100', 'cursor-not-allowed');
+        } else {
+            respSelect.disabled = false;
+            respSelect.classList.remove('bg-slate-100', 'cursor-not-allowed');
+        }
+
+        if (idx !== null) {
+            // EDICIÓN: Ingreso bloqueado para subida, Cierre habilitado para subida
+            inputIngreso.disabled = true;
+            inputIngreso.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
+            inputCierre.disabled = false;
+            inputCierre.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
+
+            const doc = appData.Documentos[idx];
+            document.getElementById('docModalTitle').innerText = "Editar Documento y Cierre";
+            document.getElementById('docIndex').value = idx;
+            document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 1]) || '';
+            
+            const origenValor = String(getProp(doc, ['Origen_Tipo', 2]) || '').trim();
+            const selectOrigen = document.getElementById('formOrigenTipo');
+            let matchOrigen = Array.from(selectOrigen.options).find(opt => opt.value.trim().toLowerCase() === origenValor.toLowerCase());
+            if (matchOrigen) selectOrigen.value = matchOrigen.value; else selectOrigen.value = origenValor;
+
+            document.getElementById('formAsunto').value = getProp(doc, ['Asunto', 3]) || '';
+            const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
+            document.getElementById('formFechaIngreso').value = fechaIng;
+
+            const fechaVenc = String(getProp(doc, ['Fecha_Vencimiento', 5]) || '').split('T')[0];
+            document.getElementById('formFechaVencimiento').value = fechaVenc || fechaIng;
+
+            const respValor = String(getProp(doc, ['Responsable', 8]) || '').trim();
+            let matchResp = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === respValor.toLowerCase());
+            if (matchResp) respSelect.value = matchResp.value; else respSelect.value = respValor;
+
+            const estValor = String(getProp(doc, ['Estado', 9]) || '').trim();
+            const selectEst = document.getElementById('formEstado');
+            let matchEst = Array.from(selectEst.options).find(opt => opt.value.trim().toLowerCase() === estValor.toLowerCase());
+            if (matchEst) selectEst.value = matchEst.value; else selectEst.value = estValor;
+
+            document.getElementById('formObservaciones').value = getProp(doc, ['Observaciones', 10]) || '';
+
+            const urlsIng = getProp(doc, ['Urls_Ingreso', 11]) || '';
+            if (urlsIng) {
+                containerIng.innerHTML = `<p class="text-[11px] text-blue-700 font-semibold mt-1">📁 Sustentos registrados: <a href="${urlsIng.split(',')[0].trim()}" target="_blank" class="underline">Ver en Drive</a></p>`;
+            }
+            const urlsCierre = getProp(doc, ['Urls_Cierre', 12]) || '';
+            if (urlsCierre) {
+                containerCie.innerHTML = `<p class="text-[11px] text-emerald-700 font-semibold mt-1">📁 Cierres registrados: <a href="${urlsCierre.split(',')[0].trim()}" target="_blank" class="underline">Ver en Drive</a></p>`;
+            }
+        } else {
+            // NUEVO REGISTRO: Ingreso habilitado, Cierre bloqueado para subida
+            inputIngreso.disabled = false;
+            inputIngreso.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
+            inputCierre.disabled = true;
+            inputCierre.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
+
+            document.getElementById('docModalTitle').innerText = "Nuevo Documento";
+            document.getElementById('docIndex').value = "";
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('formFechaIngreso').value = todayStr;
+            const dDef = new Date();
+            dDef.setDate(dDef.getDate() + 15);
+            document.getElementById('formFechaVencimiento').value = dDef.toISOString().split('T')[0];
+        }
+        document.getElementById('docFormModal').classList.remove('hidden');
+    }
+
+    function closeDocFormModal() { 
+        const respSelect = document.getElementById('formResponsable');
+        if (respSelect) {
+            respSelect.disabled = false;
+            respSelect.classList.remove('bg-slate-100', 'cursor-not-allowed');
+        }
+        document.getElementById('docFormModal').classList.add('hidden'); 
+    }
+
+    async function saveDocument(e) {
+        e.preventDefault();
+        setConnectionStatus('sync', 'Preparando archivos...');
+
+        const inputIngreso = document.getElementById('inputArchivosIngreso');
+        const inputCierre = document.getElementById('inputArchivosCierre');
+
+        const archivosIngresoArr = !inputIngreso.disabled ? await convertirArchivosABase64(inputIngreso) : [];
+        const archivosCierreArr = !inputCierre.disabled ? await convertirArchivosABase64(inputCierre) : [];
+
+        const numDoc = document.getElementById('formNumeroDocumento').value.trim();
+        const fechaIng = document.getElementById('formFechaIngreso').value;
+        const fechaVenc = document.getElementById('formFechaVencimiento').value;
+        const origenTipo = document.getElementById('formOrigenTipo').value;
+        const asunto = document.getElementById('formAsunto').value;
+        const resp = document.getElementById('formResponsable').value;
+        const est = document.getElementById('formEstado').value;
+        const obs = document.getElementById('formObservaciones').value;
+        const plazos = calcularPlazos(fechaIng, fechaVenc);
+
+        const idx = document.getElementById('docIndex').value;
+
+        const payload = {
+            action: "saveDoc",
+            Numero_Documento: numDoc,
+            Origen_Tipo: origenTipo,
+            Asunto: asunto,
+            Fecha_Ingreso: fechaIng,
+            Fecha_Vencimiento: fechaVenc || plazos.vencimiento,
+            Dias_Trancurridos: plazos.diasTranscurridos,
+            Dias_Exceso: plazos.diasExceso,
+            Responsable: resp,
+            Estado: est,
+            Observaciones: obs,
+            Archivos_Ingreso_Json: JSON.stringify(archivosIngresoArr),
+            Archivos_Cierre_Json: JSON.stringify(archivosCierreArr)
+        };
+
+        if (idx !== "") appData.Documentos[idx] = payload;
+        else appData.Documentos.push(payload);
+
+        saveLocalCache();
+        renderAll();
+        closeDocFormModal();
+        executeGASAction(payload);
+    }
+
+    function editDocument(idx) { openDocFormModal(idx); }
+
+    function deleteDocument(idx) {
+        const doc = appData.Documentos[idx];
+        const numDoc = getProp(doc, ['Numero_Documento', 1]);
+        if (confirm(`¿Eliminar el documento ${numDoc}?`)) {
+            appData.Documentos.splice(idx, 1);
+            saveLocalCache();
+            renderAll();
+            executeGASAction({ action: "deleteDoc", Numero_Documento: numDoc });
+        }
+    }
+
+    function renderCatalogsManagement() {
+        const isAdmin = currentUser && currentUser.tipo === 'Administrador';
+
+        document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
+            appData.Personal.map((p, i) => {
+                const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
+                const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : '';
+                const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
+                
+                const usuario = typeof p === 'object' ? (p.usuario || p.Usuario || p['USUARIO'] || p[4] || '') : '';
+                const clave = typeof p === 'object' ? (p.clave || p.Clave || p['CLAVE'] || p[5] || '') : '';
+                const tipo = typeof p === 'object' ? (p.tipo_usuario || p.Tipo_Usuario || p['TIPO_USUARIO'] || p[6] || 'Operador') : 'Operador';
+
+                return `<div class="py-3.5 flex justify-between items-start text-xs border-b border-slate-100">
+                    <div class="space-y-1">
+                        <span class="font-extrabold text-slate-900 text-sm block">${nom}</span>
+                        ${cargo ? '<span class="text-slate-600 font-semibold block"><i class="fa-solid fa-briefcase mr-1 text-slate-400"></i>'+cargo+'</span>' : ''}
+                        ${correo ? '<span class="text-blue-600 font-semibold block"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
+                        
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2 space-y-1">
+                            <span class="text-slate-800 block font-bold"><i class="fa-solid fa-user mr-1 text-indigo-500"></i>Usuario: <span class="text-indigo-700 font-extrabold">${usuario || 'No asignado'}</span></span>
+                            <span class="text-slate-800 block font-bold flex items-center gap-1.5">
+                                <i class="fa-solid fa-lock text-rose-500"></i>Clave: 
+                                <span id="pwd_text_${i}" data-pwd="${clave}" data-masked="true" class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600">••••••</span>
+                                ${isAdmin && clave ? `<button onclick="toggleRowPassword(${i})" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Ver / Ocultar Clave"><i id="pwd_icon_${i}" class="fa-solid fa-eye text-xs"></i></button>` : ''}
+                            </span>
+                            <span class="text-emerald-700 block font-extrabold text-[11px]"><i class="fa-solid fa-shield-halved mr-1"></i>Rol: ${tipo}</span>
+                        </div>
+                    </div>
+                    ${isAdmin ? `<div class="space-x-1 flex items-center pt-1">
+                        <button onclick="editCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+
+        document.getElementById('manageEstadosList').innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
+            appData.Estados.map((e, i) => {
+                const nom = typeof e === 'object' ? (e.Nombre_Estado || e[1] || '') : e;
+                const col = typeof e === 'object' ? (e.Color_Hex || e[2] || '#3b82f6') : '#3b82f6';
+                return `<div class="py-3 flex justify-between items-center text-xs">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${col}"></span>
+                        <span class="font-extrabold text-slate-800">${nom}</span>
+                    </div>
+                    ${isAdmin ? `<div class="space-x-1 flex items-center">
+                        <button onclick="editCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+
+        document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
+            appData.Origenes.map((o, i) => {
+                const tipo = typeof o === 'object' ? (o.Tipo_Origen || o[1] || '') : o;
+                return `<div class="py-3 flex justify-between items-center text-xs">
+                    <span class="font-bold text-slate-800">${tipo}</span>
+                    ${isAdmin ? `<div class="space-x-1 flex items-center">
+                        <button onclick="editCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+
+        document.getElementById('manageAlarmasList').innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
+            appData.Alarmas.map((a, i) => {
+                const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
+                const min = typeof a === 'object' ? (a.Dias_Min || a[2] || 0) : 0;
+                const max = typeof a === 'object' ? (a.Dias_Max || a[3] || 0) : 0;
+                const col = typeof a === 'object' ? (a.Color_Hex || a[4] || '#ef4444') : '#ef4444';
+                return `<div class="py-3 flex justify-between items-center text-xs">
+                    <div>
+                        <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${col}"></span><span class="font-bold text-slate-800">${nom}</span></div>
+                        <span class="text-slate-400 text-[11px] font-medium mt-0.5 block">Rango: ${min} - ${max} días</span>
+                    </div>
+                    ${isAdmin ? `<div class="space-x-1 flex items-center">
+                        <button onclick="editCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+    }
+
+    function openCatalogModal(type, index = null) {
+        document.getElementById('catalogForm').reset();
+        document.getElementById('catalogType').value = type;
+        document.getElementById('catalogModalTitle').innerText = `Catálogo - ${type}`;
+
+        const lblName = document.getElementById('catalogLabelName');
+        const lblSec = document.getElementById('catalogLabelSecondary');
+        const secContainer = document.getElementById('catalogFieldSecondaryContainer');
+        const thirdContainer = document.getElementById('catalogFieldThirdContainer');
+        const fourthContainer = document.getElementById('catalogFieldFourthContainer');
+        const personalFieldsContainer = document.getElementById('catalogPersonalFieldsContainer');
+
+        secContainer.classList.remove('hidden');
+        thirdContainer.classList.add('hidden');
+        fourthContainer.classList.add('hidden');
+        personalFieldsContainer.classList.add('hidden');
+        const secWrapper = document.getElementById('inputSecondaryWrapper');
+
+        if (type === 'Personal') {
+            lblName.innerText = "Nombre Completo *";
+            lblSec.innerText = "Cargo / Área";
+            secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
+            thirdContainer.classList.remove('hidden');
+            document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
+            personalFieldsContainer.classList.remove('hidden');
+        } else if (type === 'Estados') {
+            lblName.innerText = "Nombre Estado *";
+            secContainer.classList.add('hidden');
+            fourthContainer.classList.remove('hidden');
+            document.getElementById('catalogLabelFourth').innerText = "Color del Estado";
+        } else if (type === 'Origenes') {
+            lblName.innerText = "Tipo de Origen *";
+            lblSec.innerText = "Descripción";
+            secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
+        } else if (type === 'Alarmas') {
+            lblName.innerText = "Nombre Alarma *";
+            lblSec.innerText = "Días Mínimos";
+            secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
+            thirdContainer.classList.remove('hidden');
+            document.getElementById('catalogLabelThird').innerText = "Días Máximos";
+            document.getElementById('catalogInputThird').value = "15";
+            document.getElementById('catalogInputThird').type = "number";
+            fourthContainer.classList.remove('hidden');
+        }
+
+        if (index !== null) {
+            document.getElementById('catalogOldIndex').value = index;
+            const item = appData[type][index];
+            if (type === 'Personal') {
+                document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 'Nombre', 1]) || '';
+                document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 'Cargo', 2]) || '';
+                document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
+                document.getElementById('catalogInputUsuario').value = getProp(item, ['usuario', 'Usuario', 4]) || '';
+                document.getElementById('catalogInputClave').value = getProp(item, ['clave', 'Clave', 5]) || '';
+                document.getElementById('catalogInputTipoUsuario').value = getProp(item, ['tipo_usuario', 'Tipo_Usuario', 6]) || 'Operador';
+            } else if (type === 'Estados') {
+                const col = getProp(item, ['Color_Hex', 2]) || '#3b82f6';
+                document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Estado', 1]) || '';
+                document.getElementById('catalogInputFourthText').value = col;
+                document.getElementById('catalogInputFourthColor').value = col;
+            } else if (type === 'Origenes') {
+                document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 1]) || '';
+                document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 2]) || '';
+            } else if (type === 'Alarmas') {
+                const col = getProp(item, ['Color_Hex', 4]) || '#ef4444';
+                document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Alarma', 1]) || '';
+                document.getElementById('catalogInputSecondary').value = getProp(item, ['Dias_Min', 2]) || 0;
+                document.getElementById('catalogInputThird').value = getProp(item, ['Dias_Max', 3]) || 15;
+                document.getElementById('catalogInputFourthText').value = col;
+                document.getElementById('catalogInputFourthColor').value = col;
+            }
+        } else {
+            document.getElementById('catalogOldIndex').value = "";
+        }
+        document.getElementById('catalogModal').classList.remove('hidden');
+    }
+
+    function closeCatalogModal() { document.getElementById('catalogModal').classList.add('hidden'); }
+
+    function saveCatalogItem(e) {
+        e.preventDefault();
+        const type = document.getElementById('catalogType').value;
+        const val = document.getElementById('catalogInputValue').value.trim();
+        const secondary = document.getElementById('catalogInputSecondary') ? document.getElementById('catalogInputSecondary').value.trim() : '';
+        const third = document.getElementById('catalogInputThird').value.trim();
+        const fourth = document.getElementById('catalogInputFourthText') ? document.getElementById('catalogInputFourthText').value.trim() : '';
+        const usuario = document.getElementById('catalogInputUsuario') ? document.getElementById('catalogInputUsuario').value.trim() : '';
+        const clave = document.getElementById('catalogInputClave') ? document.getElementById('catalogInputClave').value.trim() : '';
+        const tipo_usuario = document.getElementById('catalogInputTipoUsuario') ? document.getElementById('catalogInputTipoUsuario').value.trim() : '';
+        if (!val) return;
+
+        const oldIndex = document.getElementById('catalogOldIndex').value;
+        const oldVal = (oldIndex !== "" && appData[type][oldIndex]) ? 
+            (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
+            : val;
+
+        closeCatalogModal();
+        executeGASAction({ 
+            action: "saveCatalog", 
+            type: type, 
+            value: val, 
+            oldValue: oldVal,
+            secondary: type === 'Estados' ? fourth : secondary, 
+            third: third, 
+            fourth: fourth,
+            usuario: usuario,
+            clave: clave,
+            tipo_usuario: tipo_usuario
+        });
+    }
+
+    function editCatalogItem(type, index) { openCatalogModal(type, index); }
+
+    function deleteCatalogItem(type, index) {
+        const item = appData[type][index];
+        const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
+        if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
+            executeGASAction({ action: "deleteCatalog", type: type, value: val });
+        }
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
+            btn.classList.add('border-transparent', 'text-slate-500', 'font-bold');
+        });
+        document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+        const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+        activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-bold');
+        activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
+        if (tabId === 'dashboard') renderStatsAndCharts();
+        if (tabId === 'catalogos') renderCatalogsManagement();
+    }
+
+    function openConfigModal() { 
+        if (!currentUser || currentUser.tipo !== 'Administrador') {
+            alert("Acceso denegado. Solo el Administrador puede configurar Apps Script.");
+            return;
+        }
+        document.getElementById('inputBackendUrl').value = getBackendUrl(); 
+        document.getElementById('configModal').classList.remove('hidden'); 
+    }
+
+    function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
+
+    function saveBackendUrl() {
+        const url = document.getElementById('inputBackendUrl').value.trim();
+        if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
+    }
+</script>
