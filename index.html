@@ -68,8 +68,8 @@
                             <i class="fa-solid fa-user-shield mr-1 text-blue-300"></i> Autor: Ing. Johnny Quevin Camacho Mori
                         </span>
                         <span class="text-blue-300">•</span>
-                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md">
-                            <span class="w-2 h-2 mr-1.5 rounded-full bg-amber-400 animate-ping"></span> Sincronizando...
+                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md">
+                            <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400"></span> Sincronizado
                         </span>
                     </div>
                 </div>
@@ -86,10 +86,11 @@
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <button id="btnNuevoDocHeader" onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30">
-                    <i class="fa-solid fa-plus text-xs"></i>
-                    <span>Nuevo Documento</span>
-                </button>
+                <!-- Botón para abrir el Formulario de Google oficial para adjuntar documentos con Cero Errores -->
+                <a id="btnNuevoDocHeader" href="https://docs.google.com/forms/d/e/TU_FORMULARIO_ID/viewform" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Registrar documento y adjuntar archivos de forma segura">
+                    <i class="fa-solid fa-file-arrow-up text-xs"></i>
+                    <span>Nuevo Doc. / Adjuntar (Google Form)</span>
+                </a>
             </div>
         </div>
     </header>
@@ -280,80 +281,6 @@
         </section>
     </main>
 
-    <!-- MODAL: DOCUMENTO -->
-    <div id="docFormModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto border border-slate-100">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-                <h3 id="docModalTitle" class="font-extrabold text-slate-900 text-lg">Documento</h3>
-                <button onclick="closeDocFormModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form id="docForm" onsubmit="saveDocument(event)" class="space-y-4 text-sm">
-                <input type="hidden" id="docIndex">
-                <div>
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nro. Documento *</label>
-                    <input type="text" id="formNumeroDocumento" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="DOC-2026-XXX">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Tipo de Origen *</label>
-                        <select id="formOrigenTipo" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold"></select>
-                    </div>
-                    <div>
-                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Fecha de Ingreso *</label>
-                        <input type="date" id="formFechaIngreso" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
-                    </div>
-                </div>
-                <div>
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Fecha de Vencimiento *</label>
-                    <input type="date" id="formFechaVencimiento" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
-                </div>
-                <div>
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Asunto / Descripción *</label>
-                    <textarea id="formAsunto" rows="2" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Describa el motivo..."></textarea>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Responsable *</label>
-                        <select id="formResponsable" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold"></select>
-                    </div>
-                    <div>
-                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Estado Actual *</label>
-                        <select id="formEstado" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-extrabold text-blue-600"></select>
-                    </div>
-                </div>
-
-                <!-- SUSTENTO / INGRESO -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider flex items-center justify-between">
-                        <span><i class="fa-solid fa-folder-open text-blue-600 mr-1.5"></i> Documentos de Sustento / Ingreso</span>
-                        <span class="text-[10px] text-slate-400 font-normal">PDF, Word, Excel, PPT</span>
-                    </label>
-                    <input type="file" id="inputArchivosIngreso" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition">
-                    <div id="containerUrlsIngresoActuales" class="text-xs text-slate-600"></div>
-                </div>
-
-                <!-- CIERRE / RESPUESTA -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider flex items-center justify-between">
-                        <span><i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> Documentos de Cierre / Respuesta</span>
-                        <span class="text-[10px] text-slate-400 font-normal">PDF, Word, Excel, PPT</span>
-                    </label>
-                    <input type="file" id="inputArchivosCierre" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition">
-                    <div id="containerUrlsCierreActuales" class="text-xs text-slate-600"></div>
-                </div>
-
-                <div>
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Observaciones</label>
-                    <textarea id="formObservaciones" rows="2" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Comentarios u observaciones..."></textarea>
-                </div>
-                <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeDocFormModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar en Google Drive / Sheets</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- MODAL: CATÁLOGO -->
     <div id="catalogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto border border-slate-100">
@@ -437,7 +364,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT JAVASCRIPT COMPLETO INTEGRADO CON FETCH -->
+    <!-- SCRIPT JAVASCRIPT COMPLETO INTEGRADO -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -620,7 +547,6 @@
             return '';
         }
 
-        // COMUNICACIÓN MODERNA CON FETCH (GET)
         async function fetchData() {
             setConnectionStatus('sync', 'Conectando...');
             const url = getBackendUrl();
@@ -648,7 +574,6 @@
             }
         }
 
-        // COMUNICACIÓN MODERNA CON FETCH (POST)
         async function executeGASAction(params, successCallback) {
             setConnectionStatus('sync', 'Sincronizando...');
             const url = getBackendUrl();
@@ -937,7 +862,6 @@
                         <td class="py-3.5 px-4 text-center space-x-1">
                             <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
                             ${canEditOrDelete ? `
-                                <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
                                 <button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
                             ` : ''}
                         </td>
@@ -967,10 +891,6 @@
             persSel.value = currentPers;
             estadoSel.value = currentEstado;
             origSel.value = currentOrig;
-
-            document.getElementById('formOrigenTipo').innerHTML = '<option value="">-- Seleccione Origen --</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
-            document.getElementById('formResponsable').innerHTML = '<option value="">-- Seleccione Responsable --</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
-            document.getElementById('formEstado').innerHTML = '<option value="">-- Seleccione Estado --</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
 
             const dashPers = document.getElementById('dashFiltroPersonal');
             const dashOrig = document.getElementById('dashFiltroOrigen');
@@ -1034,163 +954,6 @@
         }
 
         function renderCharts() { renderStatsAndCharts(); }
-
-        async function convertirArchivosABase64(inputElement) {
-            if (!inputElement || !inputElement.files || inputElement.files.length === 0) return [];
-            let promesas = Array.from(inputElement.files).map(file => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const base64String = reader.result.split(',')[1];
-                        resolve({ name: file.name, mimeType: file.type || 'application/octet-stream', data: base64String });
-                    };
-                    reader.onerror = error => reject(error);
-                    reader.readAsDataURL(file);
-                });
-            });
-            return await Promise.all(promesas);
-        }
-
-        function openDocFormModal(idx = null) {
-            document.getElementById('docForm').reset();
-            populateSelects();
-
-            const inputIngreso = document.getElementById('inputArchivosIngreso');
-            const inputCierre = document.getElementById('inputArchivosCierre');
-            const containerIng = document.getElementById('containerUrlsIngresoActuales');
-            const containerCie = document.getElementById('containerUrlsCierreActuales');
-
-            containerIng.innerHTML = '';
-            containerCie.innerHTML = '';
-
-            const respSelect = document.getElementById('formResponsable');
-            const isOperador = currentUser && currentUser.tipo === 'Operador';
-            if (isOperador) {
-                let matchResp = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === currentUser.nombre.toLowerCase());
-                if (matchResp) respSelect.value = matchResp.value;
-                respSelect.disabled = true;
-                respSelect.classList.add('bg-slate-100', 'cursor-not-allowed');
-            } else {
-                respSelect.disabled = false;
-                respSelect.classList.remove('bg-slate-100', 'cursor-not-allowed');
-            }
-
-            if (idx !== null) {
-                inputIngreso.disabled = true;
-                inputIngreso.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
-                inputCierre.disabled = false;
-                inputCierre.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
-
-                const doc = appData.Documentos[idx];
-                document.getElementById('docModalTitle').innerText = "Editar Documento y Cierre";
-                document.getElementById('docIndex').value = idx;
-                document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 1]) || '';
-                
-                const origenValor = String(getProp(doc, ['Origen_Tipo', 2]) || '').trim();
-                const selectOrigen = document.getElementById('formOrigenTipo');
-                let matchOrigen = Array.from(selectOrigen.options).find(opt => opt.value.trim().toLowerCase() === origenValor.toLowerCase());
-                if (matchOrigen) selectOrigen.value = matchOrigen.value; else selectOrigen.value = origenValor;
-
-                document.getElementById('formAsunto').value = getProp(doc, ['Asunto', 3]) || '';
-                const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
-                document.getElementById('formFechaIngreso').value = fechaIng;
-
-                const fechaVenc = String(getProp(doc, ['Fecha_Vencimiento', 5]) || '').split('T')[0];
-                document.getElementById('formFechaVencimiento').value = fechaVenc || fechaIng;
-
-                const respValor = String(getProp(doc, ['Responsable', 8]) || '').trim();
-                let matchResp = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === respValor.toLowerCase());
-                if (matchResp) respSelect.value = matchResp.value; else respSelect.value = respValor;
-
-                const estValor = String(getProp(doc, ['Estado', 9]) || '').trim();
-                const selectEst = document.getElementById('formEstado');
-                let matchEst = Array.from(selectEst.options).find(opt => opt.value.trim().toLowerCase() === estValor.toLowerCase());
-                if (matchEst) selectEst.value = matchEst.value; else selectEst.value = estValor;
-
-                document.getElementById('formObservaciones').value = getProp(doc, ['Observaciones', 10]) || '';
-
-                const urlsIng = getProp(doc, ['Urls_Ingreso', 11]) || '';
-                if (urlsIng) {
-                    containerIng.innerHTML = `<p class="text-[11px] text-blue-700 font-semibold mt-1">📁 Sustentos registrados: <a href="${urlsIng.split(',')[0].trim()}" target="_blank" class="underline">Ver en Drive</a></p>`;
-                }
-                const urlsCierre = getProp(doc, ['Urls_Cierre', 12]) || '';
-                if (urlsCierre) {
-                    containerCie.innerHTML = `<p class="text-[11px] text-emerald-700 font-semibold mt-1">📁 Cierres registrados: <a href="${urlsCierre.split(',')[0].trim()}" target="_blank" class="underline">Ver en Drive</a></p>`;
-                }
-            } else {
-                inputIngreso.disabled = false;
-                inputIngreso.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
-                inputCierre.disabled = true;
-                inputCierre.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-100');
-
-                document.getElementById('docModalTitle').innerText = "Nuevo Documento";
-                document.getElementById('docIndex').value = "";
-                const todayStr = new Date().toISOString().split('T')[0];
-                document.getElementById('formFechaIngreso').value = todayStr;
-                const dDef = new Date();
-                dDef.setDate(dDef.getDate() + 15);
-                document.getElementById('formFechaVencimiento').value = dDef.toISOString().split('T')[0];
-            }
-            document.getElementById('docFormModal').classList.remove('hidden');
-        }
-
-        function closeDocFormModal() { 
-            const respSelect = document.getElementById('formResponsable');
-            if (respSelect) {
-                respSelect.disabled = false;
-                respSelect.classList.remove('bg-slate-100', 'cursor-not-allowed');
-            }
-            document.getElementById('docFormModal').classList.add('hidden'); 
-        }
-
-        async function saveDocument(e) {
-            e.preventDefault();
-            setConnectionStatus('sync', 'Guardando documento y archivos...');
-
-            const inputIngreso = document.getElementById('inputArchivosIngreso');
-            const inputCierre = document.getElementById('inputArchivosCierre');
-
-            const archivosIngresoArr = !inputIngreso.disabled ? await convertirArchivosABase64(inputIngreso) : [];
-            const archivosCierreArr = !inputCierre.disabled ? await convertirArchivosABase64(inputCierre) : [];
-
-            const numDoc = document.getElementById('formNumeroDocumento').value.trim();
-            const fechaIng = document.getElementById('formFechaIngreso').value;
-            const fechaVenc = document.getElementById('formFechaVencimiento').value;
-            const origenTipo = document.getElementById('formOrigenTipo').value;
-            const asunto = document.getElementById('formAsunto').value;
-            const resp = document.getElementById('formResponsable').value;
-            const est = document.getElementById('formEstado').value;
-            const obs = document.getElementById('formObservaciones').value;
-            const plazos = calcularPlazos(fechaIng, fechaVenc);
-
-            const idx = document.getElementById('docIndex').value;
-
-            const payload = {
-                action: "saveDoc",
-                Numero_Documento: numDoc,
-                Origen_Tipo: origenTipo,
-                Asunto: asunto,
-                Fecha_Ingreso: fechaIng,
-                Fecha_Vencimiento: fechaVenc || plazos.vencimiento,
-                Dias_Trancurridos: plazos.diasTranscurridos,
-                Dias_Exceso: plazos.diasExceso,
-                Responsable: resp,
-                Estado: est,
-                Observaciones: obs,
-                Archivos_Ingreso: archivosIngresoArr,
-                Archivos_Cierre: archivosCierreArr
-            };
-
-            if (idx !== "") appData.Documentos[idx] = payload;
-            else appData.Documentos.push(payload);
-
-            saveLocalCache();
-            renderAll();
-            closeDocFormModal();
-            executeGASAction(payload);
-        }
-
-        function editDocument(idx) { openDocFormModal(idx); }
 
         function deleteDocument(idx) {
             const doc = appData.Documentos[idx];
