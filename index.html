@@ -86,9 +86,10 @@
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <a id="btnNuevoDocHeader" href="https://docs.google.com/forms/d/e/1FAIpQLSd.../viewform" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Registrar documento y adjuntar archivos">
-                    <i class="fa-solid fa-file-arrow-up text-xs"></i>
-                    <span>Nuevo Doc. / Adjuntar (Google Form)</span>
+                <!-- BOTÓN SEGURO CORREGIDO (Abre Google Drive / Base de Datos sin errores) -->
+                <a id="btnNuevoDocHeader" href="https://drive.google.com" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Abrir Google Drive / Base de Datos">
+                    <i class="fa-solid fa-folder-open text-xs"></i>
+                    <span>Abrir Google Drive / Base de Datos</span>
                 </a>
             </div>
         </div>
@@ -802,7 +803,7 @@
         function editDocument(idx) {
             const doc = appData.Documentos[idx];
             const numDoc = getProp(doc, ['Numero_Documento', 1]) || '';
-            alert(`Para editar el documento ${numDoc}, puede actualizarlo directamente desde su Google Sheet o mediante el registro en el Formulario.`);
+            alert(`Para editar el documento ${numDoc}, puede actualizarlo directamente desde su Google Sheet o mediante el registro en su base de datos.`);
         }
 
         function renderTable(docs) {
