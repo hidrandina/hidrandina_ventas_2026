@@ -1261,35 +1261,93 @@
             });
         }
 
-        // Carga de archivos desde GitHub Pages mediante POST de formulario a un iframe oculto.
-        // Apps Script devuelve una página HTML que comunica el resultado con postMessage.
+        // Envío POST desde GitHub Pages. La confirmación se obtiene por
+        // consulta JSONP independiente, evitando depender del iframe de Google.
+        function consultarEstadoCarga(requestId) {
+            return new Promise((resolve, reject) => {
+                const cb = 'hidrandina_estado_' + Math.random().toString(36).slice(2);
+                const script = document.createElement('script');
+                let terminado = false;
+                const timer = setTimeout(() => fin(new Error('No se pudo consultar el estado de carga.')), 12000);
+                function fin(err, data) {
+                    if (terminado) return;
+                    terminado = true;
+                    clearTimeout(timer);
+                    script.remove();
+                    delete window[cb];
+                    err ? reject(err) : resolve(data);
+                }
+                window[cb] = (data) => fin(null, data);
+                script.onerror = () => fin(new Error('No se pudo contactar Apps Script para verificar el archivo.'));
+                const url = getBackendUrl();
+                script.src = `${url}${url.includes('?') ? '&' : '?'}action=uploadStatus&requestId=${encodeURIComponent(requestId)}&callback=${cb}&_=${Date.now()}`;
+                document.body.appendChild(script);
+            });
+        }
+
         function subirAdjuntoPorFormulario(payload) {
-            return new Promise((resolve,reject) => {
-                const requestId='upload_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-                const frame=document.createElement('iframe');frame.name=requestId;frame.style.display='none';
-                const form=document.createElement('form');form.method='POST';form.action=getBackendUrl();
-                form.target=requestId;form.style.display='none';
-                const data={...payload, requestId, action:'uploadAdjunto'};
-                for(const [k,v] of Object.entries(data)){
-                    const input=document.createElement('input');input.type='hidden';input.name=k;input.value=String(v ?? '');form.appendChild(input);
+            return new Promise((resolve, reject) => {
+                const requestId = 'up_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+                const frame = document.createElement('iframe');
+                frame.name = requestId;
+                frame.style.display = 'none';
+                frame.title = 'Carga de archivo';
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = getBackendUrl();
+                form.target = requestId;
+                form.style.display = 'none';
+                const data = { ...payload, requestId, action: 'uploadAdjunto' };
+                for (const [k, v] of Object.entries(data)) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden'; input.name = k; input.value = String(v ?? '');
+                    form.appendChild(input);
                 }
-                let finished=false;
-                const timeout=setTimeout(()=>done(new Error('La carga no confirmó respuesta en 120 segundos; comprueba Drive antes de volver a subir.')),120000);
-                function done(error,result){
-                    if(finished)return;finished=true;clearTimeout(timeout);
-                    window.removeEventListener('message',receive);form.remove();
-                    setTimeout(()=>frame.remove(),1000);
-                    error?reject(error):resolve(result);
+                let finished = false;
+                let attempts = 0;
+                let pollTimer;
+                const started = Date.now();
+                function done(error, result) {
+                    if (finished) return;
+                    finished = true;
+                    clearTimeout(pollTimer);
+                    window.removeEventListener('message', receive);
+                    form.remove();
+                    frame.remove();
+                    error ? reject(error) : resolve(result);
                 }
-                function receive(event){
-                    // El ID aleatorio vincula el mensaje a esta solicitud. No confiar en otros mensajes.
-                    const data=event.data;
-                    if(!data || data.source !== 'hidrandina-gas-upload' || data.requestId !== requestId)return;
-                    if(!/^https:\/\/([a-z0-9-]+\.)*google(usercontent)?\.com$/i.test(event.origin))return;
-                    data.success?done(null,data):done(new Error(data.message||'Error en Drive'));
+                function receive(event) {
+                    const data = event.data;
+                    if (!data || data.source !== 'hidrandina-gas-upload' || data.requestId !== requestId) return;
+                    if (!/^https:\/\/([a-z0-9-]+\.)*google(usercontent)?\.com$/i.test(event.origin)) return;
+                    data.success ? done(null, data) : done(new Error(data.message || 'Error al subir a Drive'));
                 }
-                window.addEventListener('message',receive);
-                document.body.appendChild(frame);document.body.appendChild(form);form.submit();
+                async function poll() {
+                    if (finished) return;
+                    if (Date.now() - started > 95000) {
+                        return done(new Error('No se recibió confirmación de Apps Script. Revisa Implementaciones > Ejecuciones, la propiedad ARCHIVOS_FOLDER_ID y los permisos de despliegue. No vuelvas a subir sin revisar si existe el archivo.'));
+                    }
+                    attempts++;
+                    try {
+                        const result = await consultarEstadoCarga(requestId);
+                        if (finished) return;
+                        if (result && result.estado === 'completado') {
+                            return result.success ? done(null, result) : done(new Error(result.message || 'Error al subir a Drive'));
+                        }
+                    } catch (error) {
+                        if (attempts >= 5) return done(error);
+                    }
+                    if (!finished) pollTimer = setTimeout(poll, 2500);
+                }
+                window.addEventListener('message', receive);
+                document.body.appendChild(frame);
+                document.body.appendChild(form);
+                try {
+                    form.submit();
+                    pollTimer = setTimeout(poll, 1800);
+                } catch (error) {
+                    done(error);
+                }
             });
         }
         async function subirSustentos(numero, archivos, tipo) {
