@@ -182,12 +182,13 @@
                                 <th class="py-4 px-4 border-r border-indigo-600/40 text-center">Días Exceso</th>
                                 <th class="py-4 px-4 border-r border-indigo-600/40">Responsable</th>
                                 <th class="py-4 px-4 border-r border-indigo-600/40">Estado</th>
+                                <th class="py-4 px-4 border-r border-indigo-600/40">Adjuntos (Drive)</th>
                                 <th class="py-4 px-4 border-r border-indigo-600/40">Observaciones</th>
                                 <th class="py-4 px-4 text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="documentosTableBody" class="divide-y divide-slate-200 text-xs font-medium">
-                            <tr><td colspan="12" class="py-12 text-center text-slate-400 font-semibold bg-white">Cargando registros...</td></tr>
+                            <tr><td colspan="13" class="py-12 text-center text-slate-400 font-semibold bg-white">Cargando registros...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -279,7 +280,7 @@
         </section>
     </main>
 
-    <!-- MODAL: DOCUMENTO -->
+    <!-- MODAL: DOCUMENTO (CON CARGA MÚLTIPLE DE SUSTENTO Y CIERRE) -->
     <div id="docFormModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl max-w-xl w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
@@ -320,13 +321,34 @@
                         <select id="formEstado" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-extrabold text-blue-600"></select>
                     </div>
                 </div>
+
+                <!-- CARGA MÚLTIPLE DE ARCHIVOS DE SUSTENTO / INICIO -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider flex items-center justify-between">
+                        <span><i class="fa-solid fa-folder-open text-blue-600 mr-1.5"></i> Documentos de Sustento / Ingreso (Múltiples)</span>
+                        <span class="text-[10px] text-slate-400 font-normal">PDF, Word, Excel, PPT</span>
+                    </label>
+                    <input type="file" id="inputArchivosIngreso" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition">
+                    <div id="containerUrlsIngresoActuales" class="text-xs text-slate-600"></div>
+                </div>
+
+                <!-- CARGA MÚLTIPLE DE ARCHIVOS DE CIERRE / RESPUESTA -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider flex items-center justify-between">
+                        <span><i class="fa-solid fa-circle-check text-emerald-600 mr-1.5"></i> Documentos de Cierre / Respuesta (Múltiples)</span>
+                        <span class="text-[10px] text-slate-400 font-normal">PDF, Word, Excel, PPT</span>
+                    </label>
+                    <input type="file" id="inputArchivosCierre" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 transition">
+                    <div id="containerUrlsCierreActuales" class="text-xs text-slate-600"></div>
+                </div>
+
                 <div>
                     <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Observaciones</label>
                     <textarea id="formObservaciones" rows="2" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Comentarios u observaciones..."></textarea>
                 </div>
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeDocFormModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar en Google Sheets</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar en Google Drive / Sheets</button>
                 </div>
             </form>
         </div>
@@ -416,7 +438,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT INTEGRADA -->
+    <!-- LÓGICA JAVASCRIPT INTEGRADA CON SOPORTE DE ARCHIVOS -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -791,6 +813,8 @@
                     "Días Exceso": plazos.diasExceso,
                     "Responsable": getProp(doc, ['Responsable', 8]) || '-',
                     "Estado": getProp(doc, ['Estado', 9]) || 'Pendiente',
+                    "Urls Sustento": getProp(doc, ['Urls_Ingreso', 11]) || '-',
+                    "Urls Cierre": getProp(doc, ['Urls_Cierre', 12]) || '-',
                     "Observaciones": getProp(doc, ['Observaciones', 10]) || '-'
                 };
             });
@@ -844,7 +868,7 @@
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="12" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="13" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos registrados.</td></tr>`;
                 return;
             }
 
@@ -879,6 +903,22 @@
                     if (estObj && typeof estObj === 'object') estadoColor = estObj.Color_Hex || estObj[2] || '#3b82f6';
                 }
 
+                const urlsIngreso = getProp(doc, ['Urls_Ingreso', 11]) || '';
+                const urlsCierre = getProp(doc, ['Urls_Cierre', 12]) || '';
+                
+                let linksHtml = '<div class="space-y-1 text-[11px]">';
+                if (urlsIngreso) {
+                    linksHtml += `<div class="font-bold text-blue-700"><i class="fa-solid fa-folder-open mr-1"></i>Sustento: <a href="${urlsIngreso.split(',')[0].trim()}" target="_blank" class="underline text-blue-600 hover:text-blue-800">Ver Archivo</a></div>`;
+                }
+                if (urlsCierre) {
+                    linksHtml += `<div class="font-bold text-emerald-700"><i class="fa-solid fa-circle-check mr-1"></i>Cierre: <a href="${urlsCierre.split(',')[0].trim()}" target="_blank" class="underline text-emerald-600 hover:text-emerald-800">Ver Archivo</a></div>`;
+                }
+                if (!urlsIngreso && !urlsCierre) {
+                    linksHtml = '<span class="text-slate-400">Sin archivos</span>';
+                } else {
+                    linksHtml += '</div>';
+                }
+
                 const observaciones = getProp(doc, ['Observaciones', 10]) || '-';
                 const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
 
@@ -888,7 +928,7 @@
                     <tr class="${bgRow} hover:bg-blue-50/60 transition duration-150">
                         <td class="py-3.5 px-4 font-extrabold text-blue-900 border-r border-slate-200/80">${numDoc}</td>
                         <td class="py-3.5 px-4 border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-blue-100/70 text-blue-800 border border-blue-200/50">${origen}</span></td>
-                        <td class="py-3.5 px-4 text-slate-800 max-w-[220px] truncate font-medium border-r border-slate-200/80" title="${asunto}">${asunto}</td>
+                        <td class="py-3.5 px-4 text-slate-800 max-w-[200px] truncate font-medium border-r border-slate-200/80" title="${asunto}">${asunto}</td>
                         <td class="py-3.5 px-4 text-slate-600 font-semibold border-r border-slate-200/80">${fechaIng}</td>
                         <td class="py-3.5 px-4 font-bold text-slate-700 border-r border-slate-200/80">${fechaVenc}</td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans}</span></td>
@@ -902,7 +942,8 @@
                         <td class="py-3.5 px-4 border-r border-slate-200/80">
                             <span class="px-3 py-1 rounded-full text-[11px] font-black text-white shadow-sm flex items-center w-max gap-1.5" style="background-color: ${estadoColor}"><span class="w-2 h-2 rounded-full bg-white"></span>${rawEstado}</span>
                         </td>
-                        <td class="py-3.5 px-4 text-slate-600 max-w-[160px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
+                        <td class="py-3.5 px-4 border-r border-slate-200/80">${linksHtml}</td>
+                        <td class="py-3.5 px-4 text-slate-600 max-w-[140px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
                         <td class="py-3.5 px-4 text-center space-x-1">
                             <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
                             ${canEditOrDelete ? `
@@ -1004,15 +1045,42 @@
 
         function renderCharts() { renderStatsAndCharts(); }
 
+        async function convertirArchivosABase64(inputElement) {
+            const files = inputElement.files;
+            if (!files || files.length === 0) return [];
+            let promesas = Array.from(files).map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const base64String = reader.result.split(',')[1];
+                        resolve({ name: file.name, mimeType: file.type || 'application/octet-stream', data: base64String });
+                    };
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(file);
+                });
+            });
+            return await Promise.all(promesas);
+        }
+
         function openDocFormModal(idx = null) {
             document.getElementById('docForm').reset();
             populateSelects();
 
             const respSelect = document.getElementById('formResponsable');
-            if (currentUser && currentUser.tipo === 'Operador') {
+            const isOperador = currentUser && currentUser.tipo === 'Operador';
+
+            if (isOperador) {
                 let matchResp = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === currentUser.nombre.toLowerCase());
                 if (matchResp) respSelect.value = matchResp.value;
+                respSelect.disabled = true;
+                respSelect.classList.add('bg-slate-100', 'cursor-not-allowed');
+            } else {
+                respSelect.disabled = false;
+                respSelect.classList.remove('bg-slate-100', 'cursor-not-allowed');
             }
+
+            document.getElementById('containerUrlsIngresoActuales').innerHTML = '';
+            document.getElementById('containerUrlsCierreActuales').innerHTML = '';
 
             if (idx !== null) {
                 const doc = appData.Documentos[idx];
@@ -1048,6 +1116,16 @@
                 if (matchEst) selectEst.value = matchEst.value; else selectEst.value = estValor;
 
                 document.getElementById('formObservaciones').value = getProp(doc, ['Observaciones', 10]) || '';
+
+                const urlsIng = getProp(doc, ['Urls_Ingreso', 11]) || '';
+                if (urlsIng) {
+                    document.getElementById('containerUrlsIngresoActuales').innerHTML = `<p class="text-[11px] text-blue-700 font-semibold mt-1">📁 Archivos actuales: <a href="${urlsIng.split(',')[0].trim()}" target="_blank" class="underline">Ver en Drive</a></p>`;
+                }
+
+                const urlsCierre = getProp(doc, ['Urls_Cierre', 12]) || '';
+                if (urlsCierre) {
+                    document.getElementById('containerUrlsCierreActuales').innerHTML = `<p class="text-[11px] text-emerald-700 font-semibold mt-1">📁 Archivos actuales: <a href="${urlsCierre.split(',')[0].trim()}" target="_blank" class="underline">Ver en Drive</a></p>`;
+                }
             } else {
                 document.getElementById('docModalTitle').innerText = "Nuevo Documento";
                 document.getElementById('docIndex').value = "";
@@ -1060,10 +1138,25 @@
             document.getElementById('docFormModal').classList.remove('hidden');
         }
 
-        function closeDocFormModal() { document.getElementById('docFormModal').classList.add('hidden'); }
+        function closeDocFormModal() { 
+            const respSelect = document.getElementById('formResponsable');
+            if (respSelect) {
+                respSelect.disabled = false;
+                respSelect.classList.remove('bg-slate-100', 'cursor-not-allowed');
+            }
+            document.getElementById('docFormModal').classList.add('hidden'); 
+        }
 
-        function saveDocument(e) {
+        async function saveDocument(e) {
             e.preventDefault();
+            setConnectionStatus('sync', 'Subiendo archivos...');
+
+            const inputIngreso = document.getElementById('inputArchivosIngreso');
+            const inputCierre = document.getElementById('inputArchivosCierre');
+
+            const archivosIngresoArr = await convertirArchivosABase64(inputIngreso);
+            const archivosCierreArr = await convertirArchivosABase64(inputCierre);
+
             const numDoc = document.getElementById('formNumeroDocumento').value.trim();
             const fechaIng = document.getElementById('formFechaIngreso').value;
             const fechaVenc = document.getElementById('formFechaVencimiento').value;
@@ -1073,6 +1166,14 @@
             const est = document.getElementById('formEstado').value;
             const obs = document.getElementById('formObservaciones').value;
             const plazos = calcularPlazos(fechaIng, fechaVenc);
+
+            const idx = document.getElementById('docIndex').value;
+            let existingUrlsIng = "";
+            let existingUrlsCierre = "";
+            if (idx !== "" && appData.Documentos[idx]) {
+                existingUrlsIng = getProp(appData.Documentos[idx], ['Urls_Ingreso', 11]) || "";
+                existingUrlsCierre = getProp(appData.Documentos[idx], ['Urls_Cierre', 12]) || "";
+            }
 
             const newDocObj = {
                 action: "saveDoc",
@@ -1085,10 +1186,13 @@
                 Dias_Exceso: plazos.diasExceso,
                 Responsable: resp,
                 Estado: est,
-                Observaciones: obs
+                Observaciones: obs,
+                Urls_Ingreso: existingUrlsIng,
+                Urls_Cierre: existingUrlsCierre,
+                Archivos_Ingreso_Json: JSON.stringify(archivosIngresoArr),
+                Archivos_Cierre_Json: JSON.stringify(archivosCierreArr)
             };
 
-            const idx = document.getElementById('docIndex').value;
             if (idx !== "") appData.Documentos[idx] = newDocObj;
             else appData.Documentos.push(newDocObj);
 
@@ -1133,7 +1237,6 @@
                             ${cargo ? '<span class="text-slate-600 font-semibold block"><i class="fa-solid fa-briefcase mr-1 text-slate-400"></i>'+cargo+'</span>' : ''}
                             ${correo ? '<span class="text-blue-600 font-semibold block"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
                             
-                            <!-- TARJETA VISUAL AMPLIADA CON USUARIO, CLAVE Y TIPO DE USUARIO -->
                             <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2 space-y-1">
                                 <span class="text-slate-800 block font-bold"><i class="fa-solid fa-user mr-1 text-indigo-500"></i>Usuario: <span class="text-indigo-700 font-extrabold">${usuario || 'No asignado'}</span></span>
                                 <span class="text-slate-800 block font-bold flex items-center gap-1.5">
