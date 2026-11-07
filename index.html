@@ -86,11 +86,6 @@
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <!-- BOTÓN NUEVO DOCUMENTO (Google Form) -->
-                <a id="btnNuevoDocHeader" href="https://docs.google.com/forms/d/e/1FAIpQLSd.../viewform" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Registrar documento y adjuntar archivos">
-                    <i class="fa-solid fa-file-arrow-up text-xs"></i>
-                    <span>Nuevo Doc. / Adjuntar (Google Form)</span>
-                </a>
             </div>
         </div>
     </header>
@@ -404,11 +399,7 @@
 
         function applyUserPermissions() {
             if (!currentUser) return;
-            const isVisita = currentUser.tipo === 'Visita';
             const isAdmin = currentUser.tipo === 'Administrador';
-
-            const btnNuevoDoc = document.getElementById('btnNuevoDocHeader');
-            if (btnNuevoDoc) btnNuevoDoc.style.display = isVisita ? 'none' : 'inline-flex';
 
             const btnConfig = document.getElementById('btnConfigAppsScript');
             if (btnConfig) btnConfig.style.display = isAdmin ? 'inline-flex' : 'none';
