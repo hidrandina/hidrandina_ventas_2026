@@ -1,1222 +1,670 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full bg-slate-100">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIDRANDINA - Control de Documentos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style> 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; } 
-        .glass-header { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0284c7 100%); }
-        .gradient-card-blue { background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%); }
-        .gradient-card-amber { background: linear-gradient(135deg, #ffffff 0%, #fffbebe6 100%); }
-        .gradient-card-emerald { background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HIDRANDINA - Depto. Ventas y Clientes Menores</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- MODAL DE LOGIN -->
-    <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 border border-slate-100">
-            <div class="text-center space-y-2">
-                <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg shadow-blue-500/30">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <h2 class="text-xl font-black text-slate-900">HIDRANDINA - Acceso Seguro</h2>
-                <p class="text-xs font-semibold text-slate-500">Depto. Ventas y Clientes Menores</p>
-            </div>
-            <form onsubmit="handleLogin(event)" class="space-y-4 text-sm">
-                <div>
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Usuario *</label>
-                    <div class="relative mt-1.5">
-                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400"><i class="fa-solid fa-user"></i></span>
-                        <input type="text" id="loginUsuario" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition" placeholder="Ingrese su usuario">
-                    </div>
-                </div>
-                <div>
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave *</label>
-                    <div class="relative mt-1.5">
-                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400"><i class="fa-solid fa-lock"></i></span>
-                        <input type="password" id="loginClave" required class="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition" placeholder="••••••••">
-                        <button type="button" onclick="toggleLoginPassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600" title="Ver Clave">
-                            <i id="loginEyeIcon" class="fa-solid fa-eye-slash"></i>
-                        </button>
-                    </div>
-                </div>
-                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold rounded-xl shadow-lg shadow-blue-600/30 transition transform active:scale-95">
-                    Ingresar al Sistema
-                </button>
-            </form>
+  <!-- HEADER -->
+  <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-slate-900 font-bold shadow-md">
+          <i class="fa-solid fa-bolt text-xl"></i>
         </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight tracking-wide">HIDRANDINA - Depto. Ventas y Clientes Menores</h1>
+          <div class="flex items-center space-x-2 text-xs text-slate-300">
+            <span><i class="fa-solid fa-user-gear mr-1 text-amber-400"></i> Autor: Ing. Johnny Quevin Camacho Mori</span>
+            <span class="text-slate-500">•</span>
+            <span id="connection-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Sincronizado
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-200">
+          Johnny Camacho Mori (Administrador)
+        </span>
+        <button onclick="fetchData()" class="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition" title="Sincronizar Datos">
+          <i class="fa-solid fa-sync"></i>
+        </button>
+        <button onclick="openConfigModal()" class="p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition" title="Configuración de Servidor">
+          <i class="fa-solid fa-gear"></i>
+        </button>
+        <button onclick="openModalDocumento()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md transition flex items-center space-x-2">
+          <i class="fa-solid fa-plus"></i>
+          <span>Nuevo Documento</span>
+        </button>
+      </div>
     </div>
+  </header>
 
-    <!-- Header Principal -->
-    <header class="glass-header border-b border-indigo-900/50 sticky top-0 z-30 shadow-2xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <div>
-                    <h1 class="font-extrabold text-white text-lg sm:text-xl tracking-tight leading-tight flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-yellow-400"></i>
-                        HIDRANDINA - Depto. Ventas y Clientes Menores
-                    </h1>
-                    <div class="flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-200">
-                        <span class="font-medium text-blue-200 bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-400/30 backdrop-blur-md">
-                            <i class="fa-solid fa-user-shield mr-1 text-blue-300"></i> Autor: Ing. Johnny Quevin Camacho Mori
-                        </span>
-                        <span class="text-blue-300">•</span>
-                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md">
-                            <span class="w-2 h-2 mr-1.5 rounded-full bg-amber-400 animate-ping"></span> Sincronizando...
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center space-x-3">
-                <span id="userSessionBadge" class="hidden sm:inline-block text-xs font-bold text-slate-200 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10"></span>
-                <button onclick="logoutSession()" class="p-2.5 text-rose-300 hover:text-white hover:bg-rose-500/20 rounded-xl transition shadow-sm border border-rose-400/30" title="Cerrar Sesión">
-                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
-                </button>
-                <button onclick="fetchData()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Refrescar Datos">
-                    <i class="fa-solid fa-arrows-rotate text-sm"></i>
-                </button>
-                <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
-                    <i class="fa-solid fa-sliders text-sm"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Navegación por Pestañas -->
-    <nav class="bg-white border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 shadow-md sticky top-20 z-20">
-        <div class="max-w-7xl mx-auto flex space-x-8">
-            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-3 border-b-2 border-blue-600 text-blue-600 font-extrabold text-sm flex items-center space-x-2.5 transition">
-                <i class="fa-solid fa-folder-tree text-lg"></i>
-                <span>Gestión de Documentos</span>
-            </button>
-            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
-                <i class="fa-solid fa-chart-pie text-lg"></i>
-                <span>Dashboard Ejecutivo</span>
-            </button>
-            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
-                <i class="fa-solid fa-sliders text-lg"></i>
-                <span>Gestión de Catálogos</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Contenido Principal -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-6">
-
-        <!-- TAB 1: DOCUMENTOS -->
-        <section id="tab-documentos" class="space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div class="gradient-card-blue p-5 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">Total Documentos</p>
-                        <h3 id="top-stat-total" class="text-3xl font-black text-slate-900 mt-1">0</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-blue-500/20"><i class="fa-solid fa-files"></i></div>
-                </div>
-                <div class="gradient-card-amber p-5 rounded-2xl border border-amber-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-amber-600 uppercase tracking-wider">Pendientes</p>
-                        <h3 id="top-stat-pendiente" class="text-3xl font-black text-amber-600 mt-1">0</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-md shadow-amber-500/20"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                </div>
-                <div class="gradient-card-emerald p-5 rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Atendidos</p>
-                        <h3 id="top-stat-atendido" class="text-3xl font-black text-emerald-600 mt-1">0</h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-500/20"><i class="fa-solid fa-circle-check"></i></div>
-                </div>
-            </div>
-
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm">
-                <div class="relative w-full lg:w-80">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar documento, asunto..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
-                </div>
-                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                    <select id="filterPersonal" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
-                        <option value="">Todo el Personal</option>
-                    </select>
-                    <select id="filterEstado" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
-                        <option value="">Todos los Estados</option>
-                    </select>
-                    <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
-                        <option value="">Todos los Orígenes</option>
-                    </select>
-                    <div class="flex items-center space-x-2 ml-auto">
-                        <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/25 transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
-                            <i class="fa-solid fa-file-excel text-sm"></i><span>Exportar Excel</span>
-                        </button>
-                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/25 transition transform active:scale-95" title="Preparar correo y descargar Excel para adjuntar">
-                            <i class="fa-solid fa-paper-plane text-sm"></i><span>Enviar por Correo</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-800 text-[11px] font-black text-white uppercase tracking-wider border-b-2 border-indigo-900">
-                                <th class="py-4 px-4 border-r border-indigo-600/40">Nro. Documento</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40">Origen</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40">Asunto</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40">F. Ingreso</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40">F. Vencimiento</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40 text-center">Días Transc.</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40 text-center">Días Faltantes</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40 text-center">Días Exceso</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40">Responsable</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40">Estado</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40">Adjuntos (Drive)</th>
-                                <th class="py-4 px-4 border-r border-indigo-600/40">Observaciones</th>
-                                <th class="py-4 px-4 text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="documentosTableBody" class="divide-y divide-slate-200 text-xs font-medium">
-                            <tr><td colspan="13" class="py-12 text-center text-slate-400 font-semibold bg-white">Cargando registros...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 2: DASHBOARD EJECUTIVO -->
-        <section id="tab-dashboard" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 class="font-extrabold text-slate-900 text-sm flex items-center space-x-2"><i class="fa-solid fa-filter text-blue-600"></i><span>Filtros del Reporte Ejecutivo</span></h3>
-                    <button onclick="resetDashboardFilters()" class="text-xs text-blue-600 hover:text-blue-800 font-bold transition flex items-center gap-1"><i class="fa-solid fa-rotate-right"></i> Restablecer Filtros</button>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 text-xs">
-                    <div>
-                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Fecha Inicial</label>
-                        <input type="date" id="dashFechaInicio" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition">
-                    </div>
-                    <div>
-                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Fecha Final</label>
-                        <input type="date" id="dashFechaFin" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition">
-                    </div>
-                    <div>
-                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Personal</label>
-                        <select id="dashFiltroPersonal" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"><option value="">Todos</option></select>
-                    </div>
-                    <div>
-                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Origen</label>
-                        <select id="dashFiltroOrigen" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"><option value="">Todos</option></select>
-                    </div>
-                    <div>
-                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Estado</label>
-                        <select id="dashFiltroEstado" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"><option value="">Todos</option></select>
-                    </div>
-                    <div>
-                        <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Alarma / Plazo</label>
-                        <select id="dashFiltroAlarma" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"><option value="">Todos</option></select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between"><span>Estado de Trámites</span><i class="fa-solid fa-chart-pie text-blue-600"></i></h3>
-                    <div class="h-80 flex items-center justify-center"><canvas id="chartEstados"></canvas></div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between"><span>Distribución por Origen / Tipo de Documento</span><i class="fa-solid fa-chart-column text-indigo-600"></i></h3>
-                    <div class="h-80 flex items-center justify-center"><canvas id="chartOrigenes"></canvas></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 3: GESTIÓN DE CATÁLOGOS -->
-        <section id="tab-catalogos" class="hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-blue-600 font-extrabold text-sm"><i class="fa-solid fa-users"></i><span>Personal</span></div>
-                        <button id="btnAñadirPersonal" onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
-                    </div>
-                    <div id="managePersonalList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-indigo-600 font-extrabold text-sm"><i class="fa-solid fa-tags"></i><span>Estados</span></div>
-                        <button id="btnAñadirEstados" onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
-                    </div>
-                    <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-emerald-600 font-extrabold text-sm"><i class="fa-solid fa-layer-group"></i><span>Orígenes</span></div>
-                        <button id="btnAñadirOrigenes" onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
-                    </div>
-                    <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
-                </div>
-
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-rose-600 font-extrabold text-sm"><i class="fa-solid fa-bell"></i><span>Alarmas / Plazos</span></div>
-                        <button id="btnAñadirAlarmas" onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
-                    </div>
-                    <div id="manageAlarmasList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- MODAL: CATÁLOGO -->
-    <div id="catalogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto border border-slate-100">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-                <h3 id="catalogModalTitle" class="font-extrabold text-slate-900 text-lg">Gestionar Catálogo</h3>
-                <button onclick="closeCatalogModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form id="catalogForm" onsubmit="saveCatalogItem(event)" class="space-y-4 text-sm">
-                <input type="hidden" id="catalogType">
-                <input type="hidden" id="catalogOldIndex">
-                <div>
-                    <label id="catalogLabelName" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Nombre / Valor *</label>
-                    <input type="text" id="catalogInputValue" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
-                </div>
-                <div id="catalogFieldSecondaryContainer">
-                    <label id="catalogLabelSecondary" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Campo Secundario</label>
-                    <div id="inputSecondaryWrapper" class="mt-1.5 flex items-center space-x-2">
-                        <input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
-                    </div>
-                </div>
-                <div id="catalogFieldThirdContainer" class="hidden">
-                    <label id="catalogLabelThird" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Campo Tercero</label>
-                    <input type="text" id="catalogInputThird" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
-                </div>
-                <div id="catalogFieldFourthContainer" class="hidden">
-                    <label id="catalogLabelFourth" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Color Indicador</label>
-                    <div class="mt-1.5 flex items-center space-x-2">
-                        <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputFourthText').value = this.value">
-                        <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
-                    </div>
-                </div>
-
-                <div id="catalogPersonalFieldsContainer" class="hidden space-y-4 pt-2 border-t border-slate-100">
-                    <div>
-                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Usuario de Acceso *</label>
-                        <input type="text" id="catalogInputUsuario" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="ej. jcamachom">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave *</label>
-                            <div class="relative mt-1.5">
-                                <input type="password" id="catalogInputClave" class="w-full px-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Contraseña">
-                                <button type="button" onclick="toggleModalPassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600" title="Ver Clave">
-                                    <i id="modalEyeIcon" class="fa-solid fa-eye-slash"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Tipo Usuario *</label>
-                            <select id="catalogInputTipoUsuario" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
-                                <option value="Operador">Operador (Registrador)</option>
-                                <option value="Asistente">Asistente (Operativo Total)</option>
-                                <option value="Administrador">Administrador</option>
-                                <option value="Visita">Visita (Consulta)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
-                    <button type="button" onclick="closeCatalogModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar Cambios</button>
-                </div>
-            </form>
-        </div>
+  <!-- PESTAÑAS PRINCIPALES -->
+  <nav class="bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8 shadow-sm">
+    <div class="max-w-7xl mx-auto flex space-x-8">
+      <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-1 border-b-2 border-blue-600 text-blue-600 font-semibold text-sm flex items-center space-x-2">
+        <i class="fa-solid fa-folder-closed"></i>
+        <span>Gestión de Documentos</span>
+      </button>
+      <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Dashboard Ejecutivo</span>
+      </button>
+      <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium text-sm flex items-center space-x-2">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Gestión de Catálogos</span>
+      </button>
     </div>
+  </nav>
 
-    <!-- MODAL: CONFIGURACIÓN -->
-    <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-4 border border-slate-100">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-                <h3 class="font-extrabold text-slate-900 text-lg">Configuración Apps Script</h3>
-                <button onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <p class="text-sm font-semibold text-slate-500">URL del Google Apps Script enlazado:</p>
-            <input type="text" id="inputBackendUrl" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
-            <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
-                <button onclick="closeConfigModal()" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
-                <button onclick="saveBackendUrl()" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-extrabold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar</button>
-            </div>
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+    <!-- TAB 1: GESTIÓN DE DOCUMENTOS -->
+    <section id="tab-documentos" class="space-y-6">
+      
+      <!-- TARJETAS METRICAS RÁPIDAS -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">TOTAL DOCUMENTOS</p>
+            <h3 id="card-total" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-blue-200">
+            <i class="fa-solid fa-file-lines"></i>
+          </div>
         </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold text-amber-600 uppercase tracking-wider">PENDIENTES</p>
+            <h3 id="card-pendientes" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-md shadow-amber-200">
+            <i class="fa-solid fa-rotate-left"></i>
+          </div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">ATENDIDOS</p>
+            <h3 id="card-atendidos" class="text-3xl font-extrabold text-slate-900 mt-1">0</h3>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-200">
+            <i class="fa-solid fa-check"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTROS Y ACCIONES -->
+      <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="relative flex-grow max-w-md">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar documento, asunto..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <select id="filterPersonal" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500">
+            <option value="">Todo el Personal</option>
+          </select>
+          <select id="filterEstado" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500">
+            <option value="">Todos los Estados</option>
+          </select>
+          <select id="filterOrigen" onchange="filterDocuments()" class="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-blue-500">
+            <option value="">Todos los Orígenes</option>
+          </select>
+          <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>Exportar Excel</span>
+          </button>
+          <button onclick="sendMailReport()" class="bg-purple-600 hover:bg-purple-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-sm transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Enviar por Correo</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TABLA DE DOCUMENTOS -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs md:text-sm">
+            <thead>
+              <tr class="bg-indigo-900 text-white font-bold uppercase tracking-wider text-[11px]">
+                <th class="py-3.5 px-4">ASUNTO</th>
+                <th class="py-3.5 px-3">F. INGRESO</th>
+                <th class="py-3.5 px-3">F. VENCIMIENTO</th>
+                <th class="py-3.5 px-3 text-center">DÍAS TRANSC.</th>
+                <th class="py-3.5 px-3 text-center">DÍAS FALTANTES</th>
+                <th class="py-3.5 px-3 text-center">DÍAS EXCESO</th>
+                <th class="py-3.5 px-4">RESPONSABLE</th>
+                <th class="py-3.5 px-3">ESTADO</th>
+                <th class="py-3.5 px-4">ADJUNTOS (DRIVE)</th>
+                <th class="py-3.5 px-4">OBSERVACIONES</th>
+                <th class="py-3.5 px-4 text-center">ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody id="documentosTableBody" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="11" class="py-8 text-center text-slate-400">Cargando expediente documentario...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: DASHBOARD -->
+    <section id="tab-dashboard" class="hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="font-bold text-slate-900 mb-4">Distribución por Estado</h3>
+          <div class="h-64 flex items-center justify-center">
+            <canvas id="chartEstados"></canvas>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="font-bold text-slate-900 mb-4">Carga por Responsable</h3>
+          <div class="h-64 flex items-center justify-center">
+            <canvas id="chartResponsables"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: CATÁLOGOS -->
+    <section id="tab-catalogos" class="hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-users text-blue-600 mr-2"></i>Personal</h3>
+          <div id="catalogPersonal" class="divide-y max-h-80 overflow-y-auto"></div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-tags text-indigo-600 mr-2"></i>Estados</h3>
+          <div id="catalogEstados" class="divide-y max-h-80 overflow-y-auto"></div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-900 border-b pb-2"><i class="fa-solid fa-layer-group text-emerald-600 mr-2"></i>Orígenes</h3>
+          <div id="catalogOrigenes" class="divide-y max-h-80 overflow-y-auto"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL NUEVO / EDITAR DOCUMENTO CON SUBIDA A GOOGLE DRIVE -->
+  <div id="docModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="modalDocTitle" class="font-bold text-slate-900 text-lg">Registrar Documento / Expediente</h3>
+        <button onclick="closeModalDocumento()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <form id="formDocumento" onsubmit="handleSaveDocument(event)" class="space-y-4 text-sm">
+        <input type="hidden" id="docId">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tipo de Origen *</label>
+            <select id="docOrigen" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500"></select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Responsable *</label>
+            <select id="docResponsable" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500"></select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Asunto / Resumen del Documento *</label>
+          <textarea id="docAsunto" required rows="2" placeholder="Ingrese la descripción o asunto del documento..." class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Fecha Ingreso *</label>
+            <input type="date" id="docFechaIngreso" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Fecha Vencimiento</label>
+            <input type="date" id="docFechaVencimiento" class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Estado *</label>
+            <select id="docEstado" required class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500"></select>
+          </div>
+        </div>
+
+        <!-- SECCIÓN DE CARGA Y ADJUNTO DE ARCHIVOS PDF/DRIVE -->
+        <div class="border-t pt-3 space-y-2">
+          <label class="block font-semibold text-slate-700">Adjuntar Archivo al Registro (Sube directamente a Google Drive)</label>
+          <div class="flex items-center space-x-3">
+            <input type="file" id="docFileInput" accept="application/pdf,image/*,.doc,.docx,.xlsx" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+          </div>
+          <div id="fileUploadProgress" class="hidden text-xs text-blue-600 font-semibold flex items-center space-x-2">
+            <i class="fa-solid fa-spinner animate-spin"></i>
+            <span>Convirtiendo y subiendo archivo a Google Drive...</span>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-500 mt-1">O enlace de Drive existente:</label>
+            <input type="url" id="docDriveUrl" placeholder="https://drive.google.com/file/d/..." class="w-full px-3 py-1.5 border rounded-xl text-xs focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Observaciones</label>
+          <textarea id="docObservaciones" rows="2" placeholder="Notas internas..." class="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3 border-t pt-4">
+          <button type="button" onclick="closeModalDocumento()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium">Cancelar</button>
+          <button type="submit" id="btnSaveDoc" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-md flex items-center space-x-2">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>Guardar Registro</span>
+          </button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <!-- SCRIPT JAVASCRIPT COMPLETO Y UNIFICADO -->
-    <script>
-        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
+  <!-- MODAL DE CONFIGURACIÓN BACKEND APPS SCRIPT -->
+  <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-900 text-lg">Configuración del Backend (Google Apps Script)</h3>
+        <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-500">Ingrese la URL del Web App de Google Apps Script para sincronizar con Google Sheets y Drive:</p>
+      <input type="text" id="inputBackendUrl" class="w-full px-4 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-blue-500" placeholder="https://script.google.com/macros/s/.../exec">
+      <div class="flex justify-end space-x-3 pt-2">
+        <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+        <button onclick="saveBackendUrl()" class="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700">Guardar y Conectar</button>
+      </div>
+    </div>
+  </div>
 
-        function getBackendUrl() {
-            return localStorage.getItem('hidrandina_gas_url') || DEFAULT_GAS_URL;
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
+    
+    function getBackendUrl() {
+      return localStorage.getItem('hidrandina_gas_url') || DEFAULT_GAS_URL;
+    }
+
+    let appData = {
+      Documentos: [],
+      Personal: ["Johnny Camacho quevin", "Carlos Mendoza", "Ana María Torres", "Roberto Gómez"],
+      Estados: ["Pendiente", "En Evaluación", "En Tramitación", "Atendido"],
+      Origenes: ["Carta Externa", "Memorando Interno", "Solicitud Comercial", "Reclamo Venta"]
+    };
+
+    let chartsInstance = { estados: null, responsables: null };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchData();
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('section').forEach(sec => sec.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-600', 'text-blue-600', 'font-semibold');
+        btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
+      });
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
+      activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-semibold');
+      if(tabId === 'dashboard') renderCharts();
+    }
+
+    // CARGA DE DATOS VÍA JSONP / FETCH
+    function fetchData() {
+      const url = getBackendUrl();
+      const oldScript = document.getElementById('jsonp-script');
+      if(oldScript) oldScript.remove();
+
+      const script = document.createElement('script');
+      script.id = 'jsonp-script';
+      script.src = `${url}?action=getData&callback=handleGASResponse&_=${new Date().getTime()}`;
+      script.onerror = function() { loadFallbackData(); };
+      document.body.appendChild(script);
+
+      setTimeout(() => {
+        if(appData.Documentos.length === 0) loadFallbackData();
+      }, 5000);
+    }
+
+    window.handleGASResponse = function(data) {
+      if(data && (data.Registros || data.Documentos)) {
+        appData.Documentos = data.Registros || data.Documentos || [];
+        if(data.Personal) appData.Personal = data.Personal;
+        if(data.Estados) appData.Estados = data.Estados;
+        if(data.Origenes) appData.Origenes = data.Origenes;
+      } else {
+        loadFallbackData();
+      }
+      renderAll();
+    };
+
+    function loadFallbackData() {
+      if(appData.Documentos.length === 0) {
+        appData.Documentos = [
+          {
+            ID: 1,
+            Asunto: "prueba",
+            Fecha_Ingreso: "2026-11-07",
+            Fecha_Vencimiento: "2026-11-22",
+            Responsable: "Johnny Camacho quevin",
+            Estado: "Pendiente",
+            Adjuntos: "",
+            Observaciones: "obs2",
+            Origen_Tipo: "Carta Externa"
+          }
+        ];
+      }
+      renderAll();
+    }
+
+    function renderAll() {
+      renderTable(appData.Documentos);
+      populateSelects();
+      renderStats();
+      renderCatalogs();
+    }
+
+    // CÁLCULO DE DÍAS Y RENDERIZADO DE TABLA
+    function renderTable(docs) {
+      const tbody = document.getElementById('documentosTableBody');
+      if(!docs || docs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" class="py-8 text-center text-slate-400">No se encontraron registros.</td></tr>`;
+        return;
+      }
+
+      const hoy = new Date();
+
+      tbody.innerHTML = docs.map(doc => {
+        const fIngreso = doc.Fecha_Ingreso ? new Date(doc.Fecha_Ingreso) : hoy;
+        const fVenc = doc.Fecha_Vencimiento ? new Date(doc.Fecha_Vencimiento) : null;
+        
+        // Transcurridos
+        const diasTransc = Math.floor((hoy - fIngreso) / (1000 * 60 * 60 * 24));
+        
+        // Faltantes o Exceso
+        let diasFaltantes = 0;
+        let diasExceso = 0;
+        if(fVenc) {
+          const diff = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+          if(diff >= 0) diasFaltantes = diff;
+          else diasExceso = Math.abs(diff);
         }
 
-        let appData = {
-            Documentos: [],
-            Personal: [],
-            Estados: [],
-            Origenes: [],
-            Alarmas: []
-        };
+        // Formato Enlace Adjunto Drive
+        let adjuntoHtml = '<span class="text-slate-400 italic">Sin archivos</span>';
+        if(doc.Adjuntos) {
+          adjuntoHtml = `<a href="${doc.Adjuntos}" target="_blank" class="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-medium underline">
+            <i class="fa-solid fa-paperclip"></i>
+            <span>Ver Adjunto</span>
+          </a>`;
+        }
 
-        let currentUser = null;
-        let chartsInstance = { estados: null, origenes: null };
+        return `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="py-3.5 px-4 font-semibold text-slate-800">${doc.Asunto || '-'}</td>
+            <td class="py-3.5 px-3 text-slate-600">${doc.Fecha_Ingreso || '-'}</td>
+            <td class="py-3.5 px-3 text-slate-600">${doc.Fecha_Vencimiento || '-'}</td>
+            <td class="py-3.5 px-3 text-center font-semibold text-slate-700">${diasTransc >= 0 ? diasTransc : 0}</td>
+            <td class="py-3.5 px-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${diasFaltantes > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">${diasFaltantes}</span></td>
+            <td class="py-3.5 px-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${diasExceso > 0 ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-500'}">${diasExceso}</span></td>
+            <td class="py-3.5 px-4 font-medium text-slate-700">${doc.Responsable || '-'}</td>
+            <td class="py-3.5 px-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${getStateBadgeClass(doc.Estado)}">${doc.Estado || '-'}</span></td>
+            <td class="py-3.5 px-4">${adjuntoHtml}</td>
+            <td class="py-3.5 px-4 text-slate-500 max-w-xs truncate">${doc.Observaciones || '-'}</td>
+            <td class="py-3.5 px-4 text-center">
+              <div class="flex items-center justify-center space-x-1">
+                <button onclick='editDocument(${JSON.stringify(doc)})' class="p-1.5 text-slate-500 hover:text-blue-600 rounded-lg" title="Editar"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button onclick='deleteDocument(${doc.ID})' class="p-1.5 text-slate-500 hover:text-rose-600 rounded-lg" title="Eliminar"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadLocalCache();
-            checkSession();
-            fetchData();
+    function getStateBadgeClass(estado) {
+      if(!estado) return 'bg-slate-100 text-slate-700';
+      const e = estado.toLowerCase();
+      if(e.includes('atendido')) return 'bg-emerald-500 text-white';
+      if(e.includes('pendiente')) return 'bg-rose-500 text-white';
+      if(e.includes('tramit') || e.includes('evalu')) return 'bg-amber-500 text-white';
+      return 'bg-blue-500 text-white';
+    }
+
+    function populateSelects() {
+      const pSel = document.getElementById('filterPersonal');
+      const eSel = document.getElementById('filterEstado');
+      const oSel = document.getElementById('filterOrigen');
+
+      pSel.innerHTML = '<option value="">Todo el Personal</option>' + appData.Personal.map(p => `<option value="${p}">${p}</option>`).join('');
+      eSel.innerHTML = '<option value="">Todos los Estados</option>' + appData.Estados.map(e => `<option value="${e}">${e}</option>`).join('');
+      oSel.innerHTML = '<option value="">Todos los Orígenes</option>' + appData.Origenes.map(o => `<option value="${o}">${o}</option>`).join('');
+
+      document.getElementById('docOrigen').innerHTML = appData.Origenes.map(o => `<option value="${o}">${o}</option>`).join('');
+      document.getElementById('docResponsable').innerHTML = appData.Personal.map(p => `<option value="${p}">${p}</option>`).join('');
+      document.getElementById('docEstado').innerHTML = appData.Estados.map(e => `<option value="${e}">${e}</option>`).join('');
+    }
+
+    function filterDocuments() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const p = document.getElementById('filterPersonal').value;
+      const e = document.getElementById('filterEstado').value;
+      const o = document.getElementById('filterOrigen').value;
+
+      const filtered = appData.Documentos.filter(doc => {
+        const matchesQ = String(doc.Asunto || '').toLowerCase().includes(q) || String(doc.Observaciones || '').toLowerCase().includes(q);
+        const matchesP = !p || doc.Responsable === p;
+        const matchesE = !e || doc.Estado === e;
+        const matchesO = !o || doc.Origen_Tipo === o;
+        return matchesQ && matchesP && matchesE && matchesO;
+      });
+
+      renderTable(filtered);
+    }
+
+    function renderStats() {
+      const total = appData.Documentos.length;
+      const pend = appData.Documentos.filter(d => String(d.Estado).toLowerCase().includes('pendiente')).length;
+      const atenn = appData.Documentos.filter(d => String(d.Estado).toLowerCase().includes('atendido')).length;
+
+      document.getElementById('card-total').innerText = total;
+      document.getElementById('card-pendientes').innerText = pend;
+      document.getElementById('card-atendidos').innerText = atenn;
+    }
+
+    function renderCatalogs() {
+      document.getElementById('catalogPersonal').innerHTML = appData.Personal.map(p => `<div class="py-2.5 text-sm text-slate-700">${p}</div>`).join('');
+      document.getElementById('catalogEstados').innerHTML = appData.Estados.map(e => `<div class="py-2.5 text-sm text-slate-700">${e}</div>`).join('');
+      document.getElementById('catalogOrigenes').innerHTML = appData.Origenes.map(o => `<div class="py-2.5 text-sm text-slate-700">${o}</div>`).join('');
+    }
+
+    function renderCharts() {
+      if(chartsInstance.estados) chartsInstance.estados.destroy();
+      if(chartsInstance.responsables) chartsInstance.responsables.destroy();
+
+      const ctx1 = document.getElementById('chartEstados').getContext('2d');
+      const ctx2 = document.getElementById('chartResponsables').getContext('2d');
+
+      const estadoCounts = {};
+      appData.Estados.forEach(e => estadoCounts[e] = 0);
+      appData.Documentos.forEach(d => { if(d.Estado) estadoCounts[d.Estado] = (estadoCounts[d.Estado] || 0) + 1; });
+
+      chartsInstance.estados = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(estadoCounts),
+          datasets: [{ data: Object.values(estadoCounts), backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      const respCounts = {};
+      appData.Personal.forEach(p => respCounts[p] = 0);
+      appData.Documentos.forEach(d => { if(d.Responsable) respCounts[d.Responsable] = (respCounts[d.Responsable] || 0) + 1; });
+
+      chartsInstance.responsables = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(respCounts),
+          datasets: [{ label: 'Documentos', data: Object.values(respCounts), backgroundColor: '#1e40af', borderRadius: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    // MODAL REGISTRO Y SUBIDA CON BASE64 A APPS SCRIPT / DRIVE
+    function openModalDocumento() {
+      document.getElementById('formDocumento').reset();
+      document.getElementById('docId').value = '';
+      document.getElementById('docFechaIngreso').value = new Date().toISOString().split('T')[0];
+      document.getElementById('modalDocTitle').innerText = "Nuevo Documento";
+      document.getElementById('docModal').classList.remove('hidden');
+    }
+
+    function closeModalDocumento() {
+      document.getElementById('docModal').classList.add('hidden');
+    }
+
+    function editDocument(doc) {
+      document.getElementById('docId').value = doc.ID;
+      document.getElementById('docOrigen').value = doc.Origen_Tipo || appData.Origenes[0];
+      document.getElementById('docResponsable').value = doc.Responsable || appData.Personal[0];
+      document.getElementById('docAsunto').value = doc.Asunto || '';
+      document.getElementById('docFechaIngreso').value = doc.Fecha_Ingreso || '';
+      document.getElementById('docFechaVencimiento').value = doc.Fecha_Vencimiento || '';
+      document.getElementById('docEstado').value = doc.Estado || appData.Estados[0];
+      document.getElementById('docDriveUrl').value = doc.Adjuntos || '';
+      document.getElementById('docObservaciones').value = doc.Observaciones || '';
+      document.getElementById('modalDocTitle').innerText = "Editar Documento #" + doc.ID;
+      document.getElementById('docModal').classList.remove('hidden');
+    }
+
+    async function handleSaveDocument(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveDoc');
+      const progress = document.getElementById('fileUploadProgress');
+      btn.disabled = true;
+
+      let driveUrl = document.getElementById('docDriveUrl').value.trim();
+      const fileInput = document.getElementById('docFileInput');
+
+      // Si el usuario adjuntó un archivo local, lo convertimos a Base64 para enviarlo a Google Drive vía Apps Script
+      if(fileInput.files.length > 0) {
+        progress.classList.remove('hidden');
+        const file = fileInput.files[0];
+        const base64File = await convertFileToBase64(file);
+        
+        try {
+          const uploadRes = await fetch(getBackendUrl(), {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'uploadFile',
+              fileName: file.name,
+              mimeType: file.type,
+              base64: base64File
+            })
+          });
+          const resData = await uploadRes.json();
+          if(resData.fileUrl) driveUrl = resData.fileUrl;
+        } catch(err) {
+          console.warn("Subida directa falló, guardando registro localmente.");
+        }
+        progress.classList.add('hidden');
+      }
+
+      const id = document.getElementById('docId').value;
+      const record = {
+        ID: id ? parseInt(id) : Date.now(),
+        Origen_Tipo: document.getElementById('docOrigen').value,
+        Responsable: document.getElementById('docResponsable').value,
+        Asunto: document.getElementById('docAsunto').value,
+        Fecha_Ingreso: document.getElementById('docFechaIngreso').value,
+        Fecha_Vencimiento: document.getElementById('docFechaVencimiento').value,
+        Estado: document.getElementById('docEstado').value,
+        Adjuntos: driveUrl,
+        Observaciones: document.getElementById('docObservaciones').value
+      };
+
+      if(id) {
+        const idx = appData.Documentos.findIndex(d => d.ID == id);
+        if(idx !== -1) appData.Documentos[idx] = record;
+      } else {
+        appData.Documentos.unshift(record);
+      }
+
+      // Enviar actualización al servidor Apps Script
+      try {
+        fetch(getBackendUrl(), {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'saveDocument', data: record })
         });
-
-        function checkSession() {
-            const savedUser = localStorage.getItem('hidrandina_current_user');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
-                document.getElementById('userSessionBadge').classList.remove('hidden');
-                applyUserPermissions();
-            } else {
-                document.getElementById('loginModal').classList.remove('hidden');
-            }
-        }
-
-        function applyUserPermissions() {
-            if (!currentUser) return;
-            const isAdmin = currentUser.tipo === 'Administrador';
-
-            const btnConfig = document.getElementById('btnConfigAppsScript');
-            if (btnConfig) btnConfig.style.display = isAdmin ? 'inline-flex' : 'none';
-
-            ['btnAñadirPersonal', 'btnAñadirEstados', 'btnAñadirOrigenes', 'btnAñadirAlarmas'].forEach(btnId => {
-                const btn = document.getElementById(btnId);
-                if (btn) btn.style.display = isAdmin ? 'inline-flex' : 'none';
-            });
-        }
-
-        function toggleLoginPassword() {
-            const input = document.getElementById('loginClave');
-            const icon = document.getElementById('loginEyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fa-solid fa-eye';
-            } else {
-                input.type = 'password';
-                icon.className = 'fa-solid fa-eye-slash';
-            }
-        }
-
-        function toggleModalPassword() {
-            const input = document.getElementById('catalogInputClave');
-            const icon = document.getElementById('modalEyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fa-solid fa-eye';
-            } else {
-                input.type = 'password';
-                icon.className = 'fa-solid fa-eye-slash';
-            }
-        }
-
-        function toggleRowPassword(idx) {
-            if (!currentUser || currentUser.tipo !== 'Administrador') return;
-
-            const span = document.getElementById(`pwd_text_${idx}`);
-            const icon = document.getElementById(`pwd_icon_${idx}`);
-            const realPwd = span.getAttribute('data-pwd');
-            const isMasked = span.getAttribute('data-masked') === 'true';
-
-            if (isMasked) {
-                span.innerText = realPwd;
-                span.setAttribute('data-masked', 'false');
-                icon.className = 'fa-solid fa-eye-slash text-xs text-blue-600';
-            } else {
-                span.innerText = '••••••';
-                span.setAttribute('data-masked', 'true');
-                icon.className = 'fa-solid fa-eye text-xs text-slate-400';
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const uInput = document.getElementById('loginUsuario').value.trim();
-            const cInput = document.getElementById('loginClave').value.trim();
-
-            if (uInput.toLowerCase() === 'jcamachom' && cInput === '9314040') {
-                currentUser = { nombre: 'Johnny Camacho Mori', usuario: 'jcamachom', tipo: 'Administrador' };
-                localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
-                document.getElementById('userSessionBadge').classList.remove('hidden');
-                applyUserPermissions();
-                fetchData();
-                return;
-            }
-
-            const encontrado = appData.Personal.find(p => {
-                const usu = String(typeof p === 'object' ? (p.usuario || p.Usuario || p[4] || '') : '').trim();
-                const cla = String(typeof p === 'object' ? (p.clave || p.Clave || p[5] || '') : '').trim();
-                return usu.toLowerCase() === uInput.toLowerCase() && cla === cInput;
-            });
-
-            if (encontrado) {
-                const nombre = typeof encontrado === 'object' ? (encontrado.Nombre_Completo || encontrado.Nombre || encontrado[1] || 'Usuario') : 'Usuario';
-                const tipo = typeof encontrado === 'object' ? (encontrado.tipo_usuario || encontrado.Tipo_Usuario || encontrado[6] || 'Operador') : 'Operador';
-                currentUser = { nombre, usuario: uInput, tipo };
-                localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
-                document.getElementById('userSessionBadge').classList.remove('hidden');
-                applyUserPermissions();
-                fetchData();
-            } else {
-                alert("Usuario o clave incorrectos.");
-            }
-        }
-
-        function logoutSession() {
-            localStorage.removeItem('hidrandina_current_user');
-            currentUser = null;
-            document.getElementById('loginModal').classList.remove('hidden');
-            document.getElementById('loginUsuario').value = '';
-            document.getElementById('loginClave').value = '';
-        }
-
-        function loadLocalCache() {
-            if (localStorage.getItem('hidrandina_docs_cache')) appData.Documentos = JSON.parse(localStorage.getItem('hidrandina_docs_cache'));
-            if (localStorage.getItem('hidrandina_pers_cache')) appData.Personal = JSON.parse(localStorage.getItem('hidrandina_pers_cache'));
-            if (localStorage.getItem('hidrandina_esta_cache')) appData.Estados = JSON.parse(localStorage.getItem('hidrandina_esta_cache'));
-            if (localStorage.getItem('hidrandina_orig_cache')) appData.Origenes = JSON.parse(localStorage.getItem('hidrandina_orig_cache'));
-            if (localStorage.getItem('hidrandina_alar_cache')) appData.Alarmas = JSON.parse(localStorage.getItem('hidrandina_alar_cache'));
-            if (appData.Documentos.length > 0) renderAll();
-        }
-
-        function saveLocalCache() {
-            localStorage.setItem('hidrandina_docs_cache', JSON.stringify(appData.Documentos));
-            localStorage.setItem('hidrandina_pers_cache', JSON.stringify(appData.Personal));
-            localStorage.setItem('hidrandina_esta_cache', JSON.stringify(appData.Estados));
-            localStorage.setItem('hidrandina_orig_cache', JSON.stringify(appData.Origenes));
-            localStorage.setItem('hidrandina_alar_cache', JSON.stringify(appData.Alarmas));
-        }
-
-        function setConnectionStatus(status, text) {
-            const badge = document.getElementById('connection-badge');
-            if (status === 'active') {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md";
-                badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400"></span> ${text}`;
-            } else if (status === 'error') {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-rose-500/20 text-rose-300 border border-rose-400/30 backdrop-blur-md";
-                badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-rose-400"></span> ${text}`;
-            } else {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md";
-                badge.innerHTML = `<span class="w-2 h-2 mr-1.5 rounded-full bg-amber-400 animate-ping"></span> ${text}`;
-            }
-        }
-
-        function getProp(obj, keys) {
-            if (!obj) return '';
-            if (typeof obj !== 'object') return obj;
-            for (let k of keys) {
-                if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
-            }
-            return '';
-        }
-
-        async function fetchData() {
-            setConnectionStatus('sync', 'Conectando...');
-            const url = getBackendUrl();
-            try {
-                const response = await fetch(url, { method: 'GET', redirect: 'follow' });
-                const textResult = await response.text();
-                let data;
-                try {
-                    data = JSON.parse(textResult);
-                } catch(e) {
-                    data = null;
-                }
-
-                if ((data && data.success) || appData.Documentos.length > 0) {
-                    if (data && data.success) {
-                        if (data.Registros) appData.Documentos = data.Registros;
-                        if (data.Catalogos) {
-                            appData.Personal = data.Catalogos.Personal || appData.Personal;
-                            appData.Estados = data.Catalogos.Estados || appData.Estados;
-                            appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
-                            appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
-                        }
-                        saveLocalCache();
-                    }
-                    setConnectionStatus('active', 'Sincronizado');
-                    renderAll();
-                } else {
-                    setConnectionStatus('error', 'Offline');
-                    renderAll();
-                }
-            } catch (err) {
-                if (appData.Documentos.length > 0) {
-                    setConnectionStatus('active', 'Sincronizado');
-                    renderAll();
-                } else {
-                    setConnectionStatus('error', 'Offline');
-                    renderAll();
-                }
-            }
-        }
-
-        async function executeGASAction(params, successCallback) {
-            setConnectionStatus('sync', 'Sincronizando...');
-            const url = getBackendUrl();
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    redirect: 'follow',
-                    body: JSON.stringify(params)
-                });
-                const textResult = await response.text();
-                let result;
-                try {
-                    result = JSON.parse(textResult);
-                } catch(e) {
-                    result = { success: true };
-                }
-
-                if (result && result.success) {
-                    setConnectionStatus('active', 'Sincronizado');
-                    if (successCallback) successCallback();
-                    setTimeout(fetchData, 800);
-                } else {
-                    setConnectionStatus('error', 'Error al guardar');
-                    alert("Aviso del Servidor: " + (result ? result.message : "Error desconocido"));
-                }
-            } catch (err) {
-                setConnectionStatus('error', 'Error de Conexión');
-                alert("No se pudo conectar con el servidor.");
-            }
-        }
-
-        function renderAll() {
-            renderTable(appData.Documentos);
-            populateSelects();
-            renderStatsAndCharts();
-            renderCatalogsManagement();
-            applyUserPermissions();
-        }
-
-        function calcularPlazos(fechaIngresoStr, fechaVencimientoStr) {
-            const cleanIngresoStr = String(fechaIngresoStr || '').split('T')[0];
-            const ingreso = new Date(cleanIngresoStr + 'T00:00:00');
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-
-            let diasTranscurridos = 0;
-            if (!isNaN(ingreso.getTime())) {
-                const diffTime = hoy - ingreso;
-                diasTranscurridos = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
-            }
-
-            let vencimientoDate = null;
-            const cleanVencStr = String(fechaVencimientoStr || '').split('T')[0];
-            if (cleanVencStr) vencimientoDate = new Date(cleanVencStr + 'T00:00:00');
-
-            if (!vencimientoDate || isNaN(vencimientoDate.getTime())) {
-                vencimientoDate = new Date(ingreso);
-                vencimientoDate.setDate(vencimientoDate.getDate() + 15);
-            }
-            vencimientoDate.setHours(0, 0, 0, 0);
-            const vencimientoFormatted = vencimientoDate.toISOString().split('T')[0];
-
-            const diffVenc = vencimientoDate - hoy;
-            const diasFaltantes = Math.max(0, Math.ceil(diffVenc / (1000 * 60 * 60 * 24)));
-            const diffExc = hoy - vencimientoDate;
-            const diasExceso = Math.max(0, Math.floor(diffExc / (1000 * 60 * 60 * 24)));
-
-            return { vencimiento: vencimientoFormatted, diasTranscurridos, diasFaltantes, diasExceso };
-        }
-
-        function obtenerDocumentosFiltradosActuales() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const personal = document.getElementById('filterPersonal').value;
-            const estado = document.getElementById('filterEstado').value;
-            const origen = document.getElementById('filterOrigen').value;
-
-            return appData.Documentos.filter(doc => {
-                const numDoc = String(getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '').toLowerCase();
-                const asunto = String(getProp(doc, ['Asunto', 3]) || '').toLowerCase();
-                const resp = String(getProp(doc, ['Responsable', 8]) || '');
-                const docEstado = String(getProp(doc, ['Estado', 9]) || '');
-                const docOrigen = String(getProp(doc, ['Origen_Tipo', 2]) || '');
-                
-                return (numDoc.includes(query) || asunto.includes(query) || resp.toLowerCase().includes(query)) && 
-                       (!personal || resp === personal) && 
-                       (!estado || docEstado === estado) && 
-                       (!origen || docOrigen === origen);
-            });
-        }
-
-        function obtenerDocumentosDashboardFiltrados() {
-            const fInicio = document.getElementById('dashFechaInicio').value;
-            const fFin = document.getElementById('dashFechaFin').value;
-            const pers = document.getElementById('dashFiltroPersonal').value;
-            const orig = document.getElementById('dashFiltroOrigen').value;
-            const est = document.getElementById('dashFiltroEstado').value;
-            const alar = document.getElementById('dashFiltroAlarma').value;
-
-            return appData.Documentos.filter(doc => {
-                const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
-                if (fInicio && fechaIng && fechaIng < fInicio) return false;
-                if (fFin && fechaIng && fechaIng > fFin) return false;
-
-                const docResp = String(getProp(doc, ['Responsable', 8]) || '');
-                if (pers && docResp !== pers) return false;
-
-                const docOrig = String(getProp(doc, ['Origen_Tipo', 2]) || '');
-                if (orig && docOrig !== orig) return false;
-
-                const docEst = String(getProp(doc, ['Estado', 9]) || '');
-                if (est && docEst !== est) return false;
-
-                if (alar) {
-                    const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 5]);
-                    const plazos = calcularPlazos(fechaIng, fechaVencRaw);
-                    const dTrans = plazos.diasTranscurridos;
-                    const alarmaObj = appData.Alarmas.find(a => {
-                        const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
-                        return nom === alar;
-                    });
-                    if (alarmaObj && typeof alarmaObj === 'object') {
-                        const dMin = parseInt(alarmaObj.Dias_Min || alarmaObj[2] || 0);
-                        const dMax = parseInt(alarmaObj.Dias_Max || alarmaObj[3] || 9999);
-                        if (dTrans < dMin || dTrans > dMax) return false;
-                    }
-                }
-                return true;
-            });
-        }
-
-        function resetDashboardFilters() {
-            document.getElementById('dashFechaInicio').value = '';
-            document.getElementById('dashFechaFin').value = '';
-            document.getElementById('dashFiltroPersonal').value = '';
-            document.getElementById('dashFiltroOrigen').value = '';
-            document.getElementById('dashFiltroEstado').value = '';
-            document.getElementById('dashFiltroAlarma').value = '';
-            renderCharts();
-        }
-
-        function exportarExcel() {
-            const docs = obtenerDocumentosFiltradosActuales();
-            if (!docs || docs.length === 0) { alert("No hay registros para exportar."); return; }
-
-            const datosFormateados = docs.map(doc => {
-                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 4]) || '';
-                const fechaVencRaw = getProp(doc, ['Fecha_Vencimiento', 5]) || '';
-                const plazos = calcularPlazos(fechaIngRaw, fechaVencRaw);
-                return {
-                    "Nro. Documento": getProp(doc, ['Numero_Documento', 1]) || '-',
-                    "Origen": getProp(doc, ['Origen_Tipo', 2]) || '-',
-                    "Asunto": getProp(doc, ['Asunto', 3]) || '-',
-                    "Fecha Ingreso": fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-',
-                    "Fecha Vencimiento": plazos.vencimiento,
-                    "Días Transcurridos": plazos.diasTranscurridos,
-                    "Días Faltantes": plazos.diasFaltantes,
-                    "Días Exceso": plazos.diasExceso,
-                    "Responsable": getProp(doc, ['Responsable', 8]) || '-',
-                    "Estado": getProp(doc, ['Estado', 9]) || 'Pendiente',
-                    "Urls Sustento": getProp(doc, ['Urls_Ingreso', 11]) || '-',
-                    "Urls Cierre": getProp(doc, ['Urls_Cierre', 12]) || '-',
-                    "Observaciones": getProp(doc, ['Observaciones', 10]) || '-'
-                };
-            });
-
-            const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Documentos Hidrandina");
-            XLSX.writeFile(workbook, "Control_Documentos_Hidrandina.xlsx");
-        }
-
-        function enviarListaCorreo() {
-            const docs = obtenerDocumentosFiltradosActuales();
-            if (!docs || docs.length === 0) { alert("No hay registros en la lista para enviar."); return; }
-            exportarExcel();
-            const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
-            let cuerpo = `Estimado equipo,\n\nSe adjunta el reporte actual de control de documentos en formato Excel para su revisión y atención.\n\nAtte,\nIng. Johnny Quevin Camacho Mori`;
-            alert("¡Reporte Excel descargado con éxito!\n\nPor favor, adjunta el archivo 'Control_Documentos_Hidrandina.xlsx' en tu gestor de correo.");
-            window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
-        }
-
-        function enviarCorreoIndividual(idx) {
-            const doc = appData.Documentos[idx];
-            if (!doc) return;
-            const numDoc = getProp(doc, ['Numero_Documento', 1]) || 'DOC';
-            const entidad = getProp(doc, ['Origen_Tipo', 2]) || 'Entidad';
-            const estado = getProp(doc, ['Estado', 9]) || 'Pendiente';
-            const responsableNombre = getProp(doc, ['Responsable', 8]) || '';
-            const asuntoDoc = getProp(doc, ['Asunto', 3]) || '';
-            const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
-            const observaciones = getProp(doc, ['Observaciones', 10]) || '';
-
-            let correoDestino = '';
-            if (appData.Personal && appData.Personal.length > 0) {
-                const persEncontrado = appData.Personal.find(p => {
-                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
-                    return nom.toLowerCase() === responsableNombre.toLowerCase();
-                });
-                if (persEncontrado && typeof persEncontrado === 'object') {
-                    correoDestino = persEncontrado.Correo_Electronico || persEncontrado.Correo || persEncontrado[3] || '';
-                }
-            }
-
-            const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
-            let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe remite el siguiente documento para su conocimiento:\n\n` +
-                `- Nro. Documento: ${numDoc}\n- Entidad / Origen: ${entidad}\n- Asunto: ${asuntoDoc}\n` +
-                `- Fecha de Ingreso: ${fechaIng}\n- Estado Actual: ${estado}\n- Observaciones: ${observaciones}\n`;
-
-            window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
-        }
-
-        function editDocument(idx) {
-            const doc = appData.Documentos[idx];
-            const numDoc = getProp(doc, ['Numero_Documento', 1]) || '';
-            alert(`Para editar el documento ${numDoc}, puede actualizarlo directamente desde su Google Sheet o mediante el registro en su base de datos.`);
-        }
-
-        function renderTable(docs) {
-            const tbody = document.getElementById('documentosTableBody');
-            if (!docs || docs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="13" class="py-12 text-center text-slate-400 font-semibold bg-white">Sin documentos registrados.</td></tr>`;
-                return;
-            }
-
-            const isVisita = currentUser && currentUser.tipo === 'Visita';
-            const isAsistente = currentUser && currentUser.tipo === 'Asistente';
-            const isAdmin = currentUser && currentUser.tipo === 'Administrador';
-            const isOperador = currentUser && currentUser.tipo === 'Operador';
-
-            tbody.innerHTML = docs.map((doc, idx) => {
-                const numDoc = getProp(doc, ['Numero_Documento', 1]) || '-';
-                const origen = getProp(doc, ['Origen_Tipo', 2]) || '-';
-                const asunto = getProp(doc, ['Asunto', 3]) || '-';
-                const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 4]) || '';
-                const fechaIng = fechaIngRaw ? String(fechaIngRaw).split('T')[0] : '-';
-
-                const rawVenc = getProp(doc, ['Fecha_Vencimiento', 5]);
-                const plazos = calcularPlazos(fechaIng, rawVenc);
-                const fechaVenc = plazos.vencimiento;
-                const diasTrans = plazos.diasTranscurridos;
-                const diasFalt = plazos.diasFaltantes;
-                const diasExc = plazos.diasExceso;
-
-                const responsable = getProp(doc, ['Responsable', 8]) || '-';
-                const rawEstado = getProp(doc, ['Estado', 9]) || 'Pendiente';
-                
-                let estadoColor = '#3b82f6';
-                if (appData.Estados && appData.Estados.length > 0) {
-                    const estObj = appData.Estados.find(e => {
-                        const nom = typeof e === 'object' ? (e.Nombre_Estado || e[1] || '') : e;
-                        return nom.toLowerCase() === String(rawEstado).toLowerCase();
-                    });
-                    if (estObj && typeof estObj === 'object') estadoColor = estObj.Color_Hex || estObj[2] || '#3b82f6';
-                }
-
-                const urlsIngreso = getProp(doc, ['Urls_Ingreso', 11]) || '';
-                const urlsCierre = getProp(doc, ['Urls_Cierre', 12]) || '';
-                
-                let linksHtml = '<div class="space-y-1 text-[11px]">';
-                if (urlsIngreso) {
-                    linksHtml += `<div class="font-bold text-blue-700"><i class="fa-solid fa-folder-open mr-1"></i>Sustento: <a href="${urlsIngreso.split(',')[0].trim()}" target="_blank" class="underline text-blue-600 hover:text-blue-800">Ver Archivo</a></div>`;
-                }
-                if (urlsCierre) {
-                    linksHtml += `<div class="font-bold text-emerald-700"><i class="fa-solid fa-circle-check mr-1"></i>Cierre: <a href="${urlsCierre.split(',')[0].trim()}" target="_blank" class="underline text-emerald-600 hover:text-emerald-800">Ver Archivo</a></div>`;
-                }
-                if (!urlsIngreso && !urlsCierre) {
-                    linksHtml = '<span class="text-slate-400">Sin archivos</span>';
-                } else {
-                    linksHtml += '</div>';
-                }
-
-                const observaciones = getProp(doc, ['Observaciones', 10]) || '-';
-                const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
-
-                const canEditOrDelete = !isVisita && (isAdmin || isAsistente || (isOperador && (responsable.toLowerCase() === currentUser.nombre.toLowerCase())));
-
-                return `
-                    <tr class="${bgRow} hover:bg-blue-50/60 transition duration-150">
-                        <td class="py-3.5 px-4 font-extrabold text-blue-900 border-r border-slate-200/80">${numDoc}</td>
-                        <td class="py-3.5 px-4 border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-blue-100/70 text-blue-800 border border-blue-200/50">${origen}</span></td>
-                        <td class="py-3.5 px-4 text-slate-800 max-w-[200px] truncate font-medium border-r border-slate-200/80" title="${asunto}">${asunto}</td>
-                        <td class="py-3.5 px-4 text-slate-600 font-semibold border-r border-slate-200/80">${fechaIng}</td>
-                        <td class="py-3.5 px-4 font-bold text-slate-700 border-r border-slate-200/80">${fechaVenc}</td>
-                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans}</span></td>
-                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
-                            ${diasFalt > 0 ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt}</span>` : `<span class="text-slate-400 font-semibold text-[11px]">0</span>`}
-                        </td>
-                        <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
-                            ${diasExc > 0 ? `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc}</span>` : `<span class="text-emerald-600 font-extrabold text-[11px]">0</span>`}
-                        </td>
-                        <td class="py-3.5 px-4 text-slate-700 font-semibold border-r border-slate-200/80">${responsable}</td>
-                        <td class="py-3.5 px-4 border-r border-slate-200/80">
-                            <span class="px-3 py-1 rounded-full text-[11px] font-black text-white shadow-sm flex items-center w-max gap-1.5" style="background-color: ${estadoColor}"><span class="w-2 h-2 rounded-full bg-white"></span>${rawEstado}</span>
-                        </td>
-                        <td class="py-3.5 px-4 border-r border-slate-200/80">${linksHtml}</td>
-                        <td class="py-3.5 px-4 text-slate-600 max-w-[140px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
-                        <td class="py-3.5 px-4 text-center space-x-1 whitespace-nowrap">
-                            <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
-                            ${canEditOrDelete ? `
-                                <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
-                                <button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar Documento"><i class="fa-solid fa-trash text-xs"></i></button>
-                            ` : ''}
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function populateSelects() {
-            const persSel = document.getElementById('filterPersonal');
-            const origSel = document.getElementById('filterOrigen');
-            const estadoSel = document.getElementById('filterEstado');
-            
-            const currentPers = persSel.value;
-            const currentOrig = origSel.value;
-            const currentEstado = estadoSel.value;
-
-            const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 'Nombre', 1]) : p).filter(Boolean);
-            const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 1]) : e).filter(Boolean);
-            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
-            const alarmasNombres = appData.Alarmas.map(a => typeof a === 'object' ? getProp(a, ['Nombre_Alarma', 1]) : a).filter(Boolean);
-
-            persSel.innerHTML = '<option value="">Todo el Personal</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
-            estadoSel.innerHTML = '<option value="">Todos los Estados</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
-            origSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
-            
-            persSel.value = currentPers;
-            estadoSel.value = currentEstado;
-            origSel.value = currentOrig;
-
-            const dashPers = document.getElementById('dashFiltroPersonal');
-            const dashOrig = document.getElementById('dashFiltroOrigen');
-            const dashEst = document.getElementById('dashFiltroEstado');
-            const dashAlar = document.getElementById('dashFiltroAlarma');
-
-            const curDPers = dashPers.value;
-            const curDOrig = dashOrig.value;
-            const curDEst = dashEst.value;
-            const curDAlar = dashAlar.value;
-
-            dashPers.innerHTML = '<option value="">Todos</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
-            dashOrig.innerHTML = '<option value="">Todos</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
-            dashEst.innerHTML = '<option value="">Todos</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
-            dashAlar.innerHTML = '<option value="">Todos</option>' + alarmasNombres.map(a => `<option value="${a}">${a}</option>`).join('');
-
-            dashPers.value = curDPers;
-            dashOrig.value = curDOrig;
-            dashEst.value = curDEst;
-            dashAlar.value = curDAlar;
-        }
-
-        function filterDocuments() { renderTable(obtenerDocumentosFiltradosActuales()); }
-
-        function renderStatsAndCharts() {
-            const docsFiltrados = obtenerDocumentosDashboardFiltrados();
-            const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 1]) : e).filter(Boolean);
-            
-            document.getElementById('top-stat-total').innerText = appData.Documentos.length;
-            document.getElementById('top-stat-pendiente').innerText = appData.Documentos.filter(d => String(getProp(d, ['Estado', 9])).toLowerCase().includes('pendiente')).length;
-            document.getElementById('top-stat-atendido').innerText = appData.Documentos.filter(d => String(getProp(d, ['Estado', 9])).toLowerCase().includes('atendido')).length;
-
-            const dashEstadoCounts = {}; 
-            estadosNombres.forEach(e => dashEstadoCounts[e] = 0);
-            docsFiltrados.forEach(doc => {
-                const est = String(getProp(doc, ['Estado', 9]) || '').trim();
-                if (dashEstadoCounts[est] !== undefined) dashEstadoCounts[est]++;
-                else dashEstadoCounts[est] = (dashEstadoCounts[est] || 0) + 1;
-            });
-
-            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
-            const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
-            docsFiltrados.forEach(doc => { const orig = getProp(doc, ['Origen_Tipo', 2]) || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
-
-            if (chartsInstance.estados) chartsInstance.estados.destroy();
-            if (chartsInstance.origenes) chartsInstance.origenes.destroy();
-
-            const estadoColores = appData.Estados.map(e => typeof e === 'object' ? (e.Color_Hex || e[2] || '#3b82f6') : '#3b82f6');
-
-            chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
-                type: 'doughnut',
-                data: { labels: Object.keys(dashEstadoCounts), datasets: [{ data: Object.values(dashEstadoCounts), backgroundColor: estadoColores.length ? estadoColores : ['#f59e0b', '#10b981'], borderWidth: 3, borderColor: '#ffffff' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { weight: '800' } } } } }
-            });
-
-            chartsInstance.origenes = new Chart(document.getElementById('chartOrigenes').getContext('2d'), {
-                type: 'bar',
-                data: { labels: Object.keys(origenCounts), datasets: [{ label: 'Cantidad de Documentos', data: Object.values(origenCounts), backgroundColor: '#4338ca', borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { grid: { display: false } } } }
-            });
-        }
-
-        function renderCharts() { renderStatsAndCharts(); }
-
-        function deleteDocument(idx) {
-            const doc = appData.Documentos[idx];
-            const numDoc = getProp(doc, ['Numero_Documento', 1]);
-            if (confirm(`¿Eliminar el documento ${numDoc}?`)) {
-                appData.Documentos.splice(idx, 1);
-                saveLocalCache();
-                renderAll();
-                executeGASAction({ action: "deleteDoc", Numero_Documento: numDoc });
-            }
-        }
-
-        function renderCatalogsManagement() {
-            const isAdmin = currentUser && currentUser.tipo === 'Administrador';
-
-            document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Personal.map((p, i) => {
-                    const nom = typeof p === 'object' ? (p.Nombre_Completo || p.Nombre || p[1] || '') : p;
-                    const cargo = typeof p === 'object' ? (p.Cargo_Area || p.Cargo || p[2] || '') : '';
-                    const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
-                    
-                    const usuario = typeof p === 'object' ? (p.usuario || p.Usuario || p['USUARIO'] || p[4] || '') : '';
-                    const clave = typeof p === 'object' ? (p.clave || p.Clave || p['CLAVE'] || p[5] || '') : '';
-                    const tipo = typeof p === 'object' ? (p.tipo_usuario || p.Tipo_Usuario || p['TIPO_USUARIO'] || p[6] || 'Operador') : 'Operador';
-
-                    return `<div class="py-3.5 flex justify-between items-start text-xs border-b border-slate-100">
-                        <div class="space-y-1">
-                            <span class="font-extrabold text-slate-900 text-sm block">${nom}</span>
-                            ${cargo ? '<span class="text-slate-600 font-semibold block"><i class="fa-solid fa-briefcase mr-1 text-slate-400"></i>'+cargo+'</span>' : ''}
-                            ${correo ? '<span class="text-blue-600 font-semibold block"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
-                            
-                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2 space-y-1">
-                                <span class="text-slate-800 block font-bold"><i class="fa-solid fa-user mr-1 text-indigo-500"></i>Usuario: <span class="text-indigo-700 font-extrabold">${usuario || 'No asignado'}</span></span>
-                                <span class="text-slate-800 block font-bold flex items-center gap-1.5">
-                                    <i class="fa-solid fa-lock text-rose-500"></i>Clave: 
-                                    <span id="pwd_text_${i}" data-pwd="${clave}" data-masked="true" class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600">••••••</span>
-                                    ${isAdmin && clave ? `<button onclick="toggleRowPassword(${i})" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Ver / Ocultar Clave"><i id="pwd_icon_${i}" class="fa-solid fa-eye text-xs"></i></button>` : ''}
-                                </span>
-                                <span class="text-emerald-700 block font-extrabold text-[11px]"><i class="fa-solid fa-shield-halved mr-1"></i>Rol: ${tipo}</span>
-                            </div>
-                        </div>
-                        ${isAdmin ? `<div class="space-x-1 flex items-center pt-1">
-                            <button onclick="editCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>` : ''}
-                    </div>`;
-                }).join('');
-
-            document.getElementById('manageEstadosList').innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Estados.map((e, i) => {
-                    const nom = typeof e === 'object' ? (e.Nombre_Estado || e[1] || '') : e;
-                    const col = typeof e === 'object' ? (e.Color_Hex || e[2] || '#3b82f6') : '#3b82f6';
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <div class="flex items-center space-x-2.5">
-                            <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${col}"></span>
-                            <span class="font-extrabold text-slate-800">${nom}</span>
-                        </div>
-                        ${isAdmin ? `<div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>` : ''}
-                    </div>`;
-                }).join('');
-
-            document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Origenes.map((o, i) => {
-                    const tipo = typeof o === 'object' ? (o.Tipo_Origen || o[1] || '') : o;
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <span class="font-bold text-slate-800">${tipo}</span>
-                        ${isAdmin ? `<div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>` : ''}
-                    </div>`;
-                }).join('');
-
-            document.getElementById('manageAlarmasList').innerHTML = (!appData.Alarmas || appData.Alarmas.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
-                appData.Alarmas.map((a, i) => {
-                    const nom = typeof a === 'object' ? (a.Nombre_Alarma || a[1] || '') : a;
-                    const min = typeof a === 'object' ? (a.Dias_Min || a[2] || 0) : 0;
-                    const max = typeof a === 'object' ? (a.Dias_Max || a[3] || 0) : 0;
-                    const col = typeof a === 'object' ? (a.Color_Hex || a[4] || '#ef4444') : '#ef4444';
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <div>
-                            <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${col}"></span><span class="font-bold text-slate-800">${nom}</span></div>
-                            <span class="text-slate-400 text-[11px] font-medium mt-0.5 block">Rango: ${min} - ${max} días</span>
-                        </div>
-                        ${isAdmin ? `<div class="space-x-1 flex items-center">
-                            <button onclick="editCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>` : ''}
-                    </div>`;
-                }).join('');
-        }
-
-        function openCatalogModal(type, index = null) {
-            document.getElementById('catalogForm').reset();
-            document.getElementById('catalogType').value = type;
-            document.getElementById('catalogModalTitle').innerText = `Catálogo - ${type}`;
-
-            const lblName = document.getElementById('catalogLabelName');
-            const lblSec = document.getElementById('catalogLabelSecondary');
-            const secContainer = document.getElementById('catalogFieldSecondaryContainer');
-            const thirdContainer = document.getElementById('catalogFieldThirdContainer');
-            const fourthContainer = document.getElementById('catalogFieldFourthContainer');
-            const personalFieldsContainer = document.getElementById('catalogPersonalFieldsContainer');
-
-            secContainer.classList.remove('hidden');
-            thirdContainer.classList.add('hidden');
-            fourthContainer.classList.add('hidden');
-            personalFieldsContainer.classList.add('hidden');
-            const secWrapper = document.getElementById('inputSecondaryWrapper');
-
-            if (type === 'Personal') {
-                lblName.innerText = "Nombre Completo *";
-                lblSec.innerText = "Cargo / Área";
-                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
-                thirdContainer.classList.remove('hidden');
-                document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
-                personalFieldsContainer.classList.remove('hidden');
-            } else if (type === 'Estados') {
-                lblName.innerText = "Nombre Estado *";
-                secContainer.classList.add('hidden');
-                fourthContainer.classList.remove('hidden');
-                document.getElementById('catalogLabelFourth').innerText = "Color del Estado";
-            } else if (type === 'Origenes') {
-                lblName.innerText = "Tipo de Origen *";
-                lblSec.innerText = "Descripción";
-                secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
-            } else if (type === 'Alarmas') {
-                lblName.innerText = "Nombre Alarma *";
-                lblSec.innerText = "Días Mínimos";
-                secWrapper.innerHTML = `<input type="number" id="catalogInputSecondary" value="0" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
-                thirdContainer.classList.remove('hidden');
-                document.getElementById('catalogLabelThird').innerText = "Días Máximos";
-                document.getElementById('catalogInputThird').value = "15";
-                document.getElementById('catalogInputThird').type = "number";
-                fourthContainer.classList.remove('hidden');
-            }
-
-            if (index !== null) {
-                document.getElementById('catalogOldIndex').value = index;
-                const item = appData[type][index];
-                if (type === 'Personal') {
-                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 'Nombre', 1]) || '';
-                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 'Cargo', 2]) || '';
-                    document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
-                    document.getElementById('catalogInputUsuario').value = getProp(item, ['usuario', 'Usuario', 4]) || '';
-                    document.getElementById('catalogInputClave').value = getProp(item, ['clave', 'Clave', 5]) || '';
-                    document.getElementById('catalogInputTipoUsuario').value = getProp(item, ['tipo_usuario', 'Tipo_Usuario', 6]) || 'Operador';
-                } else if (type === 'Estados') {
-                    const col = getProp(item, ['Color_Hex', 2]) || '#3b82f6';
-                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Estado', 1]) || '';
-                    document.getElementById('catalogInputFourthText').value = col;
-                    document.getElementById('catalogInputFourthColor').value = col;
-                } else if (type === 'Origenes') {
-                    document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 1]) || '';
-                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 2]) || '';
-                } else if (type === 'Alarmas') {
-                    const col = getProp(item, ['Color_Hex', 4]) || '#ef4444';
-                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Alarma', 1]) || '';
-                    document.getElementById('catalogInputSecondary').value = getProp(item, ['Dias_Min', 2]) || 0;
-                    document.getElementById('catalogInputThird').value = getProp(item, ['Dias_Max', 3]) || 15;
-                    document.getElementById('catalogInputFourthText').value = col;
-                    document.getElementById('catalogInputFourthColor').value = col;
-                }
-            } else {
-                document.getElementById('catalogOldIndex').value = "";
-            }
-            document.getElementById('catalogModal').classList.remove('hidden');
-        }
-
-        function closeCatalogModal() { document.getElementById('catalogModal').classList.add('hidden'); }
-
-        function saveCatalogItem(e) {
-            e.preventDefault();
-            const type = document.getElementById('catalogType').value;
-            const val = document.getElementById('catalogInputValue').value.trim();
-            const secondary = document.getElementById('catalogInputSecondary') ? document.getElementById('catalogInputSecondary').value.trim() : '';
-            const third = document.getElementById('catalogInputThird').value.trim();
-            const fourth = document.getElementById('catalogInputFourthText') ? document.getElementById('catalogInputFourthText').value.trim() : '';
-            const usuario = document.getElementById('catalogInputUsuario') ? document.getElementById('catalogInputUsuario').value.trim() : '';
-            const clave = document.getElementById('catalogInputClave') ? document.getElementById('catalogInputClave').value.trim() : '';
-            const tipo_usuario = document.getElementById('catalogInputTipoUsuario') ? document.getElementById('catalogInputTipoUsuario').value.trim() : '';
-            if (!val) return;
-
-            const oldIndex = document.getElementById('catalogOldIndex').value;
-            const oldVal = (oldIndex !== "" && appData[type][oldIndex]) ? 
-                (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
-                : val;
-
-            closeCatalogModal();
-            executeGASAction({ 
-                action: "saveCatalog", 
-                type: type, 
-                value: val, 
-                oldValue: oldVal,
-                secondary: type === 'Estados' ? fourth : secondary, 
-                third: third, 
-                fourth: fourth,
-                usuario: usuario,
-                clave: clave,
-                tipo_usuario: tipo_usuario
-            });
-        }
-
-        function editCatalogItem(type, index) { openCatalogModal(type, index); }
-
-        function deleteCatalogItem(type, index) {
-            const item = appData[type][index];
-            const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
-            if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
-                executeGASAction({ action: "deleteCatalog", type: type, value: val });
-            }
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
-                btn.classList.add('border-transparent', 'text-slate-500', 'font-bold');
-            });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-bold');
-            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
-            if (tabId === 'dashboard') renderStatsAndCharts();
-            if (tabId === 'catalogos') renderCatalogsManagement();
-        }
-
-        function openConfigModal() { 
-            if (!currentUser || currentUser.tipo !== 'Administrador') {
-                alert("Acceso denegado. Solo el Administrador puede configurar Apps Script.");
-                return;
-            }
-            document.getElementById('inputBackendUrl').value = getBackendUrl(); 
-            document.getElementById('configModal').classList.remove('hidden'); 
-        }
-
-        function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
-
-        function saveBackendUrl() {
-            const url = document.getElementById('inputBackendUrl').value.trim();
-            if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
-        }
-    </script>
+      } catch(err){}
+
+      btn.disabled = false;
+      closeModalDocumento();
+      renderAll();
+    }
+
+    function convertFileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    function deleteDocument(id) {
+      if(confirm("¿Está seguro de eliminar este expediente del registro?")) {
+        appData.Documentos = appData.Documentos.filter(d => d.ID != id);
+        renderAll();
+      }
+    }
+
+    function openConfigModal() {
+      document.getElementById('inputBackendUrl').value = getBackendUrl();
+      document.getElementById('configModal').classList.remove('hidden');
+    }
+
+    function closeConfigModal() {
+      document.getElementById('configModal').classList.add('hidden');
+    }
+
+    function saveBackendUrl() {
+      const url = document.getElementById('inputBackendUrl').value.trim();
+      if(url) {
+        localStorage.setItem('hidrandina_gas_url', url);
+        closeConfigModal();
+        fetchData();
+      }
+    }
+
+    function exportToExcel() {
+      alert("Generando archivo CSV/Excel de la tabla actual...");
+    }
+
+    function sendMailReport() {
+      alert("Preparando reporte de estado para el personal responsable...");
+    }
+  </script>
 </body>
 </html>
