@@ -326,17 +326,24 @@
                     <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Observaciones</label>
                     <textarea id="formObservaciones" rows="2" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Comentarios u observaciones..."></textarea>
                 </div>
-                <!-- ADJUNTOS: NUEVO = SUSTENTO; EDICIÓN = DESCARGO -->
+                <!-- ADJUNTOS: NUEVO = SUSTENTO; EDICIÓN = SUSTENTO O DESCARGO -->
                 <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-3">
                     <div id="adjuntoSeccionTitulo" class="font-extrabold text-blue-900 text-sm"><i class="fa-solid fa-paperclip mr-1"></i> Archivo de sustento</div>
                     <p id="adjuntoSeccionAyuda" class="text-xs text-slate-600">Adjunta la carta o documento recibido que origina el registro.</p>
-                    <input id="adjuntoTipo" type="hidden" value="Ingreso" />
+                    <div id="adjuntoTipoEditarContenedor" class="hidden space-y-1">
+                      <label for="adjuntoTipo" class="text-xs font-bold text-blue-900">Tipo de archivo que deseas agregar</label>
+                      <select id="adjuntoTipo" class="block w-full rounded-xl border border-blue-200 bg-white p-2 text-sm font-semibold" onchange="actualizarRotuloTipoAdjunto()">
+                        <option value="Ingreso">Sustento del registro</option>
+                        <option value="Atencion">Descargo / respuesta</option>
+                      </select>
+                    </div>
                     <label id="adjuntoSeleccionLabel" class="block font-bold text-xs text-slate-700">Seleccionar archivo(s) de sustento</label>
                     <input id="adjuntoFiles" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff" onchange="agregarArchivosSeleccionados(event)" class="block w-full text-xs text-slate-700 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:font-bold" />
                     <div id="previsualizacionPendientes" class="space-y-2" aria-live="polite"></div>
                     <p class="text-[11px] text-slate-500">PDF, Word e imágenes. Máximo 10 MB por archivo. Previsualiza cada archivo antes de guardar.</p>
                     <p class="text-xs text-blue-700 font-semibold">Puedes seleccionar varios archivos a la vez o volver a pulsar «Elegir archivos» para agregar más sin perder los anteriores. Puedes quitar cualquier archivo antes de guardar.</p>
                     <div id="adjuntosExistentes" class="space-y-1"></div>
+                    <input id="inputReemplazoAdjunto" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp,.bmp,.tif,.tiff" class="hidden" onchange="agregarReemplazoSeleccionado(event)" />
                     <p id="adjuntoProgreso" class="text-xs font-bold text-blue-700" role="status"></p>
                 </div>
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
@@ -1047,9 +1054,10 @@
             document.getElementById('adjuntoFiles').value = '';
             document.getElementById('adjuntoProgreso').textContent = '';
             document.getElementById('adjuntoTipo').value = idx === null ? 'Ingreso' : 'Atencion';
+            document.getElementById('adjuntoTipoEditarContenedor').classList.toggle('hidden',idx === null);
             const nuevo = idx === null;
             document.getElementById('adjuntoSeccionTitulo').innerHTML = nuevo ? '<i class="fa-solid fa-paperclip mr-1"></i> Archivo de sustento' : '<i class="fa-solid fa-file-circle-check mr-1"></i> Archivo de descargo / respuesta';
-            document.getElementById('adjuntoSeccionAyuda').textContent = nuevo ? 'Adjunta el documento recibido que motiva el registro.' : 'Adjunta el documento con el que se atendió el trámite. Puedes visualizar o eliminar los sustentos existentes.';
+            document.getElementById('adjuntoSeccionAyuda').textContent = nuevo ? 'Adjunta el documento recibido que motiva el registro.' : 'Puedes añadir sustentos de registro o documentos de respuesta. También puedes reemplazar o eliminar archivos existentes.';
             document.getElementById('adjuntoSeleccionLabel').textContent = nuevo ? 'Seleccionar archivo(s) de sustento' : 'Seleccionar archivo(s) de descargo / respuesta';
             populateSelects();
 
@@ -1109,6 +1117,11 @@
             document.getElementById('docFormModal').classList.remove('hidden');
         }
 
+        function actualizarRotuloTipoAdjunto() {
+            const tipo = document.getElementById('adjuntoTipo').value;
+            document.getElementById('adjuntoSeleccionLabel').textContent = tipo === 'Ingreso' ? 'Añadir sustentos del registro' : 'Añadir archivos de descargo / respuesta';
+        }
+
         function closeDocFormModal() { limpiarPrevisualizaciones(); document.getElementById('docFormModal').classList.add('hidden'); }
 
         // Sustentos: se almacenan en Drive; en Sheets se guarda únicamente la referencia.
@@ -1130,7 +1143,7 @@
                 const fileId = String(getProp(a, ['Drive_File_ID',5]) || '');
                 const url = 'https://drive.google.com/file/d/'+ encodeURIComponent(fileId) + '/view';
                 const mostrar = fileId ? `<button type="button" class="text-blue-700 font-bold underline" onclick="mostrarPreviewGuardado('${escapeHtmlSustento(fileId)}','${nombre}')">Vista previa</button> <a class="text-blue-700 font-bold underline ml-2" href="${escapeHtmlSustento(url)}" target="_blank" rel="noopener noreferrer">Abrir en Drive</a>` : '<span class="text-red-600">Archivo no disponible</span>';
-                const quitar = permitirEliminar ? `<button type="button" onclick="eliminarSustento('${id}')" class="text-rose-700 font-bold px-2 py-1 border border-rose-200 rounded" title="Eliminar adjunto">Eliminar</button>` : '';
+                const quitar = permitirEliminar ? `<button type="button" onclick="reemplazarSustento('${id}')" class="text-blue-700 font-bold px-2 py-1 border border-blue-200 rounded" title="Reemplazar archivo">Reemplazar</button><button type="button" onclick="eliminarSustento('${id}')" class="text-rose-700 font-bold px-2 py-1 border border-rose-200 rounded" title="Eliminar adjunto">Eliminar</button>` : '';
                 return `<div class="p-3 rounded-xl border border-blue-100 bg-white flex justify-between items-center gap-3 text-xs"><div class="min-w-0"><div class="font-bold text-slate-900 break-all"><i class="fa-solid fa-file-lines text-blue-600 mr-1"></i>${nombre}</div><div class="text-slate-500 mt-1">${tipo}</div><div class="mt-2">${mostrar}</div></div>${quitar}</div>`;
             }).join('');
         }
@@ -1173,6 +1186,33 @@
             });
         }
 
+        let idAdjuntoParaReemplazar = null;
+        function reemplazarSustento(id) {
+            if (!currentUser || currentUser.tipo === 'Visita') return;
+            idAdjuntoParaReemplazar = String(id);
+            const input = document.getElementById('inputReemplazoAdjunto');
+            input.value = '';
+            input.click();
+        }
+        function agregarReemplazoSeleccionado(event) {
+            const archivo = event.target.files && event.target.files[0];
+            const id = idAdjuntoParaReemplazar;
+            if (!archivo || !id) return;
+            if (!/\.(pdf|doc|docx|png|jpg|jpeg|gif|webp|bmp|tif|tiff)$/i.test(archivo.name) || !archivo.size || archivo.size > 10*1024*1024) {
+                alert('Elige un PDF, Word o imagen de hasta 10 MB.'); return;
+            }
+            const anterior = (appData.Adjuntos || []).find(a => String(getProp(a,['ID',0])) === id);
+            if (!anterior) {alert('El adjunto original ya no existe. Actualiza los datos.');return;}
+            const tipoAnterior = String(getProp(anterior,['Tipo_Sustento',2]) || 'Ingreso');
+            const previo = archivosEnCola.findIndex(f => f.reemplazarId === id);
+            // La vista previa del nuevo archivo aparece en la lista antes de guardarlo.
+            archivo.reemplazarId = id;
+            archivo.tipoOriginal = tipoAnterior;
+            if (previo >= 0) archivosEnCola.splice(previo,1);
+            archivosEnCola.push(archivo);
+            renderizarArchivosPendientes();
+        }
+
         // Vista previa LOCAL antes de enviar a Drive. Nunca sube el archivo por abrir el visor.
         let archivosEnCola = [];
         let urlsPrevias = [];
@@ -1190,7 +1230,7 @@
                 }
                 // Evitar que seleccionar por accidente el mismo archivo dos veces lo duplique.
                 const existe = archivosEnCola.some(f => f.name === archivo.name && f.size === archivo.size && f.lastModified === archivo.lastModified);
-                if (!existe) archivosEnCola.push(archivo);
+                if (!existe) { archivo.tipoSeleccionado = document.getElementById('adjuntoTipo').value; archivosEnCola.push(archivo); }
             }
             // Limpiar para permitir volver a seleccionar incluso el mismo archivo.
             input.value = '';
@@ -1227,7 +1267,7 @@
                 card.className = 'border border-blue-200 bg-white rounded-xl p-3 space-y-2';
                 const meta = document.createElement('p');
                 meta.className = 'font-semibold text-xs break-all text-slate-900';
-                meta.textContent = (i+1) + '. ' + archivo.name + ' — ' + (archivo.size/1024).toFixed(1) + ' KB';
+                meta.textContent = (i+1) + '. ' + archivo.name + ' — ' + (archivo.size/1024).toFixed(1) + ' KB' + (archivo.reemplazarId ? ' — REEMPLAZA UN ARCHIVO GUARDADO' : '');
                 card.appendChild(meta);
                 const quitar = document.createElement('button');
                 quitar.type = 'button';
@@ -1396,7 +1436,7 @@
                 if(archivo.size>10*1024*1024)throw new Error(archivo.name+': supera el límite de 10 MB');
                 document.getElementById('adjuntoProgreso').textContent=`Subiendo ${i+1} de ${archivos.length}: ${archivo.name}`;
                 const base64=await convertirArchivoABase64(archivo);
-                const payload={numeroDocumento:numero,tipo,nombre:archivo.name,base64,usuario:currentUser?currentUser.usuario:''};
+                const payload={numeroDocumento:numero,tipo:archivo.tipoOriginal || archivo.tipoSeleccionado || tipo,nombre:archivo.name,base64,reemplazarId:archivo.reemplazarId || '',usuario:currentUser?currentUser.usuario:''};
                 if(window.google && google.script && google.script.run){
                     const res=await new Promise((ok,fail)=>google.script.run.withSuccessHandler(ok).withFailureHandler(fail).uploadAdjunto(payload));
                     if(!res || !res.success)throw new Error((res && res.message)||'Error al subir');
@@ -1452,12 +1492,22 @@
 
         function editDocument(idx) { openDocFormModal(idx); }
 
-        function deleteDocument(idx) {
+        async function deleteDocument(idx) {
             const doc = appData.Documentos[idx];
-            const numDoc = getProp(doc, ['Numero_Documento', 1]);
-            if (confirm(`¿Eliminar el documento ${numDoc}?`)) {
-                executeGASAction({ action: "deleteDoc", Numero_Documento: numDoc }, () => fetchData());
-            }
+            if (!doc) return;
+            const numDoc = String(getProp(doc, ['Numero_Documento', 1]));
+            const adjuntos = adjuntosDeNumero(numDoc);
+            const cantidad = adjuntos.length;
+            const aviso = cantidad
+                ? `El documento ${numDoc} tiene ${cantidad} archivo(s) de sustento o respuesta.\n\nSi confirmas, se eliminará el registro y TODOS sus adjuntos serán enviados a la papelera de Google Drive.\n\n¿Deseas eliminar TODO sin borrarlos uno por uno?`
+                : `¿Eliminar definitivamente el registro ${numDoc}?`;
+            if (!confirm(aviso)) return;
+            // Verificación adicional para evitar eliminaciones accidentales.
+            if (cantidad && !confirm('SEGUNDA CONFIRMACIÓN: ¿Enviar a la papelera los ' + cantidad + ' archivos y eliminar el documento?')) return;
+            await executeGASAction({ action: 'deleteDoc', Numero_Documento: numDoc, eliminarAdjuntos: 'SI' }, async (res) => {
+                alert(res.message || 'Documento y archivos eliminados.');
+                await fetchData();
+            });
         }
 
         // ==========================================
