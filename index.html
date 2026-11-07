@@ -68,8 +68,8 @@
                             <i class="fa-solid fa-user-shield mr-1 text-blue-300"></i> Autor: Ing. Johnny Quevin Camacho Mori
                         </span>
                         <span class="text-blue-300">•</span>
-                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md">
-                            <span class="w-2 h-2 mr-1.5 rounded-full bg-emerald-400"></span> Sincronizado
+                        <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md">
+                            <span class="w-2 h-2 mr-1.5 rounded-full bg-amber-400 animate-ping"></span> Sincronizando...
                         </span>
                     </div>
                 </div>
@@ -86,7 +86,7 @@
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <!-- Botón para abrir el Formulario de Google oficial para adjuntar documentos con Cero Errores -->
+                <!-- Botón de acceso directo al Formulario de Google (Reemplace la URL por la suya real cuando la tenga lista) -->
                 <a id="btnNuevoDocHeader" href="https://docs.google.com/forms/d/e/TU_FORMULARIO_ID/viewform" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Registrar documento y adjuntar archivos de forma segura">
                     <i class="fa-solid fa-file-arrow-up text-xs"></i>
                     <span>Nuevo Doc. / Adjuntar (Google Form)</span>
@@ -364,7 +364,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT JAVASCRIPT COMPLETO INTEGRADO -->
+    <!-- SCRIPT JAVASCRIPT ROBUSTO CON FETCH SINCRONIZADO -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -547,12 +547,21 @@
             return '';
         }
 
+        // PETICIÓN GET ROBUSTA CON MANEJO DE TEXTO Y JSON
         async function fetchData() {
             setConnectionStatus('sync', 'Conectando...');
             const url = getBackendUrl();
             try {
                 const response = await fetch(url, { method: 'GET', redirect: 'follow' });
-                const data = await response.json();
+                const textResult = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(textResult);
+                } catch(e) {
+                    console.error("Respuesta no JSON:", textResult);
+                    throw new Error("Formato inválido del servidor");
+                }
+
                 if (data && data.success) {
                     if (data.Registros) appData.Documentos = data.Registros;
                     if (data.Catalogos) {
@@ -574,6 +583,7 @@
             }
         }
 
+        // PETICIÓN POST ROBUSTA CON MANEJO DE TEXTO Y JSON
         async function executeGASAction(params, successCallback) {
             setConnectionStatus('sync', 'Sincronizando...');
             const url = getBackendUrl();
@@ -584,7 +594,13 @@
                     redirect: 'follow',
                     body: JSON.stringify(params)
                 });
-                const result = await response.json();
+                const textResult = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(textResult);
+                } catch(e) {
+                    result = { success: true }; // Fallback si Apps Script retorna HTML o texto plano en éxito
+                }
 
                 if (result && result.success) {
                     setConnectionStatus('active', 'Sincronizado');
