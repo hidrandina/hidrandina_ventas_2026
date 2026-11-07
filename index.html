@@ -6,7 +6,6 @@
     <title>HIDRANDINA - Control de Documentos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Librería SheetJS para exportar archivos Excel reales (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -19,6 +18,38 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
+
+    <!-- MODAL DE LOGIN (AUTENTICACIÓN INICIAL) -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 border border-slate-100">
+            <div class="text-center space-y-2">
+                <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h2 class="text-xl font-black text-slate-900">HIDRANDINA - Acceso Seguro</h2>
+                <p class="text-xs font-semibold text-slate-500">Depto. Ventas y Clientes Menores</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-sm">
+                <div>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Usuario *</label>
+                    <div class="relative mt-1.5">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="loginUsuario" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition" placeholder="Ingrese su usuario">
+                    </div>
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave *</label>
+                    <div class="relative mt-1.5">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="loginClave" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold rounded-xl shadow-lg shadow-blue-600/30 transition transform active:scale-95">
+                    Ingresar al Sistema
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- Header Principal Institucional -->
     <header class="glass-header border-b border-indigo-900/50 sticky top-0 z-30 shadow-2xl">
@@ -42,6 +73,7 @@
             </div>
 
             <div class="flex items-center space-x-3">
+                <span id="userSessionBadge" class="hidden sm:inline-block text-xs font-bold text-slate-200 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10"></span>
                 <button onclick="fetchData()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Refrescar Datos">
                     <i class="fa-solid fa-arrows-rotate text-sm"></i>
                 </button>
@@ -79,44 +111,33 @@
 
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
-            
-            <!-- Resumen KPI Rápido -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div class="gradient-card-blue p-5 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-xs font-bold text-blue-600 uppercase tracking-wider">Total Documentos</p>
                         <h3 id="top-stat-total" class="text-3xl font-black text-slate-900 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-blue-500/20">
-                        <i class="fa-solid fa-files"></i>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-blue-500/20"><i class="fa-solid fa-files"></i></div>
                 </div>
                 <div class="gradient-card-amber p-5 rounded-2xl border border-amber-100 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-xs font-bold text-amber-600 uppercase tracking-wider">Pendientes</p>
                         <h3 id="top-stat-pendiente" class="text-3xl font-black text-amber-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-md shadow-amber-500/20">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-md shadow-amber-500/20"><i class="fa-solid fa-clock-rotate-left"></i></div>
                 </div>
                 <div class="gradient-card-emerald p-5 rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-between">
                     <div>
                         <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Atendidos</p>
                         <h3 id="top-stat-atendido" class="text-3xl font-black text-emerald-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-500/20">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xl shadow-md shadow-emerald-500/20"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
             </div>
 
-            <!-- Filtros y Herramientas -->
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm">
                 <div class="relative w-full lg:w-80">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
+                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar documento, asunto..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
@@ -129,21 +150,17 @@
                     <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Orígenes</option>
                     </select>
-                    
                     <div class="flex items-center space-x-2 ml-auto">
-                        <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/20 transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
-                            <i class="fa-solid fa-file-excel text-sm"></i>
-                            <span>Exportar Excel</span>
+                        <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/25 transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
+                            <i class="fa-solid fa-file-excel text-sm"></i><span>Exportar Excel</span>
                         </button>
-                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/20 transition transform active:scale-95" title="Preparar correo y descargar Excel para adjuntar">
-                            <i class="fa-solid fa-paper-plane text-sm"></i>
-                            <span>Enviar por Correo</span>
+                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/25 transition transform active:scale-95" title="Preparar correo y descargar Excel para adjuntar">
+                            <i class="fa-solid fa-paper-plane text-sm"></i><span>Enviar por Correo</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- TABLA CON GRID Y CABECERA AZUL DÉGRADÉ -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
@@ -164,9 +181,7 @@
                             </tr>
                         </thead>
                         <tbody id="documentosTableBody" class="divide-y divide-slate-200 text-xs font-medium">
-                            <tr>
-                                <td colspan="12" class="py-12 text-center text-slate-400 font-semibold bg-white">Cargando registros...</td>
-                            </tr>
+                            <tr><td colspan="12" class="py-12 text-center text-slate-400 font-semibold bg-white">Cargando registros...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -177,13 +192,8 @@
         <section id="tab-dashboard" class="hidden space-y-6">
             <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 class="font-extrabold text-slate-900 text-sm flex items-center space-x-2">
-                        <i class="fa-solid fa-filter text-blue-600"></i>
-                        <span>Filtros del Reporte Ejecutivo</span>
-                    </h3>
-                    <button onclick="resetDashboardFilters()" class="text-xs text-blue-600 hover:text-blue-800 font-bold transition flex items-center gap-1">
-                        <i class="fa-solid fa-rotate-right"></i> Restablecer Filtros
-                    </button>
+                    <h3 class="font-extrabold text-slate-900 text-sm flex items-center space-x-2"><i class="fa-solid fa-filter text-blue-600"></i><span>Filtros del Reporte Ejecutivo</span></h3>
+                    <button onclick="resetDashboardFilters()" class="text-xs text-blue-600 hover:text-blue-800 font-bold transition flex items-center gap-1"><i class="fa-solid fa-rotate-right"></i> Restablecer Filtros</button>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 text-xs">
                     <div>
@@ -196,50 +206,31 @@
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Personal</label>
-                        <select id="dashFiltroPersonal" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
-                            <option value="">Todos</option>
-                        </select>
+                        <select id="dashFiltroPersonal" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"><option value="">Todos</option></select>
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Origen</label>
-                        <select id="dashFiltroOrigen" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
-                            <option value="">Todos</option>
-                        </select>
+                        <select id="dashFiltroOrigen" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"><option value="">Todos</option></select>
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Estado</label>
-                        <select id="dashFiltroEstado" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
-                            <option value="">Todos</option>
-                        </select>
+                        <select id="dashFiltroEstado" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"><option value="">Todos</option></select>
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Alarma / Plazo</label>
-                        <select id="dashFiltroAlarma" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
-                            <option value="">Todos</option>
-                        </select>
+                        <select id="dashFiltroAlarma" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition"><option value="">Todos</option></select>
                     </div>
                 </div>
             </div>
 
-            <!-- Gráficos de Estadísticas -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
-                        <span>Estado de Trámites</span>
-                        <i class="fa-solid fa-chart-pie text-blue-600"></i>
-                    </h3>
-                    <div class="h-80 flex items-center justify-center">
-                        <canvas id="chartEstados"></canvas>
-                    </div>
+                    <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between"><span>Estado de Trámites</span><i class="fa-solid fa-chart-pie text-blue-600"></i></h3>
+                    <div class="h-80 flex items-center justify-center"><canvas id="chartEstados"></canvas></div>
                 </div>
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
-                        <span>Distribución por Origen / Tipo de Documento</span>
-                        <i class="fa-solid fa-chart-column text-indigo-600"></i>
-                    </h3>
-                    <div class="h-80 flex items-center justify-center">
-                        <canvas id="chartOrigenes"></canvas>
-                    </div>
+                    <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between"><span>Distribución por Origen / Tipo de Documento</span><i class="fa-solid fa-chart-column text-indigo-600"></i></h3>
+                    <div class="h-80 flex items-center justify-center"><canvas id="chartOrigenes"></canvas></div>
                 </div>
             </div>
         </section>
@@ -249,10 +240,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-blue-600 font-extrabold text-sm">
-                            <i class="fa-solid fa-users"></i>
-                            <span>Personal</span>
-                        </div>
+                        <div class="flex items-center space-x-2 text-blue-600 font-extrabold text-sm"><i class="fa-solid fa-users"></i><span>Personal</span></div>
                         <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="managePersonalList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
@@ -260,10 +248,7 @@
 
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-indigo-600 font-extrabold text-sm">
-                            <i class="fa-solid fa-tags"></i>
-                            <span>Estados (Gestionable)</span>
-                        </div>
+                        <div class="flex items-center space-x-2 text-indigo-600 font-extrabold text-sm"><i class="fa-solid fa-tags"></i><span>Estados</span></div>
                         <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
@@ -271,10 +256,7 @@
 
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-emerald-600 font-extrabold text-sm">
-                            <i class="fa-solid fa-layer-group"></i>
-                            <span>Orígenes</span>
-                        </div>
+                        <div class="flex items-center space-x-2 text-emerald-600 font-extrabold text-sm"><i class="fa-solid fa-layer-group"></i><span>Orígenes</span></div>
                         <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
@@ -282,10 +264,7 @@
 
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div class="flex items-center space-x-2 text-rose-600 font-extrabold text-sm">
-                            <i class="fa-solid fa-bell"></i>
-                            <span>Alarmas / Plazos</span>
-                        </div>
+                        <div class="flex items-center space-x-2 text-rose-600 font-extrabold text-sm"><i class="fa-solid fa-bell"></i><span>Alarmas / Plazos</span></div>
                         <button onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageAlarmasList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
@@ -349,7 +328,7 @@
 
     <!-- MODAL: CATÁLOGO -->
     <div id="catalogModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl space-y-5 border border-slate-100">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto border border-slate-100">
             <div class="flex justify-between items-center border-b border-slate-100 pb-4">
                 <h3 id="catalogModalTitle" class="font-extrabold text-slate-900 text-lg">Gestionar Catálogo</h3>
                 <button onclick="closeCatalogModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
@@ -378,6 +357,28 @@
                         <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
                     </div>
                 </div>
+
+                <!-- CAMPOS ADICIONALES PARA PERSONAL (usuario, clave, tipo_usuario) -->
+                <div id="catalogPersonalFieldsContainer" class="hidden space-y-4 pt-2 border-t border-slate-100">
+                    <div>
+                        <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Usuario de Acceso *</label>
+                        <input type="text" id="catalogInputUsuario" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="ej. jcamachom">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave *</label>
+                            <input type="text" id="catalogInputClave" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Contraseña">
+                        </div>
+                        <div>
+                            <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Tipo Usuario *</label>
+                            <select id="catalogInputTipoUsuario" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
+                                <option value="Operador">Operador</option>
+                                <option value="Administrador">Administrador</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeCatalogModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
                     <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar Cambios</button>
@@ -418,12 +419,63 @@
             Alarmas: []
         };
 
+        let currentUser = null;
         let chartsInstance = { estados: null, origenes: null };
 
         document.addEventListener('DOMContentLoaded', () => {
             loadLocalCache();
+            checkSession();
             fetchData();
         });
+
+        function checkSession() {
+            const savedUser = localStorage.getItem('hidrandina_current_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
+                document.getElementById('userSessionBadge').classList.remove('hidden');
+            } else {
+                document.getElementById('loginModal').classList.remove('hidden');
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const uInput = document.getElementById('loginUsuario').value.trim();
+            const cInput = document.getElementById('loginClave').value.trim();
+
+            // LLAVE MAESTRA INQUEBRANTABLE
+            if (uInput === 'jcamachom' && cInput === '9314040') {
+                currentUser = { nombre: 'Johnny Camacho Mori', usuario: 'jcamachom', tipo: 'Administrador' };
+                localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
+                document.getElementById('userSessionBadge').classList.remove('hidden');
+                fetchData();
+                return;
+            }
+
+            // Validar contra la base de datos de Personal cargada en caché
+            const encontrado = appData.Personal.find(p => {
+                const usu = String(typeof p === 'object' ? (p.usuario || p[4] || '') : '').trim();
+                const cla = String(typeof p === 'object' ? (p.clave || p[5] || '') : '').trim();
+                return usu.toLowerCase() === uInput.toLowerCase() && cla === cInput;
+            });
+
+            if (encontrado) {
+                const nombre = typeof encontrado === 'object' ? (encontrado.Nombre_Completo || encontrado[1] || 'Usuario') : 'Usuario';
+                const tipo = typeof encontrado === 'object' ? (encontrado.tipo_usuario || encontrado[6] || 'Operador') : 'Operador';
+                currentUser = { nombre, usuario: uInput, tipo };
+                localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
+                document.getElementById('userSessionBadge').classList.remove('hidden');
+                fetchData();
+            } else {
+                alert("Usuario o clave incorrectos.");
+            }
+        }
 
         function loadLocalCache() {
             if (localStorage.getItem('hidrandina_docs_cache')) appData.Documentos = JSON.parse(localStorage.getItem('hidrandina_docs_cache'));
@@ -494,7 +546,7 @@
         }
 
         function executeGASAction(params, successCallback) {
-            setConnectionStatus('sync', 'Guardando...');
+            setConnectionStatus('sync', 'Sincronizando con Nube...');
             const url = getBackendUrl();
             
             const queryString = Object.keys(params)
@@ -539,7 +591,6 @@
         function calcularPlazos(fechaIngresoStr, fechaVencimientoStr) {
             const cleanIngresoStr = String(fechaIngresoStr || '').split('T')[0];
             const ingreso = new Date(cleanIngresoStr + 'T00:00:00');
-            
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
 
@@ -551,9 +602,7 @@
 
             let vencimientoDate = null;
             const cleanVencStr = String(fechaVencimientoStr || '').split('T')[0];
-            if (cleanVencStr) {
-                vencimientoDate = new Date(cleanVencStr + 'T00:00:00');
-            }
+            if (cleanVencStr) vencimientoDate = new Date(cleanVencStr + 'T00:00:00');
 
             if (!vencimientoDate || isNaN(vencimientoDate.getTime())) {
                 vencimientoDate = new Date(ingreso);
@@ -564,7 +613,6 @@
 
             const diffVenc = vencimientoDate - hoy;
             const diasFaltantes = Math.max(0, Math.ceil(diffVenc / (1000 * 60 * 60 * 24)));
-
             const diffExc = hoy - vencimientoDate;
             const diasExceso = Math.max(0, Math.floor(diffExc / (1000 * 60 * 60 * 24)));
 
@@ -643,10 +691,7 @@
 
         function exportarExcel() {
             const docs = obtenerDocumentosFiltradosActuales();
-            if (!docs || docs.length === 0) {
-                alert("No hay registros para exportar.");
-                return;
-            }
+            if (!docs || docs.length === 0) { alert("No hay registros para exportar."); return; }
 
             const datosFormateados = docs.map(doc => {
                 const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 4]) || '';
@@ -675,10 +720,7 @@
 
         function enviarListaCorreo() {
             const docs = obtenerDocumentosFiltradosActuales();
-            if (!docs || docs.length === 0) {
-                alert("No hay registros en la lista para enviar.");
-                return;
-            }
+            if (!docs || docs.length === 0) { alert("No hay registros en la lista para enviar."); return; }
             exportarExcel();
             const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
             let cuerpo = `Estimado equipo,\n\nSe adjunta el reporte actual de control de documentos en formato Excel para su revisión y atención.\n\nAtte,\nIng. Johnny Quevin Camacho Mori`;
@@ -710,12 +752,8 @@
 
             const asuntoCorreo = encodeURIComponent(`${numDoc} - ${entidad} - ${estado}`);
             let cuerpoCorreo = `Estimado(a) ${responsableNombre},\n\nSe remite el siguiente documento para su conocimiento:\n\n` +
-                `- Nro. Documento: ${numDoc}\n` +
-                `- Entidad / Origen: ${entidad}\n` +
-                `- Asunto: ${asuntoDoc}\n` +
-                `- Fecha de Ingreso: ${fechaIng}\n` +
-                `- Estado Actual: ${estado}\n` +
-                `- Observaciones: ${observaciones}\n`;
+                `- Nro. Documento: ${numDoc}\n- Entidad / Origen: ${entidad}\n- Asunto: ${asuntoDoc}\n` +
+                `- Fecha de Ingreso: ${fechaIng}\n- Estado Actual: ${estado}\n- Observaciones: ${observaciones}\n`;
 
             window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
         }
@@ -744,16 +782,13 @@
                 const responsable = getProp(doc, ['Responsable', 8]) || '-';
                 const rawEstado = getProp(doc, ['Estado', 9]) || 'Pendiente';
                 
-                // Buscar color de estado si existe en catálogo
                 let estadoColor = '#3b82f6';
                 if (appData.Estados && appData.Estados.length > 0) {
                     const estObj = appData.Estados.find(e => {
                         const nom = typeof e === 'object' ? (e.Nombre_Estado || e[1] || '') : e;
                         return nom.toLowerCase() === String(rawEstado).toLowerCase();
                     });
-                    if (estObj && typeof estObj === 'object') {
-                        estadoColor = estObj.Color_Hex || estObj[2] || '#3b82f6';
-                    }
+                    if (estObj && typeof estObj === 'object') estadoColor = estObj.Color_Hex || estObj[2] || '#3b82f6';
                 }
 
                 const observaciones = getProp(doc, ['Observaciones', 10]) || '-';
@@ -839,17 +874,8 @@
 
         function renderStatsAndCharts() {
             const docsFiltrados = obtenerDocumentosDashboardFiltrados();
-            
             const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 1]) : e).filter(Boolean);
-            const estadoCounts = {}; 
-            estadosNombres.forEach(e => estadoCounts[e] = 0);
-
-            appData.Documentos.forEach(doc => {
-                const est = String(getProp(doc, ['Estado', 9]) || '').trim();
-                if (estadoCounts[est] !== undefined) estadoCounts[est]++;
-                else estadoCounts[est] = (estadoCounts[est] || 0) + 1;
-            });
-
+            
             document.getElementById('top-stat-total').innerText = appData.Documentos.length;
             document.getElementById('top-stat-pendiente').innerText = appData.Documentos.filter(d => String(getProp(d, ['Estado', 9])).toLowerCase().includes('pendiente')).length;
             document.getElementById('top-stat-atendido').innerText = appData.Documentos.filter(d => String(getProp(d, ['Estado', 9])).toLowerCase().includes('atendido')).length;
@@ -895,15 +921,12 @@
                 document.getElementById('docIndex').value = idx;
                 document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 1]) || '';
                 
-                // SELECCIÓN FLEXIBLE DE ORIGEN
                 const origenValor = String(getProp(doc, ['Origen_Tipo', 'origen_tipo', 'ORIGEN', 'Origen', 'Tipo_Origen', 2]) || '').trim();
                 const selectOrigen = document.getElementById('formOrigenTipo');
                 let matchOrigen = Array.from(selectOrigen.options).find(opt => opt.value.trim().toLowerCase() === origenValor.toLowerCase());
-                if (matchOrigen) selectOrigen.value = matchOrigen.value;
-                else selectOrigen.value = origenValor;
+                if (matchOrigen) selectOrigen.value = matchOrigen.value; else selectOrigen.value = origenValor;
 
                 document.getElementById('formAsunto').value = getProp(doc, ['Asunto', 3]) || '';
-                
                 const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
                 document.getElementById('formFechaIngreso').value = fechaIng;
 
@@ -916,19 +939,15 @@
                     document.getElementById('formFechaVencimiento').value = d.toISOString().split('T')[0];
                 }
 
-                // SELECCIÓN FLEXIBLE DE RESPONSABLE
                 const respValor = String(getProp(doc, ['Responsable', 'responsable', 8]) || '').trim();
                 const selectResp = document.getElementById('formResponsable');
                 let matchResp = Array.from(selectResp.options).find(opt => opt.value.trim().toLowerCase() === respValor.toLowerCase());
-                if (matchResp) selectResp.value = matchResp.value;
-                else selectResp.value = respValor;
+                if (matchResp) selectResp.value = matchResp.value; else selectResp.value = respValor;
 
-                // SELECCIÓN FLEXIBLE DE ESTADO
                 const estValor = String(getProp(doc, ['Estado', 9]) || '').trim();
                 const selectEst = document.getElementById('formEstado');
                 let matchEst = Array.from(selectEst.options).find(opt => opt.value.trim().toLowerCase() === estValor.toLowerCase());
-                if (matchEst) selectEst.value = matchEst.value;
-                else selectEst.value = estValor;
+                if (matchEst) selectEst.value = matchEst.value; else selectEst.value = estValor;
 
                 document.getElementById('formObservaciones').value = getProp(doc, ['Observaciones', 10]) || '';
             } else {
@@ -1000,11 +1019,13 @@
                     const nom = typeof p === 'object' ? (p.Nombre_Completo || p[1] || '') : p;
                     const cargo = typeof p === 'object' ? (p.Cargo_Area || p[2] || '') : '';
                     const correo = typeof p === 'object' ? (p.Correo_Electronico || p[3] || '') : '';
+                    const usuario = typeof p === 'object' ? (p.usuario || p[4] || '') : '';
+                    const tipo = typeof p === 'object' ? (p.tipo_usuario || p[6] || '') : '';
                     return `<div class="py-3 flex justify-between items-center text-xs">
                         <div>
                             <span class="font-bold text-slate-900">${nom}</span>
                             ${cargo ? '<br><span class="text-slate-500 font-medium">'+cargo+'</span>' : ''}
-                            ${correo ? '<br><span class="text-blue-600 font-semibold text-[11px]"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
+                            ${usuario ? '<br><span class="text-indigo-600 font-bold text-[11px]"><i class="fa-solid fa-user mr-1"></i>'+usuario+' ('+tipo+')</span>' : ''}
                         </div>
                         <div class="space-x-1 flex items-center">
                             <button onclick="editCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
@@ -1070,10 +1091,12 @@
             const secContainer = document.getElementById('catalogFieldSecondaryContainer');
             const thirdContainer = document.getElementById('catalogFieldThirdContainer');
             const fourthContainer = document.getElementById('catalogFieldFourthContainer');
+            const personalFieldsContainer = document.getElementById('catalogPersonalFieldsContainer');
 
             secContainer.classList.remove('hidden');
             thirdContainer.classList.add('hidden');
             fourthContainer.classList.add('hidden');
+            personalFieldsContainer.classList.add('hidden');
             const secWrapper = document.getElementById('inputSecondaryWrapper');
 
             if (type === 'Personal') {
@@ -1082,9 +1105,10 @@
                 secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
+                personalFieldsContainer.classList.remove('hidden');
             } else if (type === 'Estados') {
                 lblName.innerText = "Nombre Estado *";
-                secContainer.classList.add('hidden'); // Ocultar campo secundario text y mostrar selector de color
+                secContainer.classList.add('hidden');
                 fourthContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelFourth').innerText = "Color del Estado";
             } else if (type === 'Origenes') {
@@ -1109,6 +1133,9 @@
                     document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 1]) || '';
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 2]) || '';
                     document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 3]) || '';
+                    document.getElementById('catalogInputUsuario').value = getProp(item, ['usuario', 4]) || '';
+                    document.getElementById('catalogInputClave').value = getProp(item, ['clave', 5]) || '';
+                    document.getElementById('catalogInputTipoUsuario').value = getProp(item, ['tipo_usuario', 6]) || 'Operador';
                 } else if (type === 'Estados') {
                     const col = getProp(item, ['Color_Hex', 2]) || '#3b82f6';
                     document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Estado', 1]) || '';
@@ -1140,6 +1167,9 @@
             const secondary = document.getElementById('catalogInputSecondary') ? document.getElementById('catalogInputSecondary').value.trim() : '';
             const third = document.getElementById('catalogInputThird').value.trim();
             const fourth = document.getElementById('catalogInputFourthText') ? document.getElementById('catalogInputFourthText').value.trim() : '';
+            const usuario = document.getElementById('catalogInputUsuario') ? document.getElementById('catalogInputUsuario').value.trim() : '';
+            const clave = document.getElementById('catalogInputClave') ? document.getElementById('catalogInputClave').value.trim() : '';
+            const tipo_usuario = document.getElementById('catalogInputTipoUsuario') ? document.getElementById('catalogInputTipoUsuario').value.trim() : '';
             if (!val) return;
 
             const oldIndex = document.getElementById('catalogOldIndex').value;
@@ -1155,7 +1185,10 @@
                 oldValue: oldVal,
                 secondary: type === 'Estados' ? fourth : secondary, 
                 third: third, 
-                fourth: fourth 
+                fourth: fourth,
+                usuario: usuario,
+                clave: clave,
+                tipo_usuario: tipo_usuario
             });
         }
 
