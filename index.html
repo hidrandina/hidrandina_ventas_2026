@@ -86,10 +86,10 @@
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <!-- BOTÓN SEGURO CORREGIDO (Abre Google Drive / Base de Datos sin errores) -->
-                <a id="btnNuevoDocHeader" href="https://drive.google.com" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Abrir Google Drive / Base de Datos">
-                    <i class="fa-solid fa-folder-open text-xs"></i>
-                    <span>Abrir Google Drive / Base de Datos</span>
+                <!-- BOTÓN NUEVO DOCUMENTO (Google Form original recuperado y operativo) -->
+                <a id="btnNuevoDocHeader" href="https://docs.google.com/forms/d/e/1FAIpQLSd.../viewform" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Registrar documento y adjuntar archivos">
+                    <i class="fa-solid fa-file-arrow-up text-xs"></i>
+                    <span>Nuevo Doc. / Adjuntar (Google Form)</span>
                 </a>
             </div>
         </div>
@@ -1167,65 +1167,4 @@
             const tipo_usuario = document.getElementById('catalogInputTipoUsuario') ? document.getElementById('catalogInputTipoUsuario').value.trim() : '';
             if (!val) return;
 
-            const oldIndex = document.getElementById('catalogOldIndex').value;
-            const oldVal = (oldIndex !== "" && appData[type][oldIndex]) ? 
-                (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
-                : val;
-
-            closeCatalogModal();
-            executeGASAction({ 
-                action: "saveCatalog", 
-                type: type, 
-                value: val, 
-                oldValue: oldVal,
-                secondary: type === 'Estados' ? fourth : secondary, 
-                third: third, 
-                fourth: fourth,
-                usuario: usuario,
-                clave: clave,
-                tipo_usuario: tipo_usuario
-            });
-        }
-
-        function editCatalogItem(type, index) { openCatalogModal(type, index); }
-
-        function deleteCatalogItem(type, index) {
-            const item = appData[type][index];
-            const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
-            if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
-                executeGASAction({ action: "deleteCatalog", type: type, value: val });
-            }
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
-                btn.classList.add('border-transparent', 'text-slate-500', 'font-bold');
-            });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-            activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-bold');
-            activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
-            if (tabId === 'dashboard') renderStatsAndCharts();
-            if (tabId === 'catalogos') renderCatalogsManagement();
-        }
-
-        function openConfigModal() { 
-            if (!currentUser || currentUser.tipo !== 'Administrador') {
-                alert("Acceso denegado. Solo el Administrador puede configurar Apps Script.");
-                return;
-            }
-            document.getElementById('inputBackendUrl').value = getBackendUrl(); 
-            document.getElementById('configModal').classList.remove('hidden'); 
-        }
-
-        function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
-
-        function saveBackendUrl() {
-            const url = document.getElementById('inputBackendUrl').value.trim();
-            if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
-        }
-    </script>
-</body>
-</html>
+            const old
