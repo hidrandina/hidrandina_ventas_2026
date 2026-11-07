@@ -125,8 +125,6 @@
                     </select>
                     <select id="filterEstado" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Estados</option>
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Atendido">Atendido</option>
                     </select>
                     <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todos los Orígenes</option>
@@ -212,8 +210,6 @@
                         <label class="font-bold text-slate-700 uppercase tracking-wider block mb-1">Estado</label>
                         <select id="dashFiltroEstado" onchange="renderCharts()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
                             <option value="">Todos</option>
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="Atendido">Atendido</option>
                         </select>
                     </div>
                     <div>
@@ -229,7 +225,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-extrabold text-slate-900 mb-4 text-xs uppercase tracking-wider flex items-center justify-between">
-                        <span>Estado de Trámites (Pendientes vs Atendidos)</span>
+                        <span>Estado de Trámites</span>
                         <i class="fa-solid fa-chart-pie text-blue-600"></i>
                     </h3>
                     <div class="h-80 flex items-center justify-center">
@@ -266,8 +262,9 @@
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2 text-indigo-600 font-extrabold text-sm">
                             <i class="fa-solid fa-tags"></i>
-                            <span>Estados (Fijos)</span>
+                            <span>Estados (Gestionable)</span>
                         </div>
+                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
@@ -335,10 +332,7 @@
                     </div>
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Estado Actual *</label>
-                        <select id="formEstado" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-extrabold text-blue-600">
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="Atendido">Atendido</option>
-                        </select>
+                        <select id="formEstado" required class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-extrabold text-blue-600"></select>
                     </div>
                 </div>
                 <div>
@@ -378,7 +372,7 @@
                     <input type="text" id="catalogInputThird" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
                 </div>
                 <div id="catalogFieldFourthContainer" class="hidden">
-                    <label id="catalogLabelFourth" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Color Alarma</label>
+                    <label id="catalogLabelFourth" class="font-bold text-slate-700 text-xs uppercase tracking-wider">Color Indicador</label>
                     <div class="mt-1.5 flex items-center space-x-2">
                         <input type="color" id="catalogInputFourthColor" value="#ef4444" class="w-12 h-11 p-1 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer" onchange="document.getElementById('catalogInputFourthText').value = this.value">
                         <input type="text" id="catalogInputFourthText" value="#ef4444" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" oninput="document.getElementById('catalogInputFourthColor').value = this.value">
@@ -408,7 +402,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT ROBUSTA (METODO GET JSONP PARA EVITAR BLOQUEO CORS) -->
+    <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -419,7 +413,7 @@
         let appData = {
             Documentos: [],
             Personal: [],
-            Estados: ["Pendiente", "Atendido"],
+            Estados: [],
             Origenes: [],
             Alarmas: []
         };
@@ -434,6 +428,7 @@
         function loadLocalCache() {
             if (localStorage.getItem('hidrandina_docs_cache')) appData.Documentos = JSON.parse(localStorage.getItem('hidrandina_docs_cache'));
             if (localStorage.getItem('hidrandina_pers_cache')) appData.Personal = JSON.parse(localStorage.getItem('hidrandina_pers_cache'));
+            if (localStorage.getItem('hidrandina_esta_cache')) appData.Estados = JSON.parse(localStorage.getItem('hidrandina_esta_cache'));
             if (localStorage.getItem('hidrandina_orig_cache')) appData.Origenes = JSON.parse(localStorage.getItem('hidrandina_orig_cache'));
             if (localStorage.getItem('hidrandina_alar_cache')) appData.Alarmas = JSON.parse(localStorage.getItem('hidrandina_alar_cache'));
             if (appData.Documentos.length > 0) renderAll();
@@ -442,6 +437,7 @@
         function saveLocalCache() {
             localStorage.setItem('hidrandina_docs_cache', JSON.stringify(appData.Documentos));
             localStorage.setItem('hidrandina_pers_cache', JSON.stringify(appData.Personal));
+            localStorage.setItem('hidrandina_esta_cache', JSON.stringify(appData.Estados));
             localStorage.setItem('hidrandina_orig_cache', JSON.stringify(appData.Origenes));
             localStorage.setItem('hidrandina_alar_cache', JSON.stringify(appData.Alarmas));
         }
@@ -474,6 +470,7 @@
                 if (data.Registros) appData.Documentos = data.Registros;
                 if (data.Catalogos) {
                     appData.Personal = data.Catalogos.Personal || data.Catalogos.Responsables || appData.Personal;
+                    appData.Estados = data.Catalogos.Estados || appData.Estados;
                     appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
                     appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
                 }
@@ -496,7 +493,6 @@
             document.body.appendChild(script);
         }
 
-        // COMUNICACIÓN SEGURA POR GET DINÁMICO (JSONP) QUE EVITA ERRORES DE CORS Y POST
         function executeGASAction(params, successCallback) {
             setConnectionStatus('sync', 'Guardando...');
             const url = getBackendUrl();
@@ -747,7 +743,19 @@
 
                 const responsable = getProp(doc, ['Responsable', 8]) || '-';
                 const rawEstado = getProp(doc, ['Estado', 9]) || 'Pendiente';
-                const isAtendido = String(rawEstado).toLowerCase().includes('atendido') || String(rawEstado).toLowerCase().includes('concluido');
+                
+                // Buscar color de estado si existe en catálogo
+                let estadoColor = '#3b82f6';
+                if (appData.Estados && appData.Estados.length > 0) {
+                    const estObj = appData.Estados.find(e => {
+                        const nom = typeof e === 'object' ? (e.Nombre_Estado || e[1] || '') : e;
+                        return nom.toLowerCase() === String(rawEstado).toLowerCase();
+                    });
+                    if (estObj && typeof estObj === 'object') {
+                        estadoColor = estObj.Color_Hex || estObj[2] || '#3b82f6';
+                    }
+                }
+
                 const observaciones = getProp(doc, ['Observaciones', 10]) || '-';
                 const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
 
@@ -760,14 +768,14 @@
                         <td class="py-3.5 px-4 font-bold text-slate-700 border-r border-slate-200/80">${fechaVenc}</td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px] border border-slate-200">${diasTrans}</span></td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
-                            ${diasFalt > 0 && !isAtendido ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt}</span>` : `<span class="text-slate-400 font-semibold text-[11px]">0</span>`}
+                            ${diasFalt > 0 ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[11px] border border-emerald-200">${diasFalt}</span>` : `<span class="text-slate-400 font-semibold text-[11px]">0</span>`}
                         </td>
                         <td class="py-3.5 px-4 text-center border-r border-slate-200/80">
-                            ${diasExc > 0 && !isAtendido ? `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc}</span>` : `<span class="text-emerald-600 font-extrabold text-[11px]">0</span>`}
+                            ${diasExc > 0 ? `<span class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-black text-[11px] shadow-sm shadow-rose-500/30 animate-pulse">+${diasExc}</span>` : `<span class="text-emerald-600 font-extrabold text-[11px]">0</span>`}
                         </td>
                         <td class="py-3.5 px-4 text-slate-700 font-semibold border-r border-slate-200/80">${responsable}</td>
                         <td class="py-3.5 px-4 border-r border-slate-200/80">
-                            ${isAtendido ? `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Atendido</span>` : `<span class="px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-800 border border-amber-300 flex items-center w-max gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Pendiente</span>`}
+                            <span class="px-3 py-1 rounded-full text-[11px] font-black text-white shadow-sm flex items-center w-max gap-1.5" style="background-color: ${estadoColor}"><span class="w-2 h-2 rounded-full bg-white"></span>${rawEstado}</span>
                         </td>
                         <td class="py-3.5 px-4 text-slate-600 max-w-[160px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
                         <td class="py-3.5 px-4 text-center space-x-1">
@@ -783,35 +791,47 @@
         function populateSelects() {
             const persSel = document.getElementById('filterPersonal');
             const origSel = document.getElementById('filterOrigen');
+            const estadoSel = document.getElementById('filterEstado');
+            
             const currentPers = persSel.value;
             const currentOrig = origSel.value;
+            const currentEstado = estadoSel.value;
 
-            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
             const personalNombres = appData.Personal.map(p => typeof p === 'object' ? getProp(p, ['Nombre_Completo', 1]) : p).filter(Boolean);
+            const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 1]) : e).filter(Boolean);
+            const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
             const alarmasNombres = appData.Alarmas.map(a => typeof a === 'object' ? getProp(a, ['Nombre_Alarma', 1]) : a).filter(Boolean);
 
             persSel.innerHTML = '<option value="">Todo el Personal</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+            estadoSel.innerHTML = '<option value="">Todos los Estados</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
             origSel.innerHTML = '<option value="">Todos los Orígenes</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
             
             persSel.value = currentPers;
+            estadoSel.value = currentEstado;
             origSel.value = currentOrig;
 
-            document.getElementById('formOrigenTipo').innerHTML = origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
-            document.getElementById('formResponsable').innerHTML = personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+            document.getElementById('formOrigenTipo').innerHTML = '<option value="">-- Seleccione Origen --</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+            document.getElementById('formResponsable').innerHTML = '<option value="">-- Seleccione Responsable --</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
+            document.getElementById('formEstado').innerHTML = '<option value="">-- Seleccione Estado --</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
 
             const dashPers = document.getElementById('dashFiltroPersonal');
             const dashOrig = document.getElementById('dashFiltroOrigen');
+            const dashEst = document.getElementById('dashFiltroEstado');
             const dashAlar = document.getElementById('dashFiltroAlarma');
+
             const curDPers = dashPers.value;
             const curDOrig = dashOrig.value;
+            const curDEst = dashEst.value;
             const curDAlar = dashAlar.value;
 
             dashPers.innerHTML = '<option value="">Todos</option>' + personalNombres.map(p => `<option value="${p}">${p}</option>`).join('');
             dashOrig.innerHTML = '<option value="">Todos</option>' + origenesNombres.map(o => `<option value="${o}">${o}</option>`).join('');
+            dashEst.innerHTML = '<option value="">Todos</option>' + estadosNombres.map(e => `<option value="${e}">${e}</option>`).join('');
             dashAlar.innerHTML = '<option value="">Todos</option>' + alarmasNombres.map(a => `<option value="${a}">${a}</option>`).join('');
 
             dashPers.value = curDPers;
             dashOrig.value = curDOrig;
+            dashEst.value = curDEst;
             dashAlar.value = curDAlar;
         }
 
@@ -819,21 +839,27 @@
 
         function renderStatsAndCharts() {
             const docsFiltrados = obtenerDocumentosDashboardFiltrados();
-            let pendiente = 0, atendido = 0;
-            appData.Documentos.forEach(doc => {
-                const est = String(getProp(doc, ['Estado', 9]) || '').toLowerCase();
-                if (est.includes('atendido') || est.includes('concluido')) atendido++;
-                else pendiente++;
-            });
-            document.getElementById('top-stat-total').innerText = appData.Documentos.length;
-            document.getElementById('top-stat-pendiente').innerText = pendiente;
-            document.getElementById('top-stat-atendido').innerText = atendido;
+            
+            const estadosNombres = appData.Estados.map(e => typeof e === 'object' ? getProp(e, ['Nombre_Estado', 1]) : e).filter(Boolean);
+            const estadoCounts = {}; 
+            estadosNombres.forEach(e => estadoCounts[e] = 0);
 
-            let dashPendiente = 0, dashAtendido = 0;
+            appData.Documentos.forEach(doc => {
+                const est = String(getProp(doc, ['Estado', 9]) || '').trim();
+                if (estadoCounts[est] !== undefined) estadoCounts[est]++;
+                else estadoCounts[est] = (estadoCounts[est] || 0) + 1;
+            });
+
+            document.getElementById('top-stat-total').innerText = appData.Documentos.length;
+            document.getElementById('top-stat-pendiente').innerText = appData.Documentos.filter(d => String(getProp(d, ['Estado', 9])).toLowerCase().includes('pendiente')).length;
+            document.getElementById('top-stat-atendido').innerText = appData.Documentos.filter(d => String(getProp(d, ['Estado', 9])).toLowerCase().includes('atendido')).length;
+
+            const dashEstadoCounts = {}; 
+            estadosNombres.forEach(e => dashEstadoCounts[e] = 0);
             docsFiltrados.forEach(doc => {
-                const est = String(getProp(doc, ['Estado', 9]) || '').toLowerCase();
-                if (est.includes('atendido') || est.includes('concluido')) dashAtendido++;
-                else dashPendiente++;
+                const est = String(getProp(doc, ['Estado', 9]) || '').trim();
+                if (dashEstadoCounts[est] !== undefined) dashEstadoCounts[est]++;
+                else dashEstadoCounts[est] = (dashEstadoCounts[est] || 0) + 1;
             });
 
             const origenesNombres = appData.Origenes.map(o => typeof o === 'object' ? getProp(o, ['Tipo_Origen', 1]) : o).filter(Boolean);
@@ -843,9 +869,11 @@
             if (chartsInstance.estados) chartsInstance.estados.destroy();
             if (chartsInstance.origenes) chartsInstance.origenes.destroy();
 
+            const estadoColores = appData.Estados.map(e => typeof e === 'object' ? (e.Color_Hex || e[2] || '#3b82f6') : '#3b82f6');
+
             chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
                 type: 'doughnut',
-                data: { labels: ['Pendiente', 'Atendido'], datasets: [{ data: [dashPendiente, dashAtendido], backgroundColor: ['#f59e0b', '#10b981'], borderWidth: 3, borderColor: '#ffffff' }] },
+                data: { labels: Object.keys(dashEstadoCounts), datasets: [{ data: Object.values(dashEstadoCounts), backgroundColor: estadoColores.length ? estadoColores : ['#f59e0b', '#10b981'], borderWidth: 3, borderColor: '#ffffff' }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { weight: '800' } } } } }
             });
 
@@ -866,7 +894,14 @@
                 document.getElementById('docModalTitle').innerText = "Editar Documento";
                 document.getElementById('docIndex').value = idx;
                 document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 1]) || '';
-                document.getElementById('formOrigenTipo').value = getProp(doc, ['Origen_Tipo', 2]) || '';
+                
+                // SELECCIÓN FLEXIBLE DE ORIGEN
+                const origenValor = String(getProp(doc, ['Origen_Tipo', 'origen_tipo', 'ORIGEN', 'Origen', 'Tipo_Origen', 2]) || '').trim();
+                const selectOrigen = document.getElementById('formOrigenTipo');
+                let matchOrigen = Array.from(selectOrigen.options).find(opt => opt.value.trim().toLowerCase() === origenValor.toLowerCase());
+                if (matchOrigen) selectOrigen.value = matchOrigen.value;
+                else selectOrigen.value = origenValor;
+
                 document.getElementById('formAsunto').value = getProp(doc, ['Asunto', 3]) || '';
                 
                 const fechaIng = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').split('T')[0];
@@ -881,9 +916,20 @@
                     document.getElementById('formFechaVencimiento').value = d.toISOString().split('T')[0];
                 }
 
-                document.getElementById('formResponsable').value = getProp(doc, ['Responsable', 8]) || '';
-                const rawEst = getProp(doc, ['Estado', 9]) || 'Pendiente';
-                document.getElementById('formEstado').value = String(rawEst).toLowerCase().includes('atendido') ? 'Atendido' : 'Pendiente';
+                // SELECCIÓN FLEXIBLE DE RESPONSABLE
+                const respValor = String(getProp(doc, ['Responsable', 'responsable', 8]) || '').trim();
+                const selectResp = document.getElementById('formResponsable');
+                let matchResp = Array.from(selectResp.options).find(opt => opt.value.trim().toLowerCase() === respValor.toLowerCase());
+                if (matchResp) selectResp.value = matchResp.value;
+                else selectResp.value = respValor;
+
+                // SELECCIÓN FLEXIBLE DE ESTADO
+                const estValor = String(getProp(doc, ['Estado', 9]) || '').trim();
+                const selectEst = document.getElementById('formEstado');
+                let matchEst = Array.from(selectEst.options).find(opt => opt.value.trim().toLowerCase() === estValor.toLowerCase());
+                if (matchEst) selectEst.value = matchEst.value;
+                else selectEst.value = estValor;
+
                 document.getElementById('formObservaciones').value = getProp(doc, ['Observaciones', 10]) || '';
             } else {
                 document.getElementById('docModalTitle').innerText = "Nuevo Documento";
@@ -893,7 +939,6 @@
                 const dDef = new Date();
                 dDef.setDate(dDef.getDate() + 15);
                 document.getElementById('formFechaVencimiento').value = dDef.toISOString().split('T')[0];
-                document.getElementById('formEstado').value = "Pendiente";
             }
             document.getElementById('docFormModal').classList.remove('hidden');
         }
@@ -968,10 +1013,21 @@
                     </div>`;
                 }).join('');
 
-            document.getElementById('manageEstadosList').innerHTML = `
-                <div class="py-3 flex justify-between items-center text-xs"><div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-amber-500 shadow-sm"></span><span class="font-extrabold text-amber-800">Pendiente</span></div></div>
-                <div class="py-3 flex justify-between items-center text-xs"><div class="flex items-center space-x-2.5"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-sm"></span><span class="font-extrabold text-emerald-800">Atendido</span></div></div>
-            `;
+            document.getElementById('manageEstadosList').innerHTML = (!appData.Estados || appData.Estados.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
+                appData.Estados.map((e, i) => {
+                    const nom = typeof e === 'object' ? (e.Nombre_Estado || e[1] || '') : e;
+                    const col = typeof e === 'object' ? (e.Color_Hex || e[2] || '#3b82f6') : '#3b82f6';
+                    return `<div class="py-3 flex justify-between items-center text-xs">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${col}"></span>
+                            <span class="font-extrabold text-slate-800">${nom}</span>
+                        </div>
+                        <div class="space-x-1 flex items-center">
+                            <button onclick="editCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>`;
+                }).join('');
 
             document.getElementById('manageOrigenesList').innerHTML = (!appData.Origenes || appData.Origenes.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Origenes.map((o, i) => {
@@ -1026,6 +1082,11 @@
                 secWrapper.innerHTML = `<input type="text" id="catalogInputSecondary" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">`;
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
+            } else if (type === 'Estados') {
+                lblName.innerText = "Nombre Estado *";
+                secContainer.classList.add('hidden'); // Ocultar campo secundario text y mostrar selector de color
+                fourthContainer.classList.remove('hidden');
+                document.getElementById('catalogLabelFourth').innerText = "Color del Estado";
             } else if (type === 'Origenes') {
                 lblName.innerText = "Tipo de Origen *";
                 lblSec.innerText = "Descripción";
@@ -1048,6 +1109,11 @@
                     document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Completo', 1]) || '';
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 2]) || '';
                     document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 3]) || '';
+                } else if (type === 'Estados') {
+                    const col = getProp(item, ['Color_Hex', 2]) || '#3b82f6';
+                    document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Estado', 1]) || '';
+                    document.getElementById('catalogInputFourthText').value = col;
+                    document.getElementById('catalogInputFourthColor').value = col;
                 } else if (type === 'Origenes') {
                     document.getElementById('catalogInputValue').value = getProp(item, ['Tipo_Origen', 1]) || '';
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Descripcion', 2]) || '';
@@ -1071,14 +1137,14 @@
             e.preventDefault();
             const type = document.getElementById('catalogType').value;
             const val = document.getElementById('catalogInputValue').value.trim();
-            const secondary = document.getElementById('catalogInputSecondary').value.trim();
+            const secondary = document.getElementById('catalogInputSecondary') ? document.getElementById('catalogInputSecondary').value.trim() : '';
             const third = document.getElementById('catalogInputThird').value.trim();
             const fourth = document.getElementById('catalogInputFourthText') ? document.getElementById('catalogInputFourthText').value.trim() : '';
             if (!val) return;
 
             const oldIndex = document.getElementById('catalogOldIndex').value;
             const oldVal = (oldIndex !== "" && appData[type][oldIndex]) ? 
-                (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
+                (typeof appData[type][oldIndex] === 'object' ? getProp(appData[type][oldIndex], ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : appData[type][oldIndex]) 
                 : val;
 
             closeCatalogModal();
@@ -1087,7 +1153,7 @@
                 type: type, 
                 value: val, 
                 oldValue: oldVal,
-                secondary: secondary, 
+                secondary: type === 'Estados' ? fourth : secondary, 
                 third: third, 
                 fourth: fourth 
             });
@@ -1097,7 +1163,7 @@
 
         function deleteCatalogItem(type, index) {
             const item = appData[type][index];
-            const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
+            const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
             if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
                 executeGASAction({ action: "deleteCatalog", type: type, value: val });
             }
