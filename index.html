@@ -41,7 +41,10 @@
                     <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave *</label>
                     <div class="relative mt-1.5">
                         <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400"><i class="fa-solid fa-lock"></i></span>
-                        <input type="password" id="loginClave" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition" placeholder="••••••••">
+                        <input type="password" id="loginClave" required class="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition" placeholder="••••••••">
+                        <button type="button" onclick="toggleLoginPassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600" title="Ver Clave">
+                            <i id="loginEyeIcon" class="fa-solid fa-eye-slash"></i>
+                        </button>
                     </div>
                 </div>
                 <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold rounded-xl shadow-lg shadow-blue-600/30 transition transform active:scale-95">
@@ -74,13 +77,16 @@
 
             <div class="flex items-center space-x-3">
                 <span id="userSessionBadge" class="hidden sm:inline-block text-xs font-bold text-slate-200 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10"></span>
+                <button onclick="logoutSession()" class="p-2.5 text-rose-300 hover:text-white hover:bg-rose-500/20 rounded-xl transition shadow-sm border border-rose-400/30" title="Cerrar Sesión">
+                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                </button>
                 <button onclick="fetchData()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Refrescar Datos">
                     <i class="fa-solid fa-arrows-rotate text-sm"></i>
                 </button>
-                <button onclick="openConfigModal()" class="p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
+                <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <button onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30">
+                <button id="btnNuevoDocHeader" onclick="openDocFormModal()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span>Nuevo Documento</span>
                 </button>
@@ -241,7 +247,7 @@
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2 text-blue-600 font-extrabold text-sm"><i class="fa-solid fa-users"></i><span>Personal</span></div>
-                        <button onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
+                        <button id="btnAñadirPersonal" onclick="openCatalogModal('Personal')" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="managePersonalList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
@@ -249,7 +255,7 @@
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2 text-indigo-600 font-extrabold text-sm"><i class="fa-solid fa-tags"></i><span>Estados</span></div>
-                        <button onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
+                        <button id="btnAñadirEstados" onclick="openCatalogModal('Estados')" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageEstadosList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
@@ -257,7 +263,7 @@
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2 text-emerald-600 font-extrabold text-sm"><i class="fa-solid fa-layer-group"></i><span>Orígenes</span></div>
-                        <button onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
+                        <button id="btnAñadirOrigenes" onclick="openCatalogModal('Origenes')" class="text-xs bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageOrigenesList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
@@ -265,7 +271,7 @@
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div class="flex items-center space-x-2 text-rose-600 font-extrabold text-sm"><i class="fa-solid fa-bell"></i><span>Alarmas / Plazos</span></div>
-                        <button onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
+                        <button id="btnAñadirAlarmas" onclick="openCatalogModal('Alarmas')" class="text-xs bg-rose-50 text-rose-600 hover:bg-rose-100 px-3 py-1.5 rounded-xl font-bold transition shadow-sm"><i class="fa-solid fa-plus mr-1"></i> Añadir</button>
                     </div>
                     <div id="manageAlarmasList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
@@ -358,7 +364,7 @@
                     </div>
                 </div>
 
-                <!-- CAMPOS ADICIONALES PARA PERSONAL (usuario, clave, tipo_usuario) -->
+                <!-- CAMPOS ADICIONALES PARA PERSONAL -->
                 <div id="catalogPersonalFieldsContainer" class="hidden space-y-4 pt-2 border-t border-slate-100">
                     <div>
                         <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Usuario de Acceso *</label>
@@ -367,13 +373,20 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave *</label>
-                            <input type="text" id="catalogInputClave" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Contraseña">
+                            <div class="relative mt-1.5">
+                                <input type="password" id="catalogInputClave" class="w-full px-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Contraseña">
+                                <button type="button" onclick="toggleModalPassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600" title="Ver Clave">
+                                    <i id="modalEyeIcon" class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Tipo Usuario *</label>
                             <select id="catalogInputTipoUsuario" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
-                                <option value="Operador">Operador</option>
+                                <option value="Operador">Operador (Registrador)</option>
+                                <option value="Asistente">Asistente (Operativo Total)</option>
                                 <option value="Administrador">Administrador</option>
+                                <option value="Visita">Visita (Consulta)</option>
                             </select>
                         </div>
                     </div>
@@ -435,8 +448,75 @@
                 document.getElementById('loginModal').classList.add('hidden');
                 document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
                 document.getElementById('userSessionBadge').classList.remove('hidden');
+                applyUserPermissions();
             } else {
                 document.getElementById('loginModal').classList.remove('hidden');
+            }
+        }
+
+        function applyUserPermissions() {
+            if (!currentUser) return;
+            const isVisita = currentUser.tipo === 'Visita';
+            const isOperador = currentUser.tipo === 'Operador';
+            const isAsistente = currentUser.tipo === 'Asistente';
+            const isAdmin = currentUser.tipo === 'Administrador';
+
+            // 1. Botón Nuevo Documento Header: visible para Operador, Asistente y Admin (Oculto para Visita)
+            const btnNuevoDoc = document.getElementById('btnNuevoDocHeader');
+            if (btnNuevoDoc) btnNuevoDoc.style.display = isVisita ? 'none' : 'inline-flex';
+
+            // 2. Botón Configuración Apps Script: EXCLUSIVO del Administrador
+            const btnConfig = document.getElementById('btnConfigAppsScript');
+            if (btnConfig) btnConfig.style.display = isAdmin ? 'inline-flex' : 'none';
+
+            // 3. Botones para Añadir Catálogos: EXCLUSIVOS del Administrador
+            ['btnAñadirPersonal', 'btnAñadirEstados', 'btnAñadirOrigenes', 'btnAñadirAlarmas'].forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.style.display = isAdmin ? 'inline-flex' : 'none';
+            });
+        }
+
+        function toggleLoginPassword() {
+            const input = document.getElementById('loginClave');
+            const icon = document.getElementById('loginEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye-slash';
+            }
+        }
+
+        function toggleModalPassword() {
+            const input = document.getElementById('catalogInputClave');
+            const icon = document.getElementById('modalEyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye-slash';
+            }
+        }
+
+        function toggleRowPassword(idx) {
+            // Solo el administrador ejecuta la revelación
+            if (!currentUser || currentUser.tipo !== 'Administrador') return;
+
+            const span = document.getElementById(`pwd_text_${idx}`);
+            const icon = document.getElementById(`pwd_icon_${idx}`);
+            const realPwd = span.getAttribute('data-pwd');
+            const isMasked = span.getAttribute('data-masked') === 'true';
+
+            if (isMasked) {
+                span.innerText = realPwd;
+                span.setAttribute('data-masked', 'false');
+                icon.className = 'fa-solid fa-eye-slash text-xs text-blue-600';
+            } else {
+                span.innerText = '••••••';
+                span.setAttribute('data-masked', 'true');
+                icon.className = 'fa-solid fa-eye text-xs text-slate-400';
             }
         }
 
@@ -445,18 +525,19 @@
             const uInput = document.getElementById('loginUsuario').value.trim();
             const cInput = document.getElementById('loginClave').value.trim();
 
-            // LLAVE MAESTRA INQUEBRANTABLE
+            // LLAVE MAESTRA INQUEBRANTABLE (ADMINISTRADOR)
             if (uInput === 'jcamachom' && cInput === '9314040') {
                 currentUser = { nombre: 'Johnny Camacho Mori', usuario: 'jcamachom', tipo: 'Administrador' };
                 localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
                 document.getElementById('loginModal').classList.add('hidden');
                 document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
                 document.getElementById('userSessionBadge').classList.remove('hidden');
+                applyUserPermissions();
                 fetchData();
                 return;
             }
 
-            // Validar contra la base de datos de Personal cargada en caché
+            // Validar contra la base de datos de Personal
             const encontrado = appData.Personal.find(p => {
                 const usu = String(typeof p === 'object' ? (p.usuario || p[4] || '') : '').trim();
                 const cla = String(typeof p === 'object' ? (p.clave || p[5] || '') : '').trim();
@@ -471,10 +552,19 @@
                 document.getElementById('loginModal').classList.add('hidden');
                 document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
                 document.getElementById('userSessionBadge').classList.remove('hidden');
+                applyUserPermissions();
                 fetchData();
             } else {
                 alert("Usuario o clave incorrectos.");
             }
+        }
+
+        function logoutSession() {
+            localStorage.removeItem('hidrandina_current_user');
+            currentUser = null;
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('loginUsuario').value = '';
+            document.getElementById('loginClave').value = '';
         }
 
         function loadLocalCache() {
@@ -586,6 +676,7 @@
             populateSelects();
             renderStatsAndCharts();
             renderCatalogsManagement();
+            applyUserPermissions();
         }
 
         function calcularPlazos(fechaIngresoStr, fechaVencimientoStr) {
@@ -765,6 +856,11 @@
                 return;
             }
 
+            const isVisita = currentUser && currentUser.tipo === 'Visita';
+            const isAsistente = currentUser && currentUser.tipo === 'Asistente';
+            const isAdmin = currentUser && currentUser.tipo === 'Administrador';
+            const isOperador = currentUser && currentUser.tipo === 'Operador';
+
             tbody.innerHTML = docs.map((doc, idx) => {
                 const numDoc = getProp(doc, ['Numero_Documento', 1]) || '-';
                 const origen = getProp(doc, ['Origen_Tipo', 2]) || '-';
@@ -794,6 +890,12 @@
                 const observaciones = getProp(doc, ['Observaciones', 10]) || '-';
                 const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
 
+                // Permiso para editar/eliminar documentos:
+                // Visita NO puede editar ni eliminar.
+                // Asistente y Admin pueden editar y eliminar cualquier documento.
+                // Operador puede editar sus propios registros.
+                const canEditOrDelete = !isVisita && (isAdmin || isAsistente || (isOperador && (responsable.toLowerCase() === currentUser.nombre.toLowerCase())));
+
                 return `
                     <tr class="${bgRow} hover:bg-blue-50/60 transition duration-150">
                         <td class="py-3.5 px-4 font-extrabold text-blue-900 border-r border-slate-200/80">${numDoc}</td>
@@ -815,8 +917,10 @@
                         <td class="py-3.5 px-4 text-slate-600 max-w-[160px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
                         <td class="py-3.5 px-4 text-center space-x-1">
                             <button onclick="enviarCorreoIndividual(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
-                            <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
-                            <button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
+                            ${canEditOrDelete ? `
+                                <button onclick="editDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="deleteDocument(${idx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
+                            ` : ''}
                         </td>
                     </tr>
                 `;
@@ -915,13 +1019,22 @@
         function openDocFormModal(idx = null) {
             document.getElementById('docForm').reset();
             populateSelects();
+
+            // Si el usuario es Asistente o Admin, el combo de responsable permanece desbloqueado para elegir cualquier personal.
+            // Si es Operador simple, se preselecciona su propio usuario.
+            const respSelect = document.getElementById('formResponsable');
+            if (currentUser && currentUser.tipo === 'Operador') {
+                let matchResp = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === currentUser.nombre.toLowerCase());
+                if (matchResp) respSelect.value = matchResp.value;
+            }
+
             if (idx !== null) {
                 const doc = appData.Documentos[idx];
                 document.getElementById('docModalTitle').innerText = "Editar Documento";
                 document.getElementById('docIndex').value = idx;
                 document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 1]) || '';
                 
-                const origenValor = String(getProp(doc, ['Origen_Tipo', 'origen_tipo', 'ORIGEN', 'Origen', 'Tipo_Origen', 2]) || '').trim();
+                const origenValor = String(getProp(doc, ['Origen_Tipo', 2]) || '').trim();
                 const selectOrigen = document.getElementById('formOrigenTipo');
                 let matchOrigen = Array.from(selectOrigen.options).find(opt => opt.value.trim().toLowerCase() === origenValor.toLowerCase());
                 if (matchOrigen) selectOrigen.value = matchOrigen.value; else selectOrigen.value = origenValor;
@@ -939,10 +1052,9 @@
                     document.getElementById('formFechaVencimiento').value = d.toISOString().split('T')[0];
                 }
 
-                const respValor = String(getProp(doc, ['Responsable', 'responsable', 8]) || '').trim();
-                const selectResp = document.getElementById('formResponsable');
-                let matchResp = Array.from(selectResp.options).find(opt => opt.value.trim().toLowerCase() === respValor.toLowerCase());
-                if (matchResp) selectResp.value = matchResp.value; else selectResp.value = respValor;
+                const respValor = String(getProp(doc, ['Responsable', 8]) || '').trim();
+                let matchResp = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === respValor.toLowerCase());
+                if (matchResp) respSelect.value = matchResp.value; else respSelect.value = respValor;
 
                 const estValor = String(getProp(doc, ['Estado', 9]) || '').trim();
                 const selectEst = document.getElementById('formEstado');
@@ -1014,23 +1126,36 @@
         }
 
         function renderCatalogsManagement() {
+            const isAdmin = currentUser && currentUser.tipo === 'Administrador';
+
             document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Personal.map((p, i) => {
                     const nom = typeof p === 'object' ? (p.Nombre_Completo || p[1] || '') : p;
                     const cargo = typeof p === 'object' ? (p.Cargo_Area || p[2] || '') : '';
                     const correo = typeof p === 'object' ? (p.Correo_Electronico || p[3] || '') : '';
                     const usuario = typeof p === 'object' ? (p.usuario || p[4] || '') : '';
+                    const clave = typeof p === 'object' ? (p.clave || p[5] || '') : '';
                     const tipo = typeof p === 'object' ? (p.tipo_usuario || p[6] || '') : '';
-                    return `<div class="py-3 flex justify-between items-center text-xs">
-                        <div>
-                            <span class="font-bold text-slate-900">${nom}</span>
-                            ${cargo ? '<br><span class="text-slate-500 font-medium">'+cargo+'</span>' : ''}
-                            ${usuario ? '<br><span class="text-indigo-600 font-bold text-[11px]"><i class="fa-solid fa-user mr-1"></i>'+usuario+' ('+tipo+')</span>' : ''}
+
+                    return `<div class="py-3.5 flex justify-between items-start text-xs border-b border-slate-100">
+                        <div class="space-y-1">
+                            <span class="font-extrabold text-slate-900 text-sm block">${nom}</span>
+                            ${cargo ? '<span class="text-slate-600 font-semibold block"><i class="fa-solid fa-briefcase mr-1 text-slate-400"></i>'+cargo+'</span>' : ''}
+                            ${correo ? '<span class="text-blue-600 font-semibold block"><i class="fa-regular fa-envelope mr-1"></i>'+correo+'</span>' : ''}
+                            ${usuario ? `<div class="bg-slate-50 p-2 rounded-xl border border-slate-200 mt-1.5 space-y-0.5">
+                                <span class="text-slate-700 block font-bold"><i class="fa-solid fa-user mr-1 text-indigo-500"></i>Usuario: ${usuario}</span>
+                                <span class="text-slate-700 block font-bold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-lock text-rose-500"></i>Clave: 
+                                    <span id="pwd_text_${i}" data-pwd="${clave}" data-masked="true" class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200">••••••</span>
+                                    ${isAdmin && clave ? `<button onclick="toggleRowPassword(${i})" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Ver / Ocultar Clave"><i id="pwd_icon_${i}" class="fa-solid fa-eye text-xs"></i></button>` : ''}
+                                </span>
+                                <span class="text-indigo-600 block font-extrabold text-[11px]">Rol: ${tipo || 'Operador'}</span>
+                            </div>` : ''}
                         </div>
-                        <div class="space-x-1 flex items-center">
+                        ${isAdmin ? `<div class="space-x-1 flex items-center pt-1">
                             <button onclick="editCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteCatalogItem('Personal', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+                        </div>` : ''}
                     </div>`;
                 }).join('');
 
@@ -1043,10 +1168,10 @@
                             <span class="w-3.5 h-3.5 rounded-full shadow-sm" style="background-color: ${col}"></span>
                             <span class="font-extrabold text-slate-800">${nom}</span>
                         </div>
-                        <div class="space-x-1 flex items-center">
+                        ${isAdmin ? `<div class="space-x-1 flex items-center">
                             <button onclick="editCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteCatalogItem('Estados', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+                        </div>` : ''}
                     </div>`;
                 }).join('');
 
@@ -1055,10 +1180,10 @@
                     const tipo = typeof o === 'object' ? (o.Tipo_Origen || o[1] || '') : o;
                     return `<div class="py-3 flex justify-between items-center text-xs">
                         <span class="font-bold text-slate-800">${tipo}</span>
-                        <div class="space-x-1 flex items-center">
+                        ${isAdmin ? `<div class="space-x-1 flex items-center">
                             <button onclick="editCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteCatalogItem('Origenes', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+                        </div>` : ''}
                     </div>`;
                 }).join('');
 
@@ -1073,10 +1198,10 @@
                             <div class="flex items-center space-x-2"><span class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${col}"></span><span class="font-bold text-slate-800">${nom}</span></div>
                             <span class="text-slate-400 text-[11px] font-medium mt-0.5 block">Rango: ${min} - ${max} días</span>
                         </div>
-                        <div class="space-x-1 flex items-center">
+                        ${isAdmin ? `<div class="space-x-1 flex items-center">
                             <button onclick="editCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="deleteCatalogItem('Alarmas', ${i})" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+                        </div>` : ''}
                     </div>`;
                 }).join('');
         }
@@ -1216,7 +1341,14 @@
             if (tabId === 'catalogos') renderCatalogsManagement();
         }
 
-        function openConfigModal() { document.getElementById('inputBackendUrl').value = getBackendUrl(); document.getElementById('configModal').classList.remove('hidden'); }
+        function openConfigModal() { 
+            if (!currentUser || currentUser.tipo !== 'Administrador') {
+                alert("Acceso denegado. Solo el Administrador puede configurar Apps Script.");
+                return;
+            }
+            document.getElementById('inputBackendUrl').value = getBackendUrl(); 
+            document.getElementById('configModal').classList.remove('hidden'); 
+        }
         function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
         function saveBackendUrl() {
             const url = document.getElementById('inputBackendUrl').value.trim();
