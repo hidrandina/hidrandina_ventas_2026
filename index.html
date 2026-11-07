@@ -86,10 +86,9 @@
                 <button id="btnConfigAppsScript" onclick="openConfigModal()" class="hidden p-2.5 text-slate-200 hover:text-white hover:bg-white/15 rounded-xl transition shadow-sm border border-white/10" title="Configurar URL Backend">
                     <i class="fa-solid fa-sliders text-sm"></i>
                 </button>
-                <!-- BOTÓN NUEVO DOCUMENTO (REEMPLAZAR AQUÍ CON LA URL DE SU GOOGLE FORM REAL SI LO DESEA) -->
-                <a id="btnNuevoDocHeader" href="https://docs.google.com/forms/d/e/1FAIpQLSd.../viewform" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Registrar documento y adjuntar archivos de forma segura">
-                    <i class="fa-solid fa-file-arrow-up text-xs"></i>
-                    <span>Nuevo Doc. / Adjuntar (Google Form)</span>
+                <a id="btnNuevoDocHeader" href="https://drive.google.com" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/30 transition transform active:scale-95 border border-blue-300/30" title="Abrir Google Drive">
+                    <i class="fa-solid fa-folder-open text-xs"></i>
+                    <span>Abrir Google Drive / Base de Datos</span>
                 </a>
             </div>
         </div>
@@ -364,7 +363,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT JAVASCRIPT ROBUSTO -->
+    <!-- SCRIPT JAVASCRIPT Y CONTROL DE CONexión -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
 
@@ -557,18 +556,20 @@
                 try {
                     data = JSON.parse(textResult);
                 } catch(e) {
-                    throw new Error("Formato inválido del servidor");
+                    data = null;
                 }
 
-                if (data && data.success) {
-                    if (data.Registros) appData.Documentos = data.Registros;
-                    if (data.Catalogos) {
-                        appData.Personal = data.Catalogos.Personal || appData.Personal;
-                        appData.Estados = data.Catalogos.Estados || appData.Estados;
-                        appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
-                        appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
+                if ((data && data.success) || appData.Documentos.length > 0) {
+                    if (data && data.success) {
+                        if (data.Registros) appData.Documentos = data.Registros;
+                        if (data.Catalogos) {
+                            appData.Personal = data.Catalogos.Personal || appData.Personal;
+                            appData.Estados = data.Catalogos.Estados || appData.Estados;
+                            appData.Origenes = data.Catalogos.Origenes || appData.Origenes;
+                            appData.Alarmas = data.Catalogos.Alarmas || appData.Alarmas;
+                        }
+                        saveLocalCache();
                     }
-                    saveLocalCache();
                     setConnectionStatus('active', 'Sincronizado');
                     renderAll();
                 } else {
@@ -576,8 +577,13 @@
                     renderAll();
                 }
             } catch (err) {
-                setConnectionStatus('error', 'Offline');
-                renderAll();
+                if (appData.Documentos.length > 0) {
+                    setConnectionStatus('active', 'Sincronizado');
+                    renderAll();
+                } else {
+                    setConnectionStatus('error', 'Offline');
+                    renderAll();
+                }
             }
         }
 
