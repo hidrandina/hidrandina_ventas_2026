@@ -1411,7 +1411,7 @@ html, body { max-width:100%; }
                 document.getElementById('docModalTitle').innerText = "Editar Documento";
                 document.getElementById('docIndex').value = idx;
                 document.getElementById('formNumeroDocumento').value = getProp(doc, ['Numero_Documento', 1]) || '';
-                document.getElementById('formNumeroDocumento').readOnly = true;
+                document.getElementById('formNumeroDocumento').readOnly = false; // Permite corregir el número al editar
                 
                 const origenValor = String(getProp(doc, ['Origen_Tipo', 2]) || '').trim();
                 const selectOrigen = document.getElementById('formOrigenTipo');
