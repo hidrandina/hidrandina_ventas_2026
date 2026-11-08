@@ -649,10 +649,12 @@ html, body { max-width:100%; }
         </div>
         <p id="descripcionCompartirWhatsApp" class="text-sm text-slate-700"></p>
         <p id="estadoWhatsApp" role="status" aria-live="polite" class="text-sm font-semibold text-blue-700">Preparando archivo...</p>
-        <p class="text-xs text-slate-500">El ZIP incluye un resumen del expediente y todos los sustentos y descargos. Solo se enviará al contacto que selecciones.</p>
-        <button type="button" id="botonEnviarWhatsApp" onclick="enviarZipExpedienteMovil()" disabled class="w-full bg-green-600 text-white rounded-xl py-3 font-extrabold disabled:opacity-40"><i class="fa-brands fa-whatsapp mr-1"></i> Enviar por WhatsApp</button>
+        <p class="text-xs text-slate-500">WhatsApp enviará el resumen escrito al contacto que elijas. El ZIP con los sustentos y descargos se descarga aparte para adjuntarlo desde tu celular.</p>
+        <label for="resumenWhatsAppVista" class="block text-sm font-bold text-slate-700">Mensaje que se enviará por WhatsApp</label>
+        <textarea id="resumenWhatsAppVista" rows="7" readonly class="w-full text-sm leading-relaxed rounded-xl border border-slate-200 bg-slate-50 text-slate-800 p-3 resize-y" aria-label="Resumen escrito del expediente"></textarea>
+        <button type="button" id="botonEnviarWhatsApp" onclick="enviarResumenWhatsAppExpediente()" disabled class="w-full bg-green-600 text-white rounded-xl py-3 font-extrabold disabled:opacity-40"><i class="fa-brands fa-whatsapp mr-1"></i> Enviar resumen por WhatsApp</button>
         <button type="button" id="botonDescargarWhatsApp" onclick="descargarZipExpedienteMovil()" disabled class="w-full bg-slate-100 text-blue-800 rounded-xl py-3 font-bold disabled:opacity-40"><i class="fa-solid fa-download mr-1"></i> Descargar ZIP</button>
-        <p class="text-xs text-slate-500">En Android se abre el menú para compartir: selecciona WhatsApp y luego el contacto o grupo. Si el navegador no admite compartir ZIP, utiliza «Descargar ZIP».</p>
+        <p class="text-xs text-slate-500">El botón verde abre WhatsApp con el texto; tú seleccionas el contacto y confirmas. El botón de descarga conserva el expediente completo en ZIP. Si deseas enviar también los archivos, adjunta el ZIP desde WhatsApp o Archivos.</p>
       </div>
     </div>
 
@@ -1727,6 +1729,36 @@ html, body { max-width:100%; }
             }finally{btn.disabled=false;btn.classList.remove('opacity-50');}
         }
 
+        // Prepara un mensaje de texto; no publica adjuntos ni enlaces privados.
+        function resumenTextoWhatsAppExpediente_(doc,adjuntos) {
+            const campo=(nombre,claves)=>{
+                const valor=getProp(doc,claves);
+                return nombre+': '+(valor===null||valor===undefined||String(valor).trim()===''?'—':String(valor).trim());
+            };
+            const lista=[
+                '*HIDRANDINA – ATENCIÓN DE DOCUMENTOS*',
+                '*RESUMEN DEL EXPEDIENTE*',
+                campo('N.º de documento',['Numero_Documento',1]),
+                campo('Origen',['Origen_Tipo',2]),
+                campo('Asunto',['Asunto',3]),
+                campo('Fecha de ingreso',['Fecha_Ingreso',4]),
+                campo('Fecha de vencimiento',['Fecha_Vencimiento',5]),
+                campo('Responsable',['Responsable',8]),
+                campo('Estado',['Estado',9]),
+                campo('Observaciones',['Observaciones',10]),
+                '',
+                '*ARCHIVOS DEL EXPEDIENTE*'
+            ];
+            if(!adjuntos.length)lista.push('Sin archivos adjuntos.');
+            else adjuntos.forEach((a,i)=>{
+                const tipo=String(getProp(a,['Tipo_Sustento',2])||'').toLowerCase()==='atencion'?'Descargo/atención':'Sustento';
+                const nombre=String(getProp(a,['Nombre_Archivo',3])||'Archivo');
+                lista.push((i+1)+'. '+tipo+': '+nombre);
+            });
+            lista.push('','Los archivos se pueden adjuntar por separado usando «Descargar ZIP» en el aplicativo.');
+            return lista.join('\n');
+        }
+
         // Acceso directo a WhatsApp desde la fila del expediente.
         // Tras descargar los adjuntos se exige una segunda pulsación para iniciar
         // navigator.share con una activación real del usuario (requisito Android).
@@ -1743,7 +1775,6 @@ html, body { max-width:100%; }
             if(!doc || !currentUser || !window.hidraSessionToken) {
                 alert('Inicia sesión para compartir expedientes.'); return;
             }
-            if(!window.JSZip){ alert('No se pudo cargar el módulo ZIP. Comprueba tu conexión.'); return; }
             const panel=document.getElementById('modalCompartirWhatsApp');
             const estado=document.getElementById('estadoWhatsApp');
             const enviar=document.getElementById('botonEnviarWhatsApp');
@@ -1753,10 +1784,14 @@ html, body { max-width:100%; }
             zipExpedienteMovilEnProceso=true;
             panel.classList.remove('hidden');
             const numero=String(getProp(doc,['Numero_Documento',1])||'Expediente');
+            const adjuntos=adjuntosDeNumero(numero);
+            const texto=resumenTextoWhatsAppExpediente_(doc,adjuntos);
             document.getElementById('descripcionCompartirWhatsApp').textContent='Expediente: '+numero;
-            estado.textContent='Preparando resumen del expediente...';
+            document.getElementById('resumenWhatsAppVista').value=texto;
+            enviar.disabled=false;
+            estado.textContent='Resumen listo para WhatsApp. Preparando además el ZIP de adjuntos...';
             try {
-                const adjuntos=adjuntosDeNumero(numero);
+                if(!window.JSZip)throw new Error('No se pudo cargar el módulo ZIP; el resumen de WhatsApp sí está disponible.');
                 const zip=new JSZip();
                 zip.file('Resumen_del_expediente.html',resumenHtmlExpediente_(doc,adjuntos));
                 let bytes=0;
@@ -1774,30 +1809,24 @@ html, body { max-width:100%; }
                 estado.textContent='Comprimiendo expediente...';
                 const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
                 const nombreArchivo='Expediente_'+nombreSeguroExpediente_(numero)+'.zip';
-                zipExpedienteMovilPreparado={file:new File([blob],nombreArchivo,{type:'application/zip'}),blob,nombreArchivo,numero};
-                estado.textContent='Expediente preparado. Pulsa «Enviar por WhatsApp» y elige un contacto.';
-                enviar.disabled=false;descargar.disabled=false;
+                zipExpedienteMovilPreparado={blob,nombreArchivo,numero};
+                estado.textContent='Resumen listo para WhatsApp y ZIP preparado para descarga.';
+                descargar.disabled=false;
             } catch(error) {
                 console.error('Preparación de expediente WhatsApp:',error);
                 estado.textContent='No se pudo preparar el expediente: '+(error.message||error);
             } finally { zipExpedienteMovilEnProceso=false; }
         }
-        async function enviarZipExpedienteMovil() {
-            const paquete=zipExpedienteMovilPreparado;
-            if(!paquete)return;
+        function enviarResumenWhatsAppExpediente() {
+            const texto=document.getElementById('resumenWhatsAppVista').value;
             const estado=document.getElementById('estadoWhatsApp');
-            if(navigator.share && navigator.canShare && navigator.canShare({files:[paquete.file]})) {
-                try {
-                    // Debe ejecutarse directamente desde el toque del usuario.
-                    await navigator.share({files:[paquete.file],title:'Expediente '+paquete.numero});
-                    estado.textContent='Archivo enviado al menú para compartir.';
-                    return;
-                } catch(error) {
-                    if(error.name==='AbortError') {estado.textContent='Envío cancelado. Puedes intentarlo nuevamente.';return;}
-                    console.warn('Compartir archivo ZIP:',error);
-                }
-            }
-            estado.textContent='Tu navegador no puede entregar directamente este ZIP a WhatsApp. Pulsa «Descargar ZIP» y compártelo desde Archivos o Descargas.';
+            if(!texto.trim()) {estado.textContent='No hay resumen disponible.';return;}
+            // La URL solo contiene el texto del expediente; el usuario elige el contacto.
+            // WhatsApp no permite seleccionar contactos ni adjuntar ZIP automáticamente desde la web.
+            const enlace='https://api.whatsapp.com/send?text='+encodeURIComponent(texto);
+            const ventana=window.open(enlace,'_blank','noopener,noreferrer');
+            if(!ventana)window.location.href=enlace;
+            estado.textContent='WhatsApp se abrirá con el resumen. Elige el contacto y confirma el envío. Puedes descargar el ZIP aparte.';
         }
         function descargarZipExpedienteMovil() {
             const paquete=zipExpedienteMovilPreparado;
