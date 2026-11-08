@@ -212,9 +212,10 @@ html, body { max-width:100%; }
            <label class="block font-bold text-sm text-slate-700">Contraseña
              <input id="accesoClave" name="clave" type="password" autocomplete="current-password" required class="w-full mt-2 px-4 py-3 border border-blue-200 rounded-xl bg-white" placeholder="Tu contraseña" />
            </label>
+           <p id="estadoLoginConexion" role="status" class="text-xs font-bold text-slate-500">Conexión lista para verificar al ingresar.</p>
            <p id="errorLogin" role="alert" class="text-sm text-rose-700 font-semibold hidden"></p>
            <button id="btnIngreso" type="submit" class="w-full py-3.5 bg-blue-600 text-white font-extrabold rounded-xl shadow hover:bg-blue-700">Ingresar</button>
-            <button type="button" onclick="mostrarRecuperacionConexion()" class="w-full py-2 text-sm font-extrabold text-blue-700 hover:underline">Configurar conexión Apps Script</button>
+            <button id="btnRecuperarAcceso" type="button" onclick="mostrarRecuperacionConexion()" class="hidden w-full py-2 text-sm font-extrabold text-blue-700 hover:underline">Recuperar conexión (administrador)</button>
             <div id="recuperacionConexion" class="hidden space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
               <label for="urlRecuperacion" class="block text-sm font-bold text-slate-700">URL de Google Apps Script</label>
               <input id="urlRecuperacion" type="url" autocomplete="off" spellcheck="false" class="w-full px-3 py-3 rounded-xl border border-blue-200 bg-white text-sm" placeholder="https://script.google.com/macros/s/.../exec">
@@ -242,7 +243,7 @@ html, body { max-width:100%; }
                         </span>
                         <span class="text-blue-300">•</span>
                         <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md">
-                            <span class="w-2 h-2 mr-1.5 rounded-full bg-amber-400 animate-ping"></span> Sincronizando...
+                            <span class="w-2 h-2 mr-1.5 rounded-full bg-amber-400 animate-ping"></span> Pendiente de ingreso
                         </span>
                     </div>
                 </div>
@@ -620,10 +621,14 @@ html, body { max-width:100%; }
                 <button onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <p class="text-sm font-semibold text-slate-500">URL del Google Apps Script enlazado:</p>
-            <input type="text" id="inputBackendUrl" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
+            <input type="url" id="inputBackendUrl" autocomplete="off" spellcheck="false" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
+            <p class="text-xs text-slate-600">Al cambiar de implementación se verificará el administrador en el nuevo servidor antes de guardar.</p>
+            <label for="claveCambioServidor" class="block text-sm font-bold text-slate-700">Contraseña del administrador para verificar el nuevo servidor</label>
+            <input type="password" id="claveCambioServidor" autocomplete="off" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold" placeholder="Solo necesaria al cambiar la URL">
+            <p id="estadoCambioServidor" role="status" class="text-xs font-bold text-slate-600"></p>
             <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                 <button onclick="closeConfigModal()" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
-                <button onclick="saveBackendUrl()" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-extrabold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar</button>
+                <button onclick="saveBackendUrl()" id="btnGuardarServidor" class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-extrabold hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition">Guardar y sincronizar</button>
             </div>
         </div>
     </div>
@@ -640,6 +645,7 @@ html, body { max-width:100%; }
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwsnipNNhhmQnf4mm5WhsfLOFliPeIpRhHYIuIEXmpF3uYmtzyIf9lrBxOww-2c8YVl/exec";
 
+        // La URL elegida se conserva en ESTE navegador. Para un cambio global entre dispositivos se requiere un servicio central de configuracion del backend.
         const BACKEND_STORAGE_KEY = 'hidrandina_gas_url';
         function validBackendUrl(url) {
             return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(String(url || '').trim());
@@ -804,7 +810,8 @@ html, body { max-width:100%; }
                 applyUserPermissions(); window.handleGASResponse(data);
             }catch(err){
                 document.getElementById('loginModal').classList.remove('hidden');
-                setConnectionStatus('error','Sin conexión / acceso no autorizado');
+                setConnectionStatus('error','No sincronizado');
+                const rec=document.getElementById('btnRecuperarAcceso'); if(rec) rec.classList.remove('hidden');
                 console.error(err);
                 alert('No se pudieron obtener los datos: '+(err.message||err));
             }
@@ -1888,28 +1895,70 @@ html, body { max-width:100%; }
                 alert("Acceso denegado. Solo el Administrador puede configurar Apps Script.");
                 return;
             }
-            document.getElementById('inputBackendUrl').value = getBackendUrl(); 
+            document.getElementById('inputBackendUrl').value = getBackendUrl();
+            document.getElementById('claveCambioServidor').value = '';
+            document.getElementById('estadoCambioServidor').textContent = '';
             document.getElementById('configModal').classList.remove('hidden'); 
         }
 
         function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
 
         async function saveBackendUrl() {
-            if (!currentUser || currentUser.tipo !== 'Administrador') {
-                alert('Solo el Administrador puede cambiar la URL.'); return;
+            if (!currentUser || currentUser.tipo !== 'Administrador' || !window.hidraSessionToken) {
+                alert('Acceso restringido al administrador autenticado.');
+                return;
             }
             const url = document.getElementById('inputBackendUrl').value.trim();
+            const claveEl = document.getElementById('claveCambioServidor');
+            const estado = document.getElementById('estadoCambioServidor');
+            const boton = document.getElementById('btnGuardarServidor');
             if (!validBackendUrl(url)) {
-                alert('Ingresa una URL válida de implementación de Google Apps Script, terminada en /exec.'); return;
+                estado.textContent = 'Ingresa una URL válida de Google Apps Script terminada en /exec.';
+                return;
             }
-            if (url === getBackendUrl()) { closeConfigModal(); return; }
-            if (!confirm('¿Deseas guardar esta URL de Apps Script? Se cerrará tu sesión para ingresar con el servidor seleccionado.')) return;
-            // Finalizar la sesión anterior ANTES de cambiar la URL.
-            await logoutSession();
-            localStorage.setItem(BACKEND_STORAGE_KEY, url);
-            closeConfigModal();
-            alert('URL guardada en este dispositivo. Ingresa con tu usuario y contraseña.');
+            if (url === getBackendUrl()) {
+                closeConfigModal();
+                await fetchData();
+                return;
+            }
+            const clave = claveEl.value;
+            if (!clave) {
+                estado.textContent = 'Ingresa tu contraseña para verificar la nueva implementación.';
+                return;
+            }
+            if (!confirm('¿Verificar la implementación nueva y sincronizar los datos?')) return;
+            boton.disabled = true;
+            estado.textContent = 'Comprobando credenciales del administrador y sincronización...';
+            let nuevoToken = '';
+            try {
+                const res = await postGateway({action:'login',usuario:currentUser.usuario,clave},45000,{url,sessionToken:''});
+                if (!res.sessionToken) throw new Error('La nueva implementación no devolvió sesión.');
+                nuevoToken = res.sessionToken;
+                const data = await postGateway({action:'read'},45000,{url,sessionToken:nuevoToken});
+                if (!data.success || !data.user || data.user.tipo !== 'Administrador') {
+                    throw new Error('La nueva implementación no autorizó al administrador.');
+                }
+                const anteriorUrl = getBackendUrl();
+                const anteriorToken = window.hidraSessionToken;
+                localStorage.setItem(BACKEND_STORAGE_KEY,url);
+                window.hidraSessionToken = nuevoToken;
+                claveEl.value = '';
+                closeConfigModal();
+                window.handleGASResponse(data);
+                await fetchData();
+                if (anteriorToken && anteriorUrl !== url) {
+                    postGateway({action:'logout'},10000,{url:anteriorUrl,sessionToken:anteriorToken}).catch(()=>{});
+                }
+                alert('Conexión verificada, URL guardada y documentos sincronizados en este dispositivo.');
+            } catch(err) {
+                setConnectionStatus('error','No sincronizado');
+                estado.textContent = err.message || 'No se pudo sincronizar. No se cambió la URL.';
+                if (nuevoToken && getBackendUrl() !== url) {
+                    postGateway({action:'logout'},10000,{url,sessionToken:nuevoToken}).catch(()=>{});
+                }
+            } finally { boton.disabled = false; claveEl.value = ''; }
         }
+
     </script>
 
     <script>
@@ -1948,6 +1997,7 @@ html, body { max-width:100%; }
           document.getElementById('accesoClave').value = '';
           document.getElementById('errorLogin').classList.add('hidden');
           estado.textContent = 'Conexión verificada y guardada.';
+          document.getElementById('estadoLoginConexion').textContent='Sincronizado';
           await fetchData();
           if (currentUser && currentUser.tipo === 'Administrador') {
             document.getElementById('recuperacionConexion').classList.add('hidden');
@@ -1964,6 +2014,7 @@ html, body { max-width:100%; }
         const btn=document.getElementById('btnIngreso');
         const error=document.getElementById('errorLogin');
         error.classList.add('hidden'); btn.disabled=true;btn.textContent='Verificando...';
+        document.getElementById('estadoLoginConexion').textContent='Conectando con Google Apps Script...';
         const usuario=document.getElementById('accesoUsuario').value.trim();
         const clave=document.getElementById('accesoClave').value;
         try{
@@ -1972,8 +2023,12 @@ html, body { max-width:100%; }
           window.hidraSessionToken=res.sessionToken;
           document.getElementById('accesoClave').value='';
           await fetchData();
+          document.getElementById('estadoLoginConexion').textContent=currentUser?'Sincronizado':'No sincronizado';
         }catch(e){
           window.hidraSessionToken=null;
+          setConnectionStatus('error','No sincronizado');
+          document.getElementById('estadoLoginConexion').textContent='No sincronizado';
+          document.getElementById('btnRecuperarAcceso').classList.remove('hidden');
           error.textContent=e.message||'Acceso denegado.';
           error.classList.remove('hidden');
         }finally{btn.disabled=false;btn.textContent='Ingresar';}
