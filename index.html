@@ -14,6 +14,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.9.1/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -646,6 +647,12 @@ html, body { max-width:100%; }
         <button type="button" onclick="cerrarVisorAdjuntos()" aria-label="Cerrar visor" class="rounded-lg p-2 bg-slate-100">✕</button></div>
         <p class="text-xs text-slate-500">Información del documento en modo consulta. Los archivos se visualizan mediante la sesión autorizada de Hidrandina_Ventas, sin compartirlos públicamente.</p>
         <div id="visorAdjuntosFicha" class="mb-4" aria-label="Datos del documento"></div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnCompartirExpediente" type="button" onclick="compartirExpedienteConsulta()" class="inline-flex items-center justify-center gap-2 px-4 py-3 bg-blue-700 text-white font-extrabold rounded-xl text-sm hover:bg-blue-800 w-full sm:w-auto">
+            <i class="fa-solid fa-file-zipper"></i> Compartir expediente completo
+          </button>
+          <span id="estadoCompartirExpediente" class="text-xs font-semibold text-slate-600" role="status" aria-live="polite"></span>
+        </div>
         <h4 class="text-sm font-black text-blue-900 mt-3">Sustentos y descargos</h4>
         <div id="visorAdjuntosLista" class="space-y-2"></div>
         <div id="visorAdjuntosPreview" class="hidden border border-blue-200 rounded-xl overflow-hidden bg-slate-50">
@@ -1579,7 +1586,11 @@ html, body { max-width:100%; }
         function pintarAdjuntosEnFormulario(numero) {
             document.getElementById('adjuntosExistentes').innerHTML = '<div class="font-bold text-xs text-blue-900">Archivos registrados (sustentos y descargos)</div>' + dibujarListaSustentos(numero,true);
         }
+        let expedienteConsultaIndice = null;
         function verAdjuntosDocumento(idx) {
+            expedienteConsultaIndice=idx;
+            const estadoCompartir=document.getElementById("estadoCompartirExpediente");
+            if(estadoCompartir)estadoCompartir.textContent="";
             const doc=appData.Documentos[idx];if(!doc)return;
             const numero=String(getProp(doc,['Numero_Documento',1]));
             cerrarVisorAdjuntos();
@@ -1601,6 +1612,102 @@ html, body { max-width:100%; }
             ).join('');
             document.getElementById('visorAdjuntosLista').innerHTML=dibujarListaSustentos(numero,false);
             document.getElementById('visorAdjuntosModal').classList.remove('hidden');
+        }
+
+        // EXPORTACIÓN AUTORIZADA: resumen + archivos originales en un único ZIP.
+        // No publica enlaces de Drive; recupera cada adjunto con la sesión activa.
+        function nombreSeguroExpediente_(value) {
+            return String(value||'archivo').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').replace(/\.\./g,'_').slice(0,100) || 'archivo';
+        }
+        async function blobAdjuntoParaCompartir_(adjuntoId, estado, progreso) {
+            const cached=cachePreview.get(String(adjuntoId));
+            if(cached)return cached;
+            let total=null, tamano=0, tipo='application/octet-stream';
+            const partes=[];
+            for(let i=0;total===null||i<total;i++) {
+                const res=await postGateway({action:'previewAdjunto',adjuntoId:String(adjuntoId),parte:String(i)},120000);
+                if(total===null){total=Number(res.totalPartes);tamano=Number(res.tamano)||0;tipo=res.mimeType||tipo;}
+                if(!Number.isInteger(total)||total<1||total>120||Number(res.parte)!==i||!res.base64)
+                    throw new Error('El adjunto '+adjuntoId+' devolvió un fragmento inválido.');
+                const bin=atob(res.base64), bytes=new Uint8Array(bin.length);
+                for(let k=0;k<bin.length;k++)bytes[k]=bin.charCodeAt(k);
+                partes.push(bytes);
+                estado.textContent=`${progreso} · ${Math.round((i+1)*100/total)}%`;
+            }
+            const blob=new Blob(partes,{type:tipo});
+            if(tamano && blob.size!==tamano)throw new Error('La descarga de un archivo quedó incompleta.');
+            guardarCachePreview(String(adjuntoId),blob);
+            return blob;
+        }
+        function resumenHtmlExpediente_(doc, adjuntos) {
+            const campo=(titulo,valor)=>`<tr><th>${escapeHtmlSustento(titulo)}</th><td>${escapeHtmlSustento(valor===undefined||valor===null||valor===''?'—':valor)}</td></tr>`;
+            const plazos=calcularPlazos(getProp(doc,['Fecha_Ingreso',4]),getProp(doc,['Fecha_Vencimiento',5]));
+            const filas=[
+                ['Número de documento',getProp(doc,['Numero_Documento',1])],
+                ['Origen',getProp(doc,['Origen_Tipo',2])],
+                ['Asunto',getProp(doc,['Asunto',3])],
+                ['Fecha de ingreso',getProp(doc,['Fecha_Ingreso',4])],
+                ['Fecha de vencimiento',getProp(doc,['Fecha_Vencimiento',5])],
+                ['Días transcurridos',plazos.diasTranscurridos],
+                ['Días faltantes',plazos.diasFaltantes],
+                ['Días de exceso',plazos.diasExceso],
+                ['Responsable',getProp(doc,['Responsable',8])],
+                ['Estado',getProp(doc,['Estado',9])],
+                ['Observaciones',getProp(doc,['Observaciones',10])]
+            ];
+            const adj=adjuntos.map((a,i)=>`<li>${escapeHtmlSustento(String(getProp(a,['Tipo_Sustento',2]))==='Atencion'?'Descargo / atención':'Sustento')} — ${escapeHtmlSustento((i+1)+'_'+nombreSeguroExpediente_(getProp(a,['Nombre_Archivo',3])||'Archivo'))}</li>`).join('');
+            return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resumen del expediente</title><style>body{font:15px system-ui,sans-serif;max-width:780px;margin:auto;padding:24px;color:#17335e}h1{color:#0b3678}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #cbd5e1;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{width:34%;background:#eef5ff}li{margin:7px 0}.nota{font-size:12px;color:#526581}</style></head><body><h1>HIDRANDINA — Atención de Documentos</h1><h2>Resumen del expediente</h2><table>${filas.map(x=>campo(...x)).join('')}</table><h2>Archivos adjuntos</h2>${adj?'<ol>'+adj+'</ol>':'<p>Este expediente no tiene adjuntos.</p>'}<p class="nota">Los archivos originales se incluyen en las carpetas Sustentos y Atencion de este ZIP. Documento generado por un usuario autorizado.</p></body></html>`;
+        }
+        async function compartirExpedienteConsulta() {
+            const idx=expedienteConsultaIndice;
+            const doc=appData.Documentos && appData.Documentos[idx];
+            const estado=document.getElementById('estadoCompartirExpediente');
+            const btn=document.getElementById('btnCompartirExpediente');
+            if(!doc||!currentUser||!window.hidraSessionToken){
+                alert('Debes iniciar sesión y abrir un documento para exportar su expediente.');return;
+            }
+            if(!window.JSZip){alert('No cargó el componente de ZIP. Comprueba la conexión e inténtalo de nuevo.');return;}
+            btn.disabled=true;btn.classList.add('opacity-50');
+            estado.textContent='Preparando el resumen...';
+            try {
+                const numero=String(getProp(doc,['Numero_Documento',1])||'Expediente');
+                const adjuntos=adjuntosDeNumero(numero);
+                const zip=new JSZip();
+                zip.file('Resumen_del_expediente.html',resumenHtmlExpediente_(doc,adjuntos));
+                let bytes=0;
+                for(let i=0;i<adjuntos.length;i++) {
+                    const a=adjuntos[i];
+                    const id=String(getProp(a,['ID',0])||'');
+                    const tipo=String(getProp(a,['Tipo_Sustento',2]))==='Atencion'?'Atencion':'Sustentos';
+                    const nombre=(i+1)+'_'+nombreSeguroExpediente_(getProp(a,['Nombre_Archivo',3])||'Archivo');
+                    estado.textContent=`Descargando archivo ${i+1} de ${adjuntos.length}...`;
+                    const blob=await blobAdjuntoParaCompartir_(id,estado,`Archivo ${i+1} de ${adjuntos.length}`);
+                    bytes+=blob.size;
+                    if(bytes>40*1024*1024)throw new Error('El expediente supera 40 MB. Descarga los adjuntos individualmente.');
+                    zip.file(tipo+'/'+nombre,blob);
+                }
+                estado.textContent='Creando el ZIP...';
+                const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
+                const filename='Expediente_'+nombreSeguroExpediente_(numero)+'.zip';
+                const file=new File([blob],filename,{type:'application/zip'});
+                // En Android permite compartir por WhatsApp, correo, Bluetooth, etc.
+                if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+                    try {
+                        await navigator.share({title:'Expediente '+numero,files:[file]});
+                        estado.textContent='Expediente compartido.';return;
+                    }catch(error){
+                        if(error.name==='AbortError'){estado.textContent='Compartir cancelado. Puedes intentarlo nuevamente.';return;}
+                        // Si el sistema no acepta la aplicación de destino, descargar.
+                    }
+                }
+                const url=URL.createObjectURL(blob);
+                const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+                setTimeout(()=>URL.revokeObjectURL(url),60000);
+                estado.textContent='ZIP descargado. Puedes enviarlo desde Archivos o Descargas.';
+            }catch(error){
+                console.error('Exportar expediente:',error);
+                estado.textContent='No se pudo exportar: '+(error.message||error);
+            }finally{btn.disabled=false;btn.classList.remove('opacity-50');}
         }
 
         function eliminarSustento(id) {
