@@ -324,9 +324,10 @@ html, body { max-width:100%; }
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                     <div class="flex flex-wrap gap-2 items-end w-full lg:w-auto" aria-label="Rango de fechas de ingreso">
-                        <label class="text-[11px] font-bold text-slate-600">Fecha inicio<input id="fechaInicioDocumentos" type="date" onchange="filterDocuments()" class="block mt-1 px-2 py-2 bg-slate-50 border border-blue-200 rounded-lg text-xs" /></label>
-                        <label class="text-[11px] font-bold text-slate-600">Fecha término<input id="fechaFinDocumentos" type="date" onchange="filterDocuments()" class="block mt-1 px-2 py-2 bg-slate-50 border border-blue-200 rounded-lg text-xs" /></label>
-                        <button type="button" onclick="limpiarFechasDocumentos()" class="px-3 py-2 text-xs font-bold rounded-lg border border-slate-300" title="Limpiar rango de fechas">Limpiar fechas</button>
+                        <label class="text-[11px] font-bold text-slate-600">Fecha inicio (DD/MM/AAAA)<input id="fechaInicioDocumentos" type="text" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="DD/MM/AAAA" aria-label="Fecha inicial en formato día mes año" class="block mt-1 w-36 px-3 py-2.5 bg-slate-50 border border-blue-200 rounded-lg text-sm font-semibold" /></label>
+                        <label class="text-[11px] font-bold text-slate-600">Fecha término (DD/MM/AAAA)<input id="fechaFinDocumentos" type="text" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="DD/MM/AAAA" aria-label="Fecha final en formato día mes año" class="block mt-1 w-36 px-3 py-2.5 bg-slate-50 border border-blue-200 rounded-lg text-sm font-semibold" /></label>
+                        <button type="button" onclick="aplicarFechasDocumentos()" class="px-3 py-2.5 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700" title="Aplicar rango de fechas">Aplicar fechas</button>
+                        <button type="button" onclick="limpiarFechasDocumentos()" class="px-3 py-2.5 text-xs font-bold rounded-lg border border-slate-300" title="Mostrar documentos sin filtro de fechas">Limpiar fechas</button>
                     </div>
                     <select id="filterPersonal" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todo el Personal</option>
@@ -930,9 +931,45 @@ html, body { max-width:100%; }
             return { vencimiento: vencimientoFormatted, diasTranscurridos, diasFaltantes, diasExceso };
         }
 
+        // El rango se aplica expresamente: escribir una fecha incompleta no vacía la tabla.
+        let rangoFechasDocumentosAplicado = { inicio: '', fin: '' };
+
+        function fechaDocumentoISO_(texto) {
+            const valor = String(texto || '').trim();
+            if (!valor) return '';
+            const partes = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(valor);
+            if (!partes) throw new Error('Escribe la fecha como DD/MM/AAAA; por ejemplo 01/11/2026.');
+            const dia = Number(partes[1]), mes = Number(partes[2]), anio = Number(partes[3]);
+            if (anio < 1900 || anio > 2100) throw new Error('El año debe estar entre 1900 y 2100.');
+            const fecha = new Date(Date.UTC(anio, mes - 1, dia));
+            if (fecha.getUTCFullYear() !== anio || fecha.getUTCMonth() !== mes - 1 || fecha.getUTCDate() !== dia) {
+                throw new Error('La fecha ingresada no existe. Comprueba el día y el mes.');
+            }
+            return `${anio}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        }
+
+        function aplicarFechasDocumentos() {
+            const inicioInput = document.getElementById('fechaInicioDocumentos');
+            const finInput = document.getElementById('fechaFinDocumentos');
+            let inicio, fin;
+            try {
+                inicio = fechaDocumentoISO_(inicioInput.value);
+                fin = fechaDocumentoISO_(finInput.value);
+                if (inicio && fin && inicio > fin) {
+                    throw new Error('La fecha de término debe ser igual o posterior a la fecha de inicio.');
+                }
+            } catch(error) {
+                alert(error.message);
+                return;
+            }
+            rangoFechasDocumentosAplicado = { inicio, fin };
+            filterDocuments();
+        }
+
         function limpiarFechasDocumentos() {
             document.getElementById('fechaInicioDocumentos').value = '';
             document.getElementById('fechaFinDocumentos').value = '';
+            rangoFechasDocumentosAplicado = { inicio: '', fin: '' };
             filterDocuments();
         }
         function obtenerDocumentosFiltradosActuales() {
@@ -940,14 +977,8 @@ html, body { max-width:100%; }
             const personal = document.getElementById('filterPersonal').value;
             const estado = document.getElementById('filterEstado').value;
             const origen = document.getElementById('filterOrigen').value;
-            const fInicio = document.getElementById('fechaInicioDocumentos').value;
-            const fFin = document.getElementById('fechaFinDocumentos').value;
-            if (fInicio && fFin && fInicio > fFin) {
-                document.getElementById('fechaFinDocumentos').setCustomValidity('La fecha de término debe ser mayor o igual que la de inicio.');
-                document.getElementById('fechaFinDocumentos').reportValidity();
-                return [];
-            }
-            document.getElementById('fechaFinDocumentos').setCustomValidity('');
+            const fInicio = rangoFechasDocumentosAplicado.inicio;
+            const fFin = rangoFechasDocumentosAplicado.fin;
 
             return appData.Documentos.filter(doc => {
                 const numDoc = String(getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '').toLowerCase();
