@@ -643,10 +643,21 @@ html, body { max-width:100%; }
 
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
-        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwsnipNNhhmQnf4mm5WhsfLOFliPeIpRhHYIuIEXmpF3uYmtzyIf9lrBxOww-2c8YVl/exec";
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzYsQr2mOkJouXeq0pDo--9ZVGhQIgy34YCDg4YsyCrwidEwjdnWcmjXGnJQBbOicG3/exec";
 
         // La URL elegida se conserva en ESTE navegador. Para un cambio global entre dispositivos se requiere un servicio central de configuracion del backend.
         const BACKEND_STORAGE_KEY = 'hidrandina_gas_url';
+        // Migración única: sustituye la dirección anterior ya retirada.
+        // Las futuras configuraciones manuales del administrador prevalecen.
+        const BACKEND_SEED_KEY = 'hidrandina_gas_url_seed_2026_11_08';
+        if (localStorage.getItem(BACKEND_SEED_KEY) !== 'v67') {
+            const previousUrl = localStorage.getItem(BACKEND_STORAGE_KEY) || '';
+            if (!previousUrl || /AKfycbwsnipNN|AKfycbz2cQ509|AKfycbwqYwIBI4/.test(previousUrl)) {
+                localStorage.setItem(BACKEND_STORAGE_KEY, DEFAULT_GAS_URL);
+            }
+            localStorage.setItem(BACKEND_SEED_KEY, 'v67');
+        }
+
         function validBackendUrl(url) {
             return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(String(url || '').trim());
         }
