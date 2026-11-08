@@ -1454,12 +1454,23 @@ html, body { max-width:100%; }
                 document.getElementById('formFechaVencimiento').value = dDef.toISOString().split('T')[0];
             }
             if (currentUser && currentUser.tipo === 'Operador') {
-                const nombre = String(currentUser.nombre || '').trim();
-                const op = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === nombre.toLowerCase());
-                if (!op) { alert('Tu usuario no tiene un responsable asociado en Personal. Consulta al administrador.'); return; }
-                respSelect.value = op.value;
+                if (idx === null) {
+                    const nombre = String(currentUser.nombre || '').trim();
+                    const op = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === nombre.toLowerCase());
+                    if (!op) { alert('Tu usuario no tiene un responsable asociado en Personal. Consulta al administrador.'); return; }
+                    respSelect.value = op.value;
+                } else {
+                    // Conserva al responsable del expediente existente, sin reasignarlo.
+                    const actual = String(getProp(appData.Documentos[idx], ['Responsable', 8]) || '').trim();
+                    if (!Array.from(respSelect.options).some(op => op.value.trim().toLowerCase() === actual.toLowerCase())) {
+                        const opcion = document.createElement('option');
+                        opcion.value = actual; opcion.textContent = actual || '(Sin responsable)';
+                        respSelect.appendChild(opcion);
+                    }
+                    respSelect.value = actual;
+                }
                 respSelect.disabled = true;
-                respSelect.title = 'Como Operador Registrador solo puedes asignarte documentos a ti mismo.';
+                respSelect.title = 'Solo el Administrador o Asistente pueden asignar o reasignar expedientes.';
             } else { respSelect.disabled = false; respSelect.title=''; }
             document.getElementById('docFormModal').classList.remove('hidden');
         }
@@ -2100,8 +2111,14 @@ html, body { max-width:100%; }
             if (currentIndex !== '' && !puedeGestionarDocumento(appData.Documentos[Number(currentIndex)])) {
                 alert('No puedes modificar documentos registrados por otros usuarios.'); return;
             }
-            if (currentUser.tipo === 'Operador' && document.getElementById('formResponsable').value.trim().toLowerCase() !== String(currentUser.nombre||'').trim().toLowerCase()) {
-                alert('Solo puedes registrar documentos a tu nombre.'); return;
+            if (currentUser.tipo === 'Operador') {
+                const idxActual = document.getElementById('docIndex').value;
+                const responsablePermitido = idxActual !== ''
+                    ? String(getProp(appData.Documentos[Number(idxActual)], ['Responsable', 8]) || '').trim()
+                    : String(currentUser.nombre || '').trim();
+                if (document.getElementById('formResponsable').value.trim().toLowerCase() !== responsablePermitido.toLowerCase()) {
+                    alert('No tienes permiso para asignar o reasignar expedientes.'); return;
+                }
             }
             const form = document.getElementById('docForm');
             const boton = form.querySelector('button[type="submit"]');
