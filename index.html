@@ -13,6 +13,7 @@
     <title>Hidrandina_Ventas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.9.1/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -172,46 +173,53 @@ html, body { max-width:100%; }
 }
 @media (max-width:360px){#tab-documentos>div.hd-title-row+div>div {padding:8px 6px!important}#tab-documentos>div.hd-title-row+div p{font-size:8px!important}}
 
+
+/* Consulta integral y crédito visibles también en celular */
+@media(max-width:920px){
+ .glass-header .hd-author{display:inline-flex!important;align-items:center!important;font-size:10px!important;line-height:1.3!important;white-space:normal!important;max-width:100%!important;opacity:1!important;margin:2px 0!important;padding:4px 7px!important}
+ .glass-header .hd-author i{flex-shrink:0}
+}
+#visorAdjuntosFicha{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#visorAdjuntosFicha .consulta-campo{padding:10px 12px;background:#f5f8ff;border:1px solid #d7e4fa;border-radius:12px;min-width:0}
+#visorAdjuntosFicha .consulta-campo strong{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.025em;color:#48648d;margin-bottom:4px}
+#visorAdjuntosFicha .consulta-campo span{font-size:13px;line-height:1.45;color:#122e5a;overflow-wrap:anywhere;white-space:pre-wrap}
+#visorAdjuntosFicha .consulta-campo.wide{grid-column:1/-1}
+#visorAdjuntosPreview .preview-content{min-height:180px;max-height:65vh;overflow:auto;background:white}
+#visorAdjuntosPreview .preview-content iframe{width:100%;height:54vh;border:0}
+#visorAdjuntosPreview .preview-content img{display:block;max-width:100%;max-height:55vh;object-fit:contain;margin:auto}
+#visorAdjuntosPreview .preview-content .word-html{padding:16px;line-height:1.55;color:#152b4f;overflow-wrap:anywhere}
+@media(max-width:600px){#visorAdjuntosFicha{grid-template-columns:1fr 1fr;gap:6px}#visorAdjuntosFicha .consulta-campo{padding:9px}#visorAdjuntosFicha .consulta-campo span{font-size:12px}#visorAdjuntosPreview .preview-content iframe{height:48dvh}}
+#visorAdjuntosPreview .pdf-mobile-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;background:#f0f6ff;position:sticky;top:0;z-index:1}
+#visorAdjuntosPreview .pdf-mobile-controls button{background:#155de0;color:white;border-radius:9px;padding:9px 10px;font-size:12px;font-weight:700}
+#visorAdjuntosPreview .pdf-mobile-controls button:disabled{opacity:.35}
+#visorAdjuntosPreview .pdf-mobile-count{font-size:12px;font-weight:700;color:#183968;text-align:center}
+#visorAdjuntosPreview .pdf-mobile-page{background:#e5eaf2;padding:8px;display:flex;justify-content:center;overflow:auto;min-height:160px}
+#visorAdjuntosPreview .pdf-mobile-page canvas{display:block;max-width:100%;height:auto!important;background:white;box-shadow:0 2px 12px #152d4b33}
     </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
-    <!-- MODAL DE LOGIN (AUTENTICACIÓN INICIAL) -->
-    <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 border border-slate-100">
-            <div class="text-center space-y-2">
-                <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl mx-auto flex items-center justify-center text-2xl shadow-lg shadow-blue-500/30">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-                <h2 class="text-xl font-black text-slate-900">HIDRANDINA - Acceso Seguro</h2>
-                <p class="text-xs font-semibold text-slate-500">Depto. Ventas y Clientes Menores</p>
-            </div>
-            <form onsubmit="handleLogin(event)" class="space-y-4 text-sm">
-                <div>
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Usuario *</label>
-                    <div class="relative mt-1.5">
-                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400"><i class="fa-solid fa-user"></i></span>
-                        <input type="text" id="loginUsuario" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition" placeholder="Ingrese su usuario">
-                    </div>
-                </div>
-                <div>
-                    <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave *</label>
-                    <div class="relative mt-1.5">
-                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400"><i class="fa-solid fa-lock"></i></span>
-                        <input type="password" id="loginClave" required class="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none font-semibold transition" placeholder="••••••••">
-                        <button type="button" onclick="toggleLoginPassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600" title="Ver Clave">
-                            <i id="loginEyeIcon" class="fa-solid fa-eye-slash"></i>
-                        </button>
-                    </div>
-                </div>
-                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold rounded-xl shadow-lg shadow-blue-600/30 transition transform active:scale-95">
-                    Ingresar al Sistema
-                </button>
-            </form>
-        </div>
-    </div>
+         <!-- Acceso por usuario y clave administrado por HIDRANDINA -->
+     <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+       <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 border border-slate-100 text-center">
+         <div class="w-16 h-16 bg-blue-600 text-white rounded-2xl mx-auto flex items-center justify-center text-2xl"><i class="fa-solid fa-shield-halved"></i></div>
+         <h2 class="text-xl font-black text-slate-900">HIDRANDINA - Acceso seguro</h2>
+         <p class="text-xs font-semibold text-slate-500">Departamento de Ventas y Clientes Menores</p>
+         <form id="loginUsuarioForm" onsubmit="loginUsuarioClave(event)" class="space-y-4 text-left">
+           <label class="block font-bold text-sm text-slate-700">Usuario
+             <input id="accesoUsuario" name="usuario" autocomplete="username" required minlength="3" maxlength="40" class="w-full mt-2 px-4 py-3 border border-blue-200 rounded-xl bg-white" placeholder="Ingresa tu usuario" />
+           </label>
+           <label class="block font-bold text-sm text-slate-700">Contraseña
+             <input id="accesoClave" name="clave" type="password" autocomplete="current-password" required class="w-full mt-2 px-4 py-3 border border-blue-200 rounded-xl bg-white" placeholder="Tu contraseña" />
+           </label>
+           <p id="errorLogin" role="alert" class="text-sm text-rose-700 font-semibold hidden"></p>
+           <button id="btnIngreso" type="submit" class="w-full py-3.5 bg-blue-600 text-white font-extrabold rounded-xl shadow hover:bg-blue-700">Ingresar</button>
+         </form>
+         <p class="text-xs text-slate-500">Solicita tus credenciales al administrador. No se permite el registro público.</p>
+       </div>
+     </div>
 
-    <!-- Header Principal Institucional -->
+<!-- Header Principal Institucional -->
     <header class="glass-header border-b border-indigo-900/50 sticky top-0 z-30 shadow-2xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             <div class="flex items-center space-x-4">
@@ -222,7 +230,7 @@ html, body { max-width:100%; }
                     </h1>
                     <div class="flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-200">
                         <span class="hd-author font-medium text-blue-200 bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-400/30 backdrop-blur-md">
-                            <i class="fa-solid fa-user-shield mr-1 text-blue-300"></i> Autor: Ing. Johnny Quevin Camacho Mori
+                            <i class="fa-solid fa-user-shield mr-1 text-blue-300"></i> Autor: Ing. Johnny Camacho Mori
                         </span>
                         <span class="text-blue-300">•</span>
                         <span id="connection-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30 backdrop-blur-md">
@@ -581,14 +589,17 @@ html, body { max-width:100%; }
     <!-- VISOR DE SUSTENTOS (PARA TODOS LOS ROLES, INCLUIDO VISITA) -->
     <div id="visorAdjuntosModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex items-center justify-center p-4">
       <div class="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto space-y-4">
-        <div class="flex justify-between items-center"><h3 id="visorAdjuntosTitulo" class="font-extrabold text-lg text-slate-900">Archivos adjuntos</h3>
+        <div class="flex justify-between items-center"><h3 id="visorAdjuntosTitulo" class="font-extrabold text-lg text-slate-900">Consulta</h3>
         <button type="button" onclick="cerrarVisorAdjuntos()" aria-label="Cerrar visor" class="rounded-lg p-2 bg-slate-100">✕</button></div>
-        <p class="text-xs text-slate-500">Puedes abrir los archivos en Drive en cualquier momento, siempre que tu cuenta tenga permisos de acceso. Si no hay vista previa para el formato, Drive permite descargarlo.</p>
+        <p class="text-xs text-slate-500">Información del documento en modo consulta. Los archivos se visualizan mediante la sesión autorizada de Hidrandina_Ventas, sin compartirlos públicamente.</p>
+        <div id="visorAdjuntosFicha" class="mb-4" aria-label="Datos del documento"></div>
+        <h4 class="text-sm font-black text-blue-900 mt-3">Sustentos y descargos</h4>
         <div id="visorAdjuntosLista" class="space-y-2"></div>
         <div id="visorAdjuntosPreview" class="hidden border border-blue-200 rounded-xl overflow-hidden bg-slate-50">
           <div class="flex justify-between items-center gap-2 p-2 bg-blue-50"><span id="visorPreviewNombre" class="text-xs font-bold truncate"></span>
-          <a id="visorPreviewAbrir" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-700 font-bold underline" href="#">Abrir en Drive</a></div>
-          <iframe id="visorPreviewIframe" title="Vista previa del archivo guardado" class="w-full" style="height:55vh" loading="lazy"></iframe>
+          <a id="visorPreviewAbrir" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-700 font-bold underline" href="#">Abrir en Drive (requiere permiso)</a></div>
+          <div id="visorPreviewEstado" role="status" class="text-sm text-blue-700 font-semibold p-3">Selecciona un archivo para visualizarlo.</div>
+          <div id="visorPreviewContenido" class="preview-content"></div>
         </div>
       </div>
     </div>
@@ -619,10 +630,11 @@ html, body { max-width:100%; }
 
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
-        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwqYwIBI4AkNpNGXF1QhYUw1kthGGx0tVQOZsHHT5KwovDx_5S6z_ESaO8Eb80gaBiO/exec";
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwsnipNNhhmQnf4mm5WhsfLOFliPeIpRhHYIuIEXmpF3uYmtzyIf9lrBxOww-2c8YVl/exec";
 
         function getBackendUrl() {
-            return localStorage.getItem('hidrandina_gas_url') || DEFAULT_GAS_URL;
+            // Esta versión utiliza exclusivamente el endpoint Firebase verificado.
+            return DEFAULT_GAS_URL;
         }
 
         let appData = {
@@ -638,22 +650,20 @@ html, body { max-width:100%; }
         let chartsInstance = { estados: null, origenes: null };
 
         document.addEventListener('DOMContentLoaded', () => {
-            loadLocalCache();
+            // Cada apertura solicita usuario y contraseña; no guardamos sesión en navegador.
             checkSession();
-            fetchData();
+            limpiarCacheAntigua_();
         });
 
         function checkSession() {
-            const savedUser = localStorage.getItem('hidrandina_current_user');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
-                document.getElementById('userSessionBadge').classList.remove('hidden');
-                applyUserPermissions();
-            } else {
-                document.getElementById('loginModal').classList.remove('hidden');
-            }
+            currentUser = null;
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function limpiarCacheAntigua_() {
+            ['hidrandina_gas_url','hidrandina_current_user','hidrandina_docs_cache','hidrandina_pers_cache',
+             'hidrandina_esta_cache','hidrandina_orig_cache','hidrandina_alar_cache',
+             'hidrandina_adjuntos_cache'].forEach(k=>localStorage.removeItem(k));
         }
 
         function applyUserPermissions() {
@@ -665,7 +675,7 @@ html, body { max-width:100%; }
             if (btnNuevoDoc) btnNuevoDoc.style.display = isVisita ? 'none' : 'inline-flex';
 
             const btnConfig = document.getElementById('btnConfigAppsScript');
-            if (btnConfig) btnConfig.style.display = isAdmin ? 'inline-flex' : 'none';
+            if (btnConfig) btnConfig.style.display = 'none'; // Endpoint fijo para acceso Firebase
 
             ['btnAñadirPersonal', 'btnAñadirEstados', 'btnAñadirOrigenes', 'btnAñadirAlarmas'].forEach(btnId => {
                 const btn = document.getElementById(btnId);
@@ -673,112 +683,20 @@ html, body { max-width:100%; }
             });
         }
 
-        function toggleLoginPassword() {
-            const input = document.getElementById('loginClave');
-            const icon = document.getElementById('loginEyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fa-solid fa-eye';
-            } else {
-                input.type = 'password';
-                icon.className = 'fa-solid fa-eye-slash';
+        async function logoutSession() {
+            try {if(window.hidraSessionToken)await postGateway({action:'logout'},15000).catch(()=>{});}
+            finally {
+              window.hidraSessionToken = null;
+              currentUser = null;
+              appData = {Documentos:[],Personal:[],Estados:[],Origenes:[],Alarmas:[],Adjuntos:[]};
+              limpiarCacheAntigua_();
+              document.getElementById('loginModal').classList.remove('hidden');
+              document.getElementById('userSessionBadge').classList.add('hidden');
             }
         }
 
-        function toggleModalPassword() {
-            const input = document.getElementById('catalogInputClave');
-            const icon = document.getElementById('modalEyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fa-solid fa-eye';
-            } else {
-                input.type = 'password';
-                icon.className = 'fa-solid fa-eye-slash';
-            }
-        }
-
-        function toggleRowPassword(idx) {
-            if (!currentUser || currentUser.tipo !== 'Administrador') return;
-
-            const span = document.getElementById(`pwd_text_${idx}`);
-            const icon = document.getElementById(`pwd_icon_${idx}`);
-            const realPwd = span.getAttribute('data-pwd');
-            const isMasked = span.getAttribute('data-masked') === 'true';
-
-            if (isMasked) {
-                span.innerText = realPwd;
-                span.setAttribute('data-masked', 'false');
-                icon.className = 'fa-solid fa-eye-slash text-xs text-blue-600';
-            } else {
-                span.innerText = '••••••';
-                span.setAttribute('data-masked', 'true');
-                icon.className = 'fa-solid fa-eye text-xs text-slate-400';
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const uInput = document.getElementById('loginUsuario').value.trim();
-            const cInput = document.getElementById('loginClave').value.trim();
-
-            if (uInput === 'jcamachom' && cInput === '9314040') {
-                currentUser = { nombre: 'Johnny Camacho Mori', usuario: 'jcamachom', tipo: 'Administrador' };
-                localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
-                document.getElementById('userSessionBadge').classList.remove('hidden');
-                applyUserPermissions();
-                fetchData();
-                return;
-            }
-
-            const encontrado = appData.Personal.find(p => {
-                const usu = String(typeof p === 'object' ? (p.usuario || p.Usuario || p[4] || '') : '').trim();
-                const cla = String(typeof p === 'object' ? (p.clave || p.Clave || p[5] || '') : '').trim();
-                return usu.toLowerCase() === uInput.toLowerCase() && cla === cInput;
-            });
-
-            if (encontrado) {
-                const nombre = typeof encontrado === 'object' ? (encontrado.Nombre_Completo || encontrado.Nombre || encontrado[1] || 'Usuario') : 'Usuario';
-                const tipo = typeof encontrado === 'object' ? (encontrado.tipo_usuario || encontrado.Tipo_Usuario || encontrado[6] || 'Operador') : 'Operador';
-                currentUser = { nombre, usuario: uInput, tipo };
-                localStorage.setItem('hidrandina_current_user', JSON.stringify(currentUser));
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
-                document.getElementById('userSessionBadge').classList.remove('hidden');
-                applyUserPermissions();
-                fetchData();
-            } else {
-                alert("Usuario o clave incorrectos.");
-            }
-        }
-
-        function logoutSession() {
-            localStorage.removeItem('hidrandina_current_user');
-            currentUser = null;
-            document.getElementById('loginModal').classList.remove('hidden');
-            document.getElementById('loginUsuario').value = '';
-            document.getElementById('loginClave').value = '';
-        }
-
-        function loadLocalCache() {
-            if (localStorage.getItem('hidrandina_docs_cache')) appData.Documentos = JSON.parse(localStorage.getItem('hidrandina_docs_cache'));
-            if (localStorage.getItem('hidrandina_pers_cache')) appData.Personal = JSON.parse(localStorage.getItem('hidrandina_pers_cache'));
-            if (localStorage.getItem('hidrandina_esta_cache')) appData.Estados = JSON.parse(localStorage.getItem('hidrandina_esta_cache'));
-            if (localStorage.getItem('hidrandina_orig_cache')) appData.Origenes = JSON.parse(localStorage.getItem('hidrandina_orig_cache'));
-            if (localStorage.getItem('hidrandina_alar_cache')) appData.Alarmas = JSON.parse(localStorage.getItem('hidrandina_alar_cache'));
-            if (localStorage.getItem('hidrandina_adjuntos_cache')) appData.Adjuntos = JSON.parse(localStorage.getItem('hidrandina_adjuntos_cache'));
-            if (appData.Documentos.length > 0) renderAll();
-        }
-
-        function saveLocalCache() {
-            localStorage.setItem('hidrandina_docs_cache', JSON.stringify(appData.Documentos));
-            localStorage.setItem('hidrandina_pers_cache', JSON.stringify(appData.Personal));
-            localStorage.setItem('hidrandina_esta_cache', JSON.stringify(appData.Estados));
-            localStorage.setItem('hidrandina_orig_cache', JSON.stringify(appData.Origenes));
-            localStorage.setItem('hidrandina_alar_cache', JSON.stringify(appData.Alarmas));
-            localStorage.setItem('hidrandina_adjuntos_cache', JSON.stringify(appData.Adjuntos));
-        }
+        function loadLocalCache() { /* No se conservan documentos sensibles sin sesión. */ }
+        function saveLocalCache() { /* No almacenar documentos ni credenciales en localStorage. */ }
 
         function setConnectionStatus(status, text) {
             const badge = document.getElementById('connection-badge');
@@ -820,51 +738,74 @@ html, body { max-width:100%; }
             }
         };
 
-        // GitHub Pages consulta y actualiza Sheets por JSONP, no requiere google.script.run.
-        function jsonpRequest(params, timeoutMs=30000) {
-            return new Promise((resolve,reject) => {
-                const callbackName = 'hidraCallback_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-                const script = document.createElement('script');
-                const timer = setTimeout(() => finish(new Error('Tiempo de espera agotado. Comprueba Apps Script.')), timeoutMs);
-                let finished = false;
-                function finish(err, data) {
-                    if (finished) return;
-                    finished = true; clearTimeout(timer); script.remove(); delete window[callbackName];
-                    err ? reject(err) : resolve(data);
+        // Transporte POST por formulario/iframe para evitar tokens en URL y acciones JSONP públicas.
+        async function postGateway(params, timeoutMs=95000) {
+            const token = window.hidraSessionToken || '';
+            if(!token&&params.action!=='login')throw new Error('Debes iniciar sesión.');
+            const requestId = 'rq_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+            return new Promise((resolve,reject)=>{
+                const frame = document.createElement('iframe'); frame.name=requestId;
+                frame.style.display='none'; frame.title='Comunicación segura';
+                const form=document.createElement('form'); form.method='POST'; form.action=getBackendUrl();
+                form.target=requestId; form.style.display='none';
+                const fields={...params,requestId,sessionToken:token};
+                Object.entries(fields).forEach(([k,v])=>{
+                    const input=document.createElement('input'); input.type='hidden'; input.name=k;
+                    input.value=String(v ?? ''); form.appendChild(input);
+                });
+                let completed=false;
+                const timer=setTimeout(()=>finish(new Error('Tiempo de espera de conexión agotado.')),timeoutMs);
+                function finish(err,data) {
+                    if(completed)return; completed=true; clearTimeout(timer);
+                    window.removeEventListener('message',receive); form.remove(); frame.remove();
+                    err?reject(err):resolve(data);
                 }
-                window[callbackName] = data => finish(null,data);
-                const url = new URL(getBackendUrl());
-                Object.entries(params || {}).forEach(([k,v]) => url.searchParams.set(k, String(v == null ? '' : v)));
-                url.searchParams.set('callback',callbackName);
-                url.searchParams.set('_',Date.now());
-                script.src=url.toString(); script.onerror=()=>finish(new Error('No se pudo conectar con Apps Script'));
-                document.body.appendChild(script);
+                function receive(event) {
+                    // HtmlService puede insertar un iframe interno: su window es
+                    // distinta del iframe de destino del formulario. Por eso NO
+                    // exigimos event.source === frame.contentWindow.
+                    // Validamos origen de Google y requestId aleatorio por solicitud.
+                    if(!/^https:\/\/([a-z0-9-]+\.)*(google\.com|googleusercontent\.com)$/i.test(event.origin))return;
+                    const data=event.data;
+                    if(!data || data.source!=='hidrandina-secure-post' || data.requestId!==requestId)return;
+                    data.success?finish(null,data):finish(new Error(data.message||'Acceso denegado'));
+                }
+                window.addEventListener('message',receive);
+                document.body.appendChild(frame); document.body.appendChild(form);
+                try{form.submit();}catch(err){finish(err);}
             });
         }
         async function fetchData() {
+            if(!window.hidraSessionToken)return;
             setConnectionStatus('sync','Conectando...');
             try {
-                const data = window.google && google.script && google.script.run
-                  ? await new Promise((ok,fail)=>google.script.run.withSuccessHandler(ok).withFailureHandler(fail).getAllData())
-                  : await jsonpRequest({});
-                if (!data || !data.success) throw new Error((data && data.message) || 'Respuesta inválida');
-                window.handleGASResponse(data);
-            } catch(err) {setConnectionStatus('error','Sin conexión'); console.error(err);}
+                const data=await postGateway({action:'read'});
+                if(!data || !data.success)throw new Error(data?.message||'Respuesta inválida');
+                const u=data.user;
+                if(!u || !u.tipo)throw new Error('Respuesta sin usuario verificado');
+                currentUser={nombre:u.nombre,usuario:u.usuario,tipo:u.tipo};
+                document.getElementById('loginModal').classList.add('hidden');
+                document.getElementById('userSessionBadge').innerText=`${currentUser.nombre} (${currentUser.tipo})`;
+                document.getElementById('userSessionBadge').classList.remove('hidden');
+                applyUserPermissions(); window.handleGASResponse(data);
+            }catch(err){
+                document.getElementById('loginModal').classList.remove('hidden');
+                setConnectionStatus('error','Sin conexión / acceso no autorizado');
+                console.error(err);
+                alert('No se pudieron obtener los datos: '+(err.message||err));
+            }
         }
         async function executeGASAction(params, successCallback) {
-            setConnectionStatus('sync','Sincronizando con Nube...');
+            setConnectionStatus('sync','Sincronizando con nube...');
             try {
-                const res = window.google && google.script && google.script.run
-                  ? await new Promise((ok,fail)=>google.script.run.withSuccessHandler(ok).withFailureHandler(fail).processAction(params))
-                  : await jsonpRequest(params);
-                if (!res || !res.success) throw new Error((res && res.message) || 'Operación fallida');
-                setConnectionStatus('active','Guardado en Nube');
+                const res=await postGateway(params);
+                setConnectionStatus('active','Guardado en nube');
                 if(successCallback) await successCallback(res); else await fetchData();
-            } catch(err) {
+            }catch(err){
                 setConnectionStatus('error','Error al guardar');
                 const b=document.querySelector('#docForm button[type="submit"]');
-                if(b) {b.disabled=false;b.textContent='Guardar en Google Sheets';}
-                alert('No se completó la operación: '+(err.message || err));
+                if(b){b.disabled=false;b.textContent='Guardar en Google Sheets';}
+                alert('No se completó la operación: '+(err.message||err));
             }
         }
 
@@ -1092,7 +1033,7 @@ html, body { max-width:100%; }
 
                 return `
                     <tr class="${bgRow} hover:bg-blue-50/60 transition duration-150">
-                        <td class="py-3.5 px-4 font-extrabold text-blue-900 border-r border-slate-200/80">${numDoc}</td>
+                        <td class="py-3.5 px-4 font-extrabold text-blue-900 border-r border-slate-200/80"><button type="button" class="text-left underline underline-offset-2" onclick="verAdjuntosDocumento(${actualIdx})" title="Consultar ficha completa">${escapeHtmlSustento(numDoc)}</button></td>
                         <td class="py-3.5 px-4 border-r border-slate-200/80"><span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold bg-blue-100/70 text-blue-800 border border-blue-200/50">${origen}</span></td>
                         <td class="py-3.5 px-4 text-slate-800 max-w-[220px] truncate font-medium border-r border-slate-200/80" title="${asunto}">${asunto}</td>
                         <td class="py-3.5 px-4 text-slate-600 font-semibold border-r border-slate-200/80">${fechaIng}</td>
@@ -1111,10 +1052,10 @@ html, body { max-width:100%; }
                         <td class="py-3.5 px-4 text-slate-600 max-w-[160px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
                         <td class="py-3.5 px-4 text-center space-x-1">
                             <button onclick="enviarCorreoIndividual(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
-                            <button onclick="verAdjuntosDocumento(${actualIdx})" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200" title="Consultar sustento y descargo"><i class="fa-solid fa-paperclip text-xs"></i></button>
+                            <button onclick="verAdjuntosDocumento(${actualIdx})" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200" title="Consulta: ficha completa y adjuntos"><i class="fa-solid fa-eye text-xs"></i></button>
                             ${canEditOrDelete ? `
                                 <button onclick="editDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
-                                <button onclick="deleteDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>
+                                ${isAdmin ? `<button onclick="deleteDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
                             ` : ''}
                         </td>
                     </tr>
@@ -1306,39 +1247,160 @@ html, body { max-width:100%; }
                 const tipo = String(getProp(a, ['Tipo_Sustento',2])) === 'Atencion' ? 'Descargo / respuesta' : 'Sustento';
                 const fileId = String(getProp(a, ['Drive_File_ID',5]) || '');
                 const url = 'https://drive.google.com/file/d/'+ encodeURIComponent(fileId) + '/view';
-                const mostrar = fileId ? `<button type="button" class="text-blue-700 font-bold underline" onclick="mostrarPreviewGuardado('${escapeHtmlSustento(fileId)}','${nombre}')">Vista previa</button> <a class="text-blue-700 font-bold underline ml-2" href="${escapeHtmlSustento(url)}" target="_blank" rel="noopener noreferrer">Abrir en Drive</a>` : '<span class="text-red-600">Archivo no disponible</span>';
-                const quitar = permitirEliminar ? `<button type="button" onclick="reemplazarSustento('${id}')" class="text-blue-700 font-bold px-2 py-1 border border-blue-200 rounded" title="Reemplazar archivo">Reemplazar</button><button type="button" onclick="eliminarSustento('${id}')" class="text-rose-700 font-bold px-2 py-1 border border-rose-200 rounded" title="Eliminar adjunto">Eliminar</button>` : '';
+                const mostrar = fileId ? `<button type="button" class="text-blue-700 font-bold underline" onclick="mostrarPreviewGuardado('${id}','${nombre}','${escapeHtmlSustento(fileId)}')">Vista previa</button> <a class="text-blue-700 font-bold underline ml-2" href="${escapeHtmlSustento(url)}" target="_blank" rel="noopener noreferrer">Abrir en Drive (requiere permiso)</a>` : '<span class="text-red-600">Archivo no disponible</span>';
+                const quitar = (permitirEliminar && currentUser && currentUser.tipo === 'Administrador') ? `<button type="button" onclick="reemplazarSustento('${id}')" class="text-blue-700 font-bold px-2 py-1 border border-blue-200 rounded" title="Reemplazar archivo">Reemplazar</button><button type="button" onclick="eliminarSustento('${id}')" class="text-rose-700 font-bold px-2 py-1 border border-rose-200 rounded" title="Eliminar adjunto">Eliminar</button>` : '';
                 return `<div class="p-3 rounded-xl border border-blue-100 bg-white flex justify-between items-center gap-3 text-xs"><div class="min-w-0"><div class="font-bold text-slate-900 break-all"><i class="fa-solid fa-file-lines text-blue-600 mr-1"></i>${nombre}</div><div class="text-slate-500 mt-1">${tipo}</div><div class="mt-2">${mostrar}</div></div>${quitar}</div>`;
             }).join('');
         }
-        function mostrarPreviewGuardado(id, nombre) {
-            const cont = document.getElementById('visorAdjuntosModal');
-            const preview = document.getElementById('visorAdjuntosPreview');
-            document.getElementById('visorPreviewNombre').textContent = nombre;
-            document.getElementById('visorPreviewAbrir').href = 'https://drive.google.com/file/d/'+encodeURIComponent(id)+'/view';
-            document.getElementById('visorPreviewIframe').src = 'https://drive.google.com/file/d/'+encodeURIComponent(id)+'/preview';
-            preview.classList.remove('hidden'); cont.classList.remove('hidden');
+        // El servidor verifica la sesión y que el archivo pertenezca a la hoja Adjuntos.
+        // La vista previa NO depende de permisos individuales de Google Drive.
+        let vistaObjetoUrl = null;
+        let vistaSolicitud = 0;
+        async function mostrarPreviewGuardado(adjuntoId, nombre, driveId) {
+            const solicitud=++vistaSolicitud;
+            const cont=document.getElementById('visorAdjuntosModal');
+            const preview=document.getElementById('visorAdjuntosPreview');
+            const estado=document.getElementById('visorPreviewEstado');
+            const cuerpo=document.getElementById('visorPreviewContenido');
+            if(vistaObjetoUrl){URL.revokeObjectURL(vistaObjetoUrl);vistaObjetoUrl=null;}
+            cuerpo.replaceChildren();
+            document.getElementById('visorPreviewNombre').textContent=nombre;
+            document.getElementById('visorPreviewAbrir').href='https://drive.google.com/file/d/'+encodeURIComponent(driveId)+'/view';
+            preview.classList.remove('hidden');cont.classList.remove('hidden');
+            estado.textContent='Preparando vista previa segura...';estado.classList.remove('hidden');
+            try {
+                const partes=[];let total=null;let mime='application/octet-stream';let tamano=0;
+                for(let parte=0;total===null||parte<total;parte++) {
+                    const res=await postGateway({action:'previewAdjunto',adjuntoId:String(adjuntoId),parte:String(parte)},120000);
+                    if(solicitud!==vistaSolicitud)return;
+                    if(total===null){total=Number(res.totalPartes);mime=res.mimeType||mime;tamano=Number(res.tamano)||0;}
+                    if(!Number.isInteger(total)||total<1||total>120)throw new Error('Número de partes inválido.');
+                    if(!res.base64 || Number(res.parte)!==parte)throw new Error('Fragmento incompleto.');
+                    const datos=atob(res.base64);
+                    const bytes=new Uint8Array(datos.length);
+                    for(let i=0;i<datos.length;i++)bytes[i]=datos.charCodeAt(i);
+                    partes.push(bytes);
+                    estado.textContent=`Cargando vista previa: ${Math.round(100*(parte+1)/total)} %`;
+                }
+                const blob=new Blob(partes,{type:mime});
+                if(tamano&&blob.size!==tamano)throw new Error('La descarga no está completa.');
+                vistaObjetoUrl=URL.createObjectURL(blob);
+                estado.classList.add('hidden');
+                const lower=String(nombre).toLowerCase();
+                if(mime==='application/pdf'||lower.endsWith('.pdf')) {
+                    // Android Chrome puede mostrar una pantalla intermedia al abrir un blob: en iframe.
+                    // PDF.js dibuja las paginas en un canvas sin depender del lector de PDF del telefono.
+                    if (!window.pdfjsLib) throw new Error('No se cargó el visor PDF. Comprueba tu conexión o usa Descargar.');
+                    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    const datosPdf=new Uint8Array(await blob.arrayBuffer());
+                    const pdf=await pdfjsLib.getDocument({data:datosPdf}).promise;
+                    if(solicitud!==vistaSolicitud){await pdf.destroy();return;}
+                    const controles=document.createElement('div');
+                    controles.className='pdf-mobile-controls';
+                    const anterior=document.createElement('button');anterior.type='button';anterior.textContent='← Anterior';
+                    const numero=document.createElement('span');numero.className='pdf-mobile-count';
+                    const siguiente=document.createElement('button');siguiente.type='button';siguiente.textContent='Siguiente →';
+                    controles.append(anterior,numero,siguiente);
+                    const marco=document.createElement('div');marco.className='pdf-mobile-page';
+                    const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','Página del documento PDF');marco.appendChild(canvas);
+                    cuerpo.append(controles,marco);
+                    let actual=1;let trabajando=false;let pedido=null;
+                    const mostrarPagina=async(pagina)=>{
+                        if(trabajando||solicitud!==vistaSolicitud)return;
+                        trabajando=true;anterior.disabled=true;siguiente.disabled=true;
+                        numero.textContent=`Abriendo página ${pagina} de ${pdf.numPages}...`;
+                        try{
+                            const hoja=await pdf.getPage(pagina);
+                            if(solicitud!==vistaSolicitud)return;
+                            const base=hoja.getViewport({scale:1});
+                            const ancho=Math.max(260,Math.min(marco.clientWidth-12||600,900));
+                            const escala=Math.min(ancho/base.width,2);
+                            const viewport=hoja.getViewport({scale:escala});
+                            const pixelRatio=Math.min(window.devicePixelRatio||1,2);
+                            canvas.width=Math.floor(viewport.width*pixelRatio);
+                            canvas.height=Math.floor(viewport.height*pixelRatio);
+                            canvas.style.width=Math.floor(viewport.width)+'px';
+                            canvas.style.height=Math.floor(viewport.height)+'px';
+                            const ctx=canvas.getContext('2d');
+                            await hoja.render({canvasContext:ctx,viewport,transform:pixelRatio===1?null:[pixelRatio,0,0,pixelRatio,0,0]}).promise;
+                            if(solicitud!==vistaSolicitud)return;
+                            actual=pagina;numero.textContent=`Página ${actual} de ${pdf.numPages}`;
+                        }catch(error){
+                            numero.textContent='No se pudo dibujar el PDF';
+                            console.error('Visor PDF:',error);
+                        }finally{
+                            trabajando=false;
+                            anterior.disabled=actual<=1||solicitud!==vistaSolicitud;
+                            siguiente.disabled=actual>=pdf.numPages||solicitud!==vistaSolicitud;
+                        }
+                    };
+                    anterior.onclick=()=>mostrarPagina(actual-1);
+                    siguiente.onclick=()=>mostrarPagina(actual+1);
+                    await mostrarPagina(1);
+                } else if(mime.startsWith('image/') || /\.(png|jpg|jpeg|webp|gif|bmp)$/i.test(nombre)) {
+                    const img=document.createElement('img');img.alt='Vista previa de '+nombre;img.src=vistaObjetoUrl;cuerpo.appendChild(img);
+                } else if(lower.endsWith('.docx') && window.mammoth) {
+                    const result=await mammoth.convertToHtml({arrayBuffer:await blob.arrayBuffer()});
+                    if(solicitud!==vistaSolicitud)return;
+                    const div=document.createElement('div');div.className='word-html';
+                    div.innerHTML=window.DOMPurify?DOMPurify.sanitize(result.value):'';
+                    if(!window.DOMPurify)div.textContent='No se pudo cargar el procesador seguro de documentos. Usa Descargar.';
+                    cuerpo.appendChild(div);
+                } else if(lower.endsWith('.doc')) {
+                    const msg=document.createElement('p');msg.className='p-4 text-sm text-slate-700';
+                    msg.textContent='El formato Word antiguo .doc necesita conversión a .docx para la vista previa. Puedes descargarlo.';cuerpo.appendChild(msg);
+                } else {
+                    const msg=document.createElement('p');msg.className='p-4 text-sm text-slate-700';
+                    msg.textContent='No hay vista previa integrada para este formato. Puedes abrir el archivo con una aplicación compatible.';cuerpo.appendChild(msg);
+                }
+                const descargar=document.createElement('a');
+                descargar.href=vistaObjetoUrl;descargar.download=nombre;descargar.className='block p-3 text-blue-700 font-bold underline text-sm';
+                descargar.textContent='Descargar este archivo (sin abrir Drive)';cuerpo.appendChild(descargar);
+            } catch(err) {
+                if(solicitud!==vistaSolicitud)return;
+                estado.classList.remove('hidden');
+                estado.textContent='No se pudo obtener la vista previa: '+(err.message||err);
+                console.error('Vista previa segura:',err);
+            }
         }
         function cerrarVisorAdjuntos(){
+            ++vistaSolicitud;
             document.getElementById('visorAdjuntosModal').classList.add('hidden');
             document.getElementById('visorAdjuntosPreview').classList.add('hidden');
-            document.getElementById('visorPreviewIframe').src = 'about:blank';
+            document.getElementById('visorPreviewContenido').replaceChildren();
+            document.getElementById('visorPreviewEstado').classList.remove('hidden');
+            if(vistaObjetoUrl){URL.revokeObjectURL(vistaObjetoUrl);vistaObjetoUrl=null;}
         }
         function pintarAdjuntosEnFormulario(numero) {
             document.getElementById('adjuntosExistentes').innerHTML = '<div class="font-bold text-xs text-blue-900">Archivos registrados (sustentos y descargos)</div>' + dibujarListaSustentos(numero,true);
         }
         function verAdjuntosDocumento(idx) {
-            const doc = appData.Documentos[idx]; if(!doc) return;
-            const numero = String(getProp(doc,['Numero_Documento',1]));
+            const doc=appData.Documentos[idx];if(!doc)return;
+            const numero=String(getProp(doc,['Numero_Documento',1]));
             cerrarVisorAdjuntos();
-            document.getElementById('visorAdjuntosTitulo').textContent = 'Consulta de archivos: '+numero;
-            document.getElementById('visorAdjuntosLista').innerHTML = dibujarListaSustentos(numero,false);
+            document.getElementById('visorAdjuntosTitulo').textContent='Consulta';
+            const campos=[
+                ['N.º de documento',getProp(doc,['Numero_Documento',1])],
+                ['Origen',getProp(doc,['Origen_Tipo',2])],
+                ['Asunto / descripción',getProp(doc,['Asunto',3]),true],
+                ['Fecha de ingreso',getProp(doc,['Fecha_Ingreso',4])],
+                ['Fecha de vencimiento',getProp(doc,['Fecha_Vencimiento',5])],
+                ['Responsable',getProp(doc,['Responsable',8])],
+                ['Estado actual',getProp(doc,['Estado',9])],
+                ['Observaciones',getProp(doc,['Observaciones',10]),true]
+            ];
+            const plazos=calcularPlazos(getProp(doc,['Fecha_Ingreso',4]),getProp(doc,['Fecha_Vencimiento',5]));
+            campos.splice(5,0,['Días transcurridos',plazos.diasTranscurridos],['Días faltantes',plazos.diasFaltantes],['Días de exceso',plazos.diasExceso]);
+            document.getElementById('visorAdjuntosFicha').innerHTML=campos.map(([etiqueta,valor,ancho])=>
+              `<div class="consulta-campo ${ancho?'wide':''}"><strong>${escapeHtmlSustento(etiqueta)}</strong><span>${escapeHtmlSustento(valor||valor===0?valor:'—')}</span></div>`
+            ).join('');
+            document.getElementById('visorAdjuntosLista').innerHTML=dibujarListaSustentos(numero,false);
             document.getElementById('visorAdjuntosModal').classList.remove('hidden');
         }
 
         function eliminarSustento(id) {
             const idx = document.getElementById('docIndex').value;
-            if (idx === '' || !currentUser || currentUser.tipo === 'Visita') return;
+            if (idx === '' || !currentUser || currentUser.tipo !== 'Administrador') return;
             if (!confirm('¿Eliminar este sustento? Dejará de verse en el sistema y el archivo se enviará a la papelera de Drive.')) return;
             const numero = getProp(appData.Documentos[Number(idx)], ['Numero_Documento', 1]);
             // Se envía la petición al servidor antes de alterar la vista local.
@@ -1352,7 +1414,7 @@ html, body { max-width:100%; }
 
         let idAdjuntoParaReemplazar = null;
         function reemplazarSustento(id) {
-            if (!currentUser || currentUser.tipo === 'Visita') return;
+            if (!currentUser || currentUser.tipo !== 'Administrador') return;
             idAdjuntoParaReemplazar = String(id);
             const input = document.getElementById('inputReemplazoAdjunto');
             input.value = '';
@@ -1505,94 +1567,8 @@ html, body { max-width:100%; }
             });
         }
 
-        // Envío POST desde GitHub Pages. La confirmación se obtiene por
-        // consulta JSONP independiente, evitando depender del iframe de Google.
-        function consultarEstadoCarga(requestId) {
-            return new Promise((resolve, reject) => {
-                const cb = 'hidrandina_estado_' + Math.random().toString(36).slice(2);
-                const script = document.createElement('script');
-                let terminado = false;
-                const timer = setTimeout(() => fin(new Error('No se pudo consultar el estado de carga.')), 12000);
-                function fin(err, data) {
-                    if (terminado) return;
-                    terminado = true;
-                    clearTimeout(timer);
-                    script.remove();
-                    delete window[cb];
-                    err ? reject(err) : resolve(data);
-                }
-                window[cb] = (data) => fin(null, data);
-                script.onerror = () => fin(new Error('No se pudo contactar Apps Script para verificar el archivo.'));
-                const url = getBackendUrl();
-                script.src = `${url}${url.includes('?') ? '&' : '?'}action=uploadStatus&requestId=${encodeURIComponent(requestId)}&callback=${cb}&_=${Date.now()}`;
-                document.body.appendChild(script);
-            });
-        }
-
-        function subirAdjuntoPorFormulario(payload) {
-            return new Promise((resolve, reject) => {
-                const requestId = 'up_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-                const frame = document.createElement('iframe');
-                frame.name = requestId;
-                frame.style.display = 'none';
-                frame.title = 'Carga de archivo';
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = getBackendUrl();
-                form.target = requestId;
-                form.style.display = 'none';
-                const data = { ...payload, requestId, action: 'uploadAdjunto' };
-                for (const [k, v] of Object.entries(data)) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden'; input.name = k; input.value = String(v ?? '');
-                    form.appendChild(input);
-                }
-                let finished = false;
-                let attempts = 0;
-                let pollTimer;
-                const started = Date.now();
-                function done(error, result) {
-                    if (finished) return;
-                    finished = true;
-                    clearTimeout(pollTimer);
-                    window.removeEventListener('message', receive);
-                    form.remove();
-                    frame.remove();
-                    error ? reject(error) : resolve(result);
-                }
-                function receive(event) {
-                    const data = event.data;
-                    if (!data || data.source !== 'hidrandina-gas-upload' || data.requestId !== requestId) return;
-                    if (!/^https:\/\/([a-z0-9-]+\.)*google(usercontent)?\.com$/i.test(event.origin)) return;
-                    data.success ? done(null, data) : done(new Error(data.message || 'Error al subir a Drive'));
-                }
-                async function poll() {
-                    if (finished) return;
-                    if (Date.now() - started > 95000) {
-                        return done(new Error('No se recibió confirmación de Apps Script. Revisa Implementaciones > Ejecuciones, la propiedad ARCHIVOS_FOLDER_ID y los permisos de despliegue. No vuelvas a subir sin revisar si existe el archivo.'));
-                    }
-                    attempts++;
-                    try {
-                        const result = await consultarEstadoCarga(requestId);
-                        if (finished) return;
-                        if (result && result.estado === 'completado') {
-                            return result.success ? done(null, result) : done(new Error(result.message || 'Error al subir a Drive'));
-                        }
-                    } catch (error) {
-                        if (attempts >= 5) return done(error);
-                    }
-                    if (!finished) pollTimer = setTimeout(poll, 2500);
-                }
-                window.addEventListener('message', receive);
-                document.body.appendChild(frame);
-                document.body.appendChild(form);
-                try {
-                    form.submit();
-                    pollTimer = setTimeout(poll, 1800);
-                } catch (error) {
-                    done(error);
-                }
-            });
+        async function subirAdjuntoPorFormulario(payload) {
+            return postGateway({...payload,action:'uploadAdjunto'},120000);
         }
         async function subirSustentos(numero, archivos, tipo) {
             for(let i=0;i<archivos.length;i++){
@@ -1601,10 +1577,7 @@ html, body { max-width:100%; }
                 document.getElementById('adjuntoProgreso').textContent=`Subiendo ${i+1} de ${archivos.length}: ${archivo.name}`;
                 const base64=await convertirArchivoABase64(archivo);
                 const payload={numeroDocumento:numero,tipo:archivo.tipoOriginal || archivo.tipoSeleccionado || tipo,nombre:archivo.name,base64,reemplazarId:archivo.reemplazarId || '',usuario:currentUser?currentUser.usuario:''};
-                if(window.google && google.script && google.script.run){
-                    const res=await new Promise((ok,fail)=>google.script.run.withSuccessHandler(ok).withFailureHandler(fail).uploadAdjunto(payload));
-                    if(!res || !res.success)throw new Error((res && res.message)||'Error al subir');
-                }else await subirAdjuntoPorFormulario(payload);
+                await subirAdjuntoPorFormulario(payload);
             }
         }
 
@@ -1657,6 +1630,7 @@ html, body { max-width:100%; }
         function editDocument(idx) { openDocFormModal(idx); }
 
         async function deleteDocument(idx) {
+            if (!currentUser || currentUser.tipo !== 'Administrador') { alert('Solo el administrador puede eliminar documentos.'); return; }
             const doc = appData.Documentos[idx];
             if (!doc) return;
             const numDoc = String(getProp(doc, ['Numero_Documento', 1]));
@@ -1687,7 +1661,7 @@ html, body { max-width:100%; }
                     const correo = typeof p === 'object' ? (p.Correo_Electronico || p.Correo || p[3] || '') : '';
                     
                     const usuario = typeof p === 'object' ? (p.usuario || p.Usuario || p['USUARIO'] || p[4] || '') : '';
-                    const clave = typeof p === 'object' ? (p.clave || p.Clave || p['CLAVE'] || p[5] || '') : '';
+
                     const tipo = typeof p === 'object' ? (p.tipo_usuario || p.Tipo_Usuario || p['TIPO_USUARIO'] || p[6] || 'Operador') : 'Operador';
 
                     return `<div class="py-3.5 flex justify-between items-start text-xs border-b border-slate-100">
@@ -1699,11 +1673,6 @@ html, body { max-width:100%; }
                             <!-- TARJETA VISUAL AMPLIADA CON USUARIO, CLAVE Y TIPO DE USUARIO -->
                             <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 mt-2 space-y-1">
                                 <span class="text-slate-800 block font-bold"><i class="fa-solid fa-user mr-1 text-indigo-500"></i>Usuario: <span class="text-indigo-700 font-extrabold">${usuario || 'No asignado'}</span></span>
-                                <span class="text-slate-800 block font-bold flex items-center gap-1.5">
-                                    <i class="fa-solid fa-lock text-rose-500"></i>Clave: 
-                                    <span id="pwd_text_${i}" data-pwd="${clave}" data-masked="true" class="font-mono bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600">••••••</span>
-                                    ${isAdmin && clave ? `<button onclick="toggleRowPassword(${i})" class="text-slate-400 hover:text-blue-600 p-1 transition" title="Ver / Ocultar Clave"><i id="pwd_icon_${i}" class="fa-solid fa-eye text-xs"></i></button>` : ''}
-                                </span>
                                 <span class="text-emerald-700 block font-extrabold text-[11px]"><i class="fa-solid fa-shield-halved mr-1"></i>Rol: ${tipo}</span>
                             </div>
                         </div>
@@ -1786,6 +1755,9 @@ html, body { max-width:100%; }
                 thirdContainer.classList.remove('hidden');
                 document.getElementById('catalogLabelThird').innerText = "Correo Electrónico";
                 personalFieldsContainer.classList.remove('hidden');
+                document.getElementById('catalogInputUsuario').closest('div').style.display='';
+                document.getElementById('catalogInputClave').closest('.grid').style.display='contents';
+                document.getElementById('catalogInputClave').parentElement.parentElement.style.display='';
             } else if (type === 'Estados') {
                 lblName.innerText = "Nombre Estado *";
                 secContainer.classList.add('hidden');
@@ -1814,7 +1786,7 @@ html, body { max-width:100%; }
                     document.getElementById('catalogInputSecondary').value = getProp(item, ['Cargo_Area', 'Cargo', 2]) || '';
                     document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
                     document.getElementById('catalogInputUsuario').value = getProp(item, ['usuario', 'Usuario', 4]) || '';
-                    document.getElementById('catalogInputClave').value = getProp(item, ['clave', 'Clave', 5]) || '';
+                    document.getElementById('catalogInputClave').value = ''; // Nunca mostrar hash ni contraseña anterior
                     document.getElementById('catalogInputTipoUsuario').value = getProp(item, ['tipo_usuario', 'Tipo_Usuario', 6]) || 'Operador';
                 } else if (type === 'Estados') {
                     const col = getProp(item, ['Color_Hex', 2]) || '#3b82f6';
@@ -1910,8 +1882,33 @@ html, body { max-width:100%; }
 
         function saveBackendUrl() {
             const url = document.getElementById('inputBackendUrl').value.trim();
-            if (url) { localStorage.setItem('hidrandina_gas_url', url); closeConfigModal(); fetchData(); }
+            if (url && url !== DEFAULT_GAS_URL) { alert('La conexión está fijada a la implementación Firebase de HIDRANDINA.'); return; }
+            closeConfigModal(); fetchData();
         }
+    </script>
+
+    <script>
+      // Sesión en memoria: cada vez que se abre/recarga la página hay que ingresar.
+      window.hidraSessionToken=null;
+      window.loginUsuarioClave=async function(ev){
+        ev.preventDefault();
+        const btn=document.getElementById('btnIngreso');
+        const error=document.getElementById('errorLogin');
+        error.classList.add('hidden'); btn.disabled=true;btn.textContent='Verificando...';
+        const usuario=document.getElementById('accesoUsuario').value.trim();
+        const clave=document.getElementById('accesoClave').value;
+        try{
+          const res=await postGateway({action:'login',usuario,clave},45000);
+          if(!res.sessionToken)throw new Error('Sesión inválida.');
+          window.hidraSessionToken=res.sessionToken;
+          document.getElementById('accesoClave').value='';
+          await fetchData();
+        }catch(e){
+          window.hidraSessionToken=null;
+          error.textContent=e.message||'Acceso denegado.';
+          error.classList.remove('hidden');
+        }finally{btn.disabled=false;btn.textContent='Ingresar';}
+      };
     </script>
     <script>
       // Instalación opcional PWA; no almacena documentos ni contraseñas.
