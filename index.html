@@ -1213,10 +1213,12 @@ html, body { max-width:100%; }
             if (!currentUser || !doc) return false;
             if (currentUser.tipo === 'Administrador' || currentUser.tipo === 'Asistente') return true;
             if (currentUser.tipo !== 'Operador') return false;
-            // El servidor deberá devolver Creado_Por. Los documentos antiguos sin autor
-            // no se presumen propiedad del Operador (responsable no es creador).
+            // Edición permitida al creador original O al responsable asignado.
             const creador = String(getProp(doc, ['Creado_Por','Usuario_Creador','Registrado_Por']) || '').trim().toLowerCase();
-            return !!creador && creador === String(currentUser.usuario || '').trim().toLowerCase();
+            const responsable = String(getProp(doc, ['Responsable', 8]) || '').trim().toLowerCase();
+            const esCreador = !!creador && creador === String(currentUser.usuario || '').trim().toLowerCase();
+            const esResponsable = !!responsable && responsable === String(currentUser.nombre || '').trim().toLowerCase();
+            return esCreador || esResponsable;
         }
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
@@ -1386,7 +1388,7 @@ html, body { max-width:100%; }
 
         function openDocFormModal(idx = null) {
             if (!currentUser || currentUser.tipo === 'Visita') return;
-            if (idx !== null && !puedeGestionarDocumento(appData.Documentos[idx])) { alert('Solo puedes editar documentos que registraste.'); return; }
+            if (idx !== null && !puedeGestionarDocumento(appData.Documentos[idx])) { alert('Solo puedes editar expedientes creados por ti o asignados a tu nombre.'); return; }
             document.getElementById('docForm').reset();
             archivosEnCola = [];
             limpiarPrevisualizaciones();
@@ -2109,7 +2111,7 @@ html, body { max-width:100%; }
             if (!currentUser || currentUser.tipo === 'Visita') return;
             const currentIndex = document.getElementById('docIndex').value;
             if (currentIndex !== '' && !puedeGestionarDocumento(appData.Documentos[Number(currentIndex)])) {
-                alert('No puedes modificar documentos registrados por otros usuarios.'); return;
+                alert('Solo puedes modificar expedientes creados por ti o asignados a tu nombre.'); return;
             }
             if (currentUser.tipo === 'Operador') {
                 const idxActual = document.getElementById('docIndex').value;
