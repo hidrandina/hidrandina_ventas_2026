@@ -614,7 +614,7 @@ html, body { max-width:100%; }
                         <div>
                             <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave *</label>
                             <div class="relative mt-1.5">
-                                <input type="password" id="catalogInputClave" minlength="4" maxlength="12" class="w-full px-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Contraseña">
+                                <input type="password" id="catalogInputClave" minlength="4" maxlength="20" class="w-full px-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Contraseña">
                                 <button type="button" onclick="toggleModalPassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600" title="Ver Clave">
                                     <i id="modalEyeIcon" class="fa-solid fa-eye-slash"></i>
                                 </button>
@@ -653,8 +653,9 @@ html, body { max-width:100%; }
         <label for="resumenWhatsAppVista" class="block text-sm font-bold text-slate-700">Mensaje que se enviará por WhatsApp</label>
         <textarea id="resumenWhatsAppVista" rows="7" readonly class="w-full text-sm leading-relaxed rounded-xl border border-slate-200 bg-slate-50 text-slate-800 p-3 resize-y" aria-label="Resumen escrito del expediente"></textarea>
         <button type="button" id="botonEnviarWhatsApp" onclick="enviarResumenWhatsAppExpediente()" disabled class="w-full bg-green-600 text-white rounded-xl py-3 font-extrabold disabled:opacity-40"><i class="fa-brands fa-whatsapp mr-1"></i> Enviar resumen por WhatsApp</button>
+        <button type="button" onclick="copiarResumenWhatsAppExpediente()" class="w-full bg-white border border-green-300 text-green-800 rounded-xl py-3 font-bold"><i class="fa-regular fa-copy mr-1"></i> Copiar resumen (alternativa)</button>
         <button type="button" id="botonDescargarWhatsApp" onclick="descargarZipExpedienteMovil()" disabled class="w-full bg-slate-100 text-blue-800 rounded-xl py-3 font-bold disabled:opacity-40"><i class="fa-solid fa-download mr-1"></i> Descargar ZIP</button>
-        <p class="text-xs text-slate-500">El botón verde abre WhatsApp con el texto; tú seleccionas el contacto y confirmas. El botón de descarga conserva el expediente completo en ZIP. Si deseas enviar también los archivos, adjunta el ZIP desde WhatsApp o Archivos.</p>
+        <p class="text-xs text-slate-500">En el celular se intenta abrir WhatsApp instalado; en la computadora, WhatsApp Web. Tú eliges el destinatario y confirmas. El botón de descarga conserva el expediente completo en ZIP. Si deseas enviar también los archivos, adjunta el ZIP desde WhatsApp o Archivos.</p>
       </div>
     </div>
 
@@ -742,7 +743,7 @@ html, body { max-width:100%; }
             alternarVisibilidadClave('catalogInputClave',document.querySelector('[onclick="toggleModalPassword()"]'));
         }
         function validarClaveNueva(clave) {
-            return /^(?=.{4,12}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S+$/.test(String(clave||''));
+            return /^(?=.{4,20}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S+$/.test(String(clave||''));
         }
         function validBackendUrl(url) {
             return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(String(url || '').trim());
@@ -762,12 +763,30 @@ html, body { max-width:100%; }
         };
 
         let currentUser = null;
+        // Cada inicio/cierre incrementa esta versión para ignorar respuestas tardías.
+        let hidraSesionVersion = 0;
+        let hidraCerrandoSesion = false;
         let chartsInstance = { estados: null, origenes: null };
 
         document.addEventListener('DOMContentLoaded', () => {
             // Restaurar token sólo en la misma pestaña/sesión (nunca contraseña).
             checkSession();
             limpiarCacheAntigua_();
+            // Renueva de forma ligera mientras el usuario mantiene el programa abierto y visible.
+            // No cierra sesión por una falla momentánea de red.
+            let pingEnCurso=false;
+            setInterval(async()=>{
+                if(pingEnCurso || document.hidden || !currentUser || !window.hidraSessionToken)return;
+                pingEnCurso=true;
+                try { await postGateway({action:'ping'},25000); }
+                catch(err) {
+                    const mensaje=String(err.message||err);
+                    if(/sesi[oó]n (finalizada|revocada|caducada|requerida)|debes iniciar sesi[oó]n/i.test(mensaje)){
+                        // La invalidez auténtica se notificará en la siguiente operación.
+                        setConnectionStatus('error','Sesión vencida');
+                    } else { setConnectionStatus('error','No sincronizado'); }
+                } finally { pingEnCurso=false; }
+            },15*60*1000);
         });
 
         function checkSession() {
@@ -776,7 +795,7 @@ html, body { max-width:100%; }
             if (token && /^[a-f0-9]{64}$/.test(token)) {
                 window.hidraSessionToken = token;
                 // La sesión siempre se valida en servidor, nunca se acepta sin validación.
-                fetchData().then(ok => { if (!ok) document.getElementById('loginModal').classList.remove('hidden'); });
+                fetchData().catch(err => console.warn('No se pudo verificar la conexión todavía:',err));
             } else {
                 document.getElementById('loginModal').classList.remove('hidden');
             }
@@ -809,7 +828,12 @@ html, body { max-width:100%; }
         }
 
         async function logoutSession() {
-            try {if(window.hidraSessionToken)await postGateway({action:'logout'},15000).catch(()=>{});}
+            // Invalidar inmediatamente lecturas en vuelo; una respuesta atrasada no reabrirá el programa.
+            hidraSesionVersion++;
+            hidraCerrandoSesion = true;
+            const tokenAlCerrar = window.hidraSessionToken;
+            window.hidraSessionToken = null;
+            try { if(tokenAlCerrar) await postGateway({action:'logout'},15000,{sessionToken:tokenAlCerrar}).catch(()=>{}); }
             finally {
               window.hidraSessionToken = null;
               sessionStorage.removeItem('hidrandina_session_token');
@@ -819,6 +843,7 @@ html, body { max-width:100%; }
               limpiarCacheAntigua_();
               document.getElementById('loginModal').classList.remove('hidden');
               document.getElementById('userSessionBadge').classList.add('hidden');
+              hidraCerrandoSesion = false;
             }
         }
 
@@ -905,36 +930,42 @@ html, body { max-width:100%; }
             });
         }
         async function fetchData() {
-            if(!window.hidraSessionToken)return false;
+            const tokenUsado = window.hidraSessionToken;
+            if (!tokenUsado || hidraCerrandoSesion) return false;
+            const versionUsada = hidraSesionVersion;
             setConnectionStatus('sync','Conectando...');
             try {
-                const data=await postGateway({action:'read'});
-                if(!data || !data.success)throw new Error(data?.message||'Respuesta inválida');
-                const u=data.user;
-                if(!u || !u.tipo)throw new Error('Respuesta sin usuario verificado');
-                currentUser={nombre:u.nombre,usuario:u.usuario,tipo:u.tipo};
+                const data = await postGateway({action:'read'},95000,{sessionToken:tokenUsado});
+                // Otro login, recuperación o cierre de sesión ocurrió mientras Google respondía.
+                if (hidraCerrandoSesion || versionUsada !== hidraSesionVersion ||
+                    tokenUsado !== window.hidraSessionToken) return false;
+                if (!data || !data.success) throw new Error(data?.message || 'Respuesta inválida');
+                const u = data.user;
+                if (!u || !u.tipo) throw new Error('Respuesta sin usuario verificado');
+                currentUser = {nombre:u.nombre, usuario:u.usuario, tipo:u.tipo};
                 document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('userSessionBadge').innerText=`${currentUser.nombre} (${currentUser.tipo})`;
+                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
                 document.getElementById('userSessionBadge').classList.remove('hidden');
-                applyUserPermissions(); window.handleGASResponse(data);
+                applyUserPermissions();
+                window.handleGASResponse(data);
                 return true;
-            }catch(err){
-                // Fallo de red ≠ sesión vencida: no expulsar al usuario por un error temporal.
-                const mensaje=String(err.message||err);
-                const expirado=/sesi[oó]n (finalizada|revocada|caducada|requerida)|debes iniciar sesi[oó]n/i.test(mensaje);
-                if (expirado) {
-                    window.hidraSessionToken=null;
-                    sessionStorage.removeItem('hidrandina_session_token');
-                    currentUser=null;
+            } catch (err) {
+                if (hidraCerrandoSesion || versionUsada !== hidraSesionVersion ||
+                    tokenUsado !== window.hidraSessionToken) return false;
+                const mensaje = String(err.message || err);
+                setConnectionStatus('error', /sesi[oó]n (finalizada|revocada|caducada|requerida)|debes iniciar sesi[oó]n/i.test(mensaje)
+                    ? 'Sesión por verificar' : 'No sincronizado');
+                console.warn('HIDRANDINA: no se pudo completar la sincronización:', mensaje);
+                // Nunca superponer el formulario a alguien que ya estaba trabajando.
+                // Si realmente expiró, el usuario podrá cerrar sesión y autenticarse explícitamente.
+                if (!currentUser) {
+                    // Al abrir una pestaña sin una identidad validada, mantener el acceso visible.
                     document.getElementById('loginModal').classList.remove('hidden');
-                }
-                setConnectionStatus('error','No sincronizado');
-                const rec=document.getElementById('btnRecuperarAcceso'); if(rec) rec.classList.remove('hidden');
-                console.error(err);
-                if (currentUser) console.warn('Problema de sincronización; sesión mantenida:',mensaje);
-                else {
-                    const aviso=document.getElementById('errorLogin');
-                    if(aviso){aviso.textContent='No se pudo sincronizar: '+mensaje;aviso.classList.remove('hidden');}
+                    const aviso = document.getElementById('errorLogin');
+                    if (aviso) {
+                        aviso.textContent = 'No se pudo verificar la sesión: ' + mensaje;
+                        aviso.classList.remove('hidden');
+                    }
                 }
                 return false;
             }
@@ -1808,15 +1839,38 @@ html, body { max-width:100%; }
             } finally { zipExpedienteMovilEnProceso=false; }
         }
         function enviarResumenWhatsAppExpediente() {
+            const texto = document.getElementById('resumenWhatsAppVista').value;
+            const estado = document.getElementById('estadoWhatsApp');
+            if (!texto.trim()) { estado.textContent='No hay resumen disponible.'; return; }
+            const codificado = encodeURIComponent(texto);
+            const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (esMovil) {
+                // Abre la app de WhatsApp instalada, sin pasar por api.whatsapp.com.
+                // El sistema operativo decide si se puede abrir la app; no es forzable desde HTML.
+                window.location.href = 'whatsapp://send?text=' + codificado;
+                estado.textContent = 'Se intentó abrir WhatsApp. Si no se abrió, pulsa «Copiar resumen» y pégalo en WhatsApp.';
+            } else {
+                // En computadoras, abrir WhatsApp Web sin abandonar Hidrandina_Ventas.
+                const url = 'https://web.whatsapp.com/send?text=' + codificado;
+                const nueva = window.open(url, '_blank', 'noopener,noreferrer');
+                if (!nueva) estado.textContent='Activa las ventanas emergentes o usa «Copiar resumen».';
+                else estado.textContent='WhatsApp Web se abrió en otra pestaña. Elige el contacto y envía.';
+            }
+        }
+        async function copiarResumenWhatsAppExpediente() {
             const texto=document.getElementById('resumenWhatsAppVista').value;
-            const estado=document.getElementById('estadoWhatsApp');
-            if(!texto.trim()) {estado.textContent='No hay resumen disponible.';return;}
-            // La URL solo contiene el texto del expediente; el usuario elige el contacto.
-            // WhatsApp no permite seleccionar contactos ni adjuntar ZIP automáticamente desde la web.
-            const enlace='https://api.whatsapp.com/send?text='+encodeURIComponent(texto);
-            const ventana=window.open(enlace,'_blank','noopener,noreferrer');
-            if(!ventana)window.location.href=enlace;
-            estado.textContent='WhatsApp se abrirá con el resumen. Elige el contacto y confirma el envío. Puedes descargar el ZIP aparte.';
+            if(!texto.trim())return;
+            try {
+                if(navigator.clipboard && window.isSecureContext)await navigator.clipboard.writeText(texto);
+                else {
+                    const campo=document.getElementById('resumenWhatsAppVista');
+                    campo.focus();campo.select();
+                    if(!document.execCommand('copy'))throw new Error('No se pudo copiar automáticamente');
+                }
+                document.getElementById('estadoWhatsApp').textContent='Resumen copiado. Abre WhatsApp, elige el contacto y pégalo.';
+            } catch(error) {
+                document.getElementById('estadoWhatsApp').textContent='Mantén pulsado el texto del resumen para copiarlo manualmente.';
+            }
         }
         function descargarZipExpedienteMovil() {
             const paquete=zipExpedienteMovilPreparado;
@@ -2264,7 +2318,7 @@ html, body { max-width:100%; }
             const tipo_usuario = document.getElementById('catalogInputTipoUsuario') ? document.getElementById('catalogInputTipoUsuario').value.trim() : '';
             if (!val) return;
             if (type === 'Personal' && clave && !validarClaveNueva(clave)) {
-                alert('La contraseña debe tener entre 4 y 12 caracteres, mayúscula, minúscula, número y carácter especial, sin espacios.');
+                alert('La contraseña debe tener entre 4 y 20 caracteres, mayúscula, minúscula, número y carácter especial, sin espacios.');
                 document.getElementById('catalogInputClave').focus(); return;
             }
 
@@ -2366,6 +2420,7 @@ html, body { max-width:100%; }
                 const anteriorUrl = getBackendUrl();
                 const anteriorToken = window.hidraSessionToken;
                 localStorage.setItem(BACKEND_STORAGE_KEY,url);
+                hidraSesionVersion++;
                 window.hidraSessionToken = nuevoToken;
                 sessionStorage.setItem('hidrandina_session_token', nuevoToken);
                 claveEl.value = '';
@@ -2419,6 +2474,7 @@ html, body { max-width:100%; }
           }
           // Guardar solo después de confirmar el perfil en el nuevo servidor.
           localStorage.setItem(BACKEND_STORAGE_KEY, url);
+          hidraSesionVersion++;
           window.hidraSessionToken = temporaryToken;
           sessionStorage.setItem('hidrandina_session_token', temporaryToken);
           document.getElementById('accesoClave').value = '';
@@ -2438,6 +2494,8 @@ html, body { max-width:100%; }
       };
       window.loginUsuarioClave=async function(ev){
         ev.preventDefault();
+        if (hidraCerrandoSesion || document.getElementById('loginModal').classList.contains('hidden')) return;
+        const estaVersion = ++hidraSesionVersion;
         const btn=document.getElementById('btnIngreso');
         const error=document.getElementById('errorLogin');
         error.classList.add('hidden'); btn.disabled=true;btn.textContent='Verificando...';
@@ -2445,7 +2503,8 @@ html, body { max-width:100%; }
         const usuario=document.getElementById('accesoUsuario').value.trim();
         const clave=document.getElementById('accesoClave').value;
         try{
-          const res=await postGateway({action:'login',usuario,clave},45000);
+          const res=await postGateway({action:'login',usuario,clave},45000,{sessionToken:''});
+          if (estaVersion !== hidraSesionVersion || hidraCerrandoSesion) return;
           if(!res.sessionToken)throw new Error('Sesión inválida.');
           window.hidraSessionToken=res.sessionToken;
           sessionStorage.setItem('hidrandina_session_token',res.sessionToken);
@@ -2462,8 +2521,12 @@ html, body { max-width:100%; }
           fetchData().catch(err=>console.warn(err));
           document.getElementById('estadoLoginConexion').textContent='Sincronizando documentos...';
         }catch(e){
-          window.hidraSessionToken=null;
-          sessionStorage.removeItem('hidrandina_session_token');
+          if (estaVersion !== hidraSesionVersion || hidraCerrandoSesion) return;
+          // Un error de login no debe destruir una sesión anterior aún válida.
+          if (!currentUser) {
+            window.hidraSessionToken=null;
+            sessionStorage.removeItem('hidrandina_session_token');
+          }
           setConnectionStatus('error','No sincronizado');
           document.getElementById('estadoLoginConexion').textContent='No sincronizado';
           document.getElementById('btnRecuperarAcceso').classList.remove('hidden');
