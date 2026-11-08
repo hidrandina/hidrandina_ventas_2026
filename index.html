@@ -195,7 +195,42 @@ html, body { max-width:100%; }
 #visorAdjuntosPreview .pdf-mobile-count{font-size:12px;font-weight:700;color:#183968;text-align:center}
 #visorAdjuntosPreview .pdf-mobile-page{background:#e5eaf2;padding:8px;display:flex;justify-content:center;overflow:auto;min-height:160px}
 #visorAdjuntosPreview .pdf-mobile-page canvas{display:block;max-width:100%;height:auto!important;background:white;box-shadow:0 2px 12px #152d4b33}
-    </style>
+    
+/* CORRECCIÓN RESPONSIVA DE FILTROS DE DOCUMENTOS — sin modificar lógica ni backend */
+#tab-documentos .hd-document-filters{display:flex;flex-direction:column;gap:12px;min-width:0}
+#tab-documentos .hd-date-filter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:end;min-width:0}
+#tab-documentos .hd-date-label{display:flex;flex-direction:column;gap:6px;min-width:0;font-size:12px;line-height:1.4;font-weight:800;color:#344767;white-space:normal}
+#tab-documentos .hd-date-label input{display:block;box-sizing:border-box;min-width:0;width:100%;max-width:100%;height:46px;padding:10px 11px;border:1px solid #b9d0ef;border-radius:11px;background:#f9fbff;color:#193c6a;font-size:14px;font-weight:650;letter-spacing:0}
+#tab-documentos .hd-date-label input::placeholder{font-size:13px;color:#7184a4;opacity:1}
+#tab-documentos .hd-date-actions{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+#tab-documentos .hd-date-actions button{height:44px;min-width:0;width:100%;padding:9px 10px;border-radius:11px;line-height:1.2;font-size:12px;font-weight:800}
+#tab-documentos .hd-apply-dates{background:#1d61e7;color:white}
+#tab-documentos .hd-clear-dates{background:white;color:#31435e;border:1px solid #c4d3e5}
+#tab-documentos .hd-other-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0}
+#tab-documentos .hd-other-filters select{box-sizing:border-box;min-width:0;width:100%;max-width:100%;height:46px;padding:9px 10px;border:1px solid #c3d5ed;border-radius:11px;background:#f9fbff;color:#273b5a;font-size:13px;font-weight:700}
+#tab-documentos .hd-export-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+#tab-documentos .hd-export-actions button{min-width:0;width:100%;min-height:44px;white-space:normal}
+@media (min-width:1100px){
+ #tab-documentos .hd-date-filter{grid-template-columns:minmax(140px,1fr) minmax(140px,1fr) minmax(220px,1fr)}
+ #tab-documentos .hd-date-actions{grid-column:auto}
+}
+@media (max-width:767px){
+ #tab-documentos>div.hd-title-row+div+div{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:14px!important}
+ #tab-documentos>div.hd-title-row+div+div .relative{width:100%!important;min-width:0!important}
+ #tab-documentos .hd-document-filters{display:flex!important;flex-direction:column!important;width:100%!important;gap:13px!important}
+ #tab-documentos .hd-date-filter{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;width:100%!important}
+ #tab-documentos .hd-date-label{font-size:12px!important;line-height:1.3!important;min-width:0!important}
+ #tab-documentos .hd-date-label input{width:100%!important;min-width:0!important;max-width:100%!important;font-size:14px!important;padding:10px 9px!important}
+ #tab-documentos .hd-date-actions{grid-column:1/-1!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;margin:0!important}
+ #tab-documentos .hd-date-actions button{width:100%!important;min-height:46px!important;font-size:12px!important;padding:8px!important}
+ #tab-documentos .hd-other-filters{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;width:100%!important}
+ #tab-documentos .hd-other-filters select{min-width:0!important;width:100%!important;height:46px!important;padding:10px!important;font-size:13px!important}
+ #tab-documentos .hd-export-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;width:100%!important}
+ #tab-documentos .hd-export-actions button{width:100%!important;margin:0!important;min-height:48px!important;font-size:11px!important;padding:10px 6px!important}
+}
+@media(max-width:355px){#tab-documentos .hd-date-filter{grid-template-columns:1fr!important}#tab-documentos .hd-date-actions{grid-column:1!important}}
+
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -322,27 +357,29 @@ html, body { max-width:100%; }
                     <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar documento, asunto..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
                 </div>
-                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                    <div class="flex flex-wrap gap-2 items-end w-full lg:w-auto" aria-label="Rango de fechas de ingreso">
-                        <label class="text-[11px] font-bold text-slate-600">Fecha inicio (DD/MM/AAAA)<input id="fechaInicioDocumentos" type="text" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="DD/MM/AAAA" aria-label="Fecha inicial en formato día mes año" class="block mt-1 w-36 px-3 py-2.5 bg-slate-50 border border-blue-200 rounded-lg text-sm font-semibold" /></label>
-                        <label class="text-[11px] font-bold text-slate-600">Fecha término (DD/MM/AAAA)<input id="fechaFinDocumentos" type="text" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="DD/MM/AAAA" aria-label="Fecha final en formato día mes año" class="block mt-1 w-36 px-3 py-2.5 bg-slate-50 border border-blue-200 rounded-lg text-sm font-semibold" /></label>
-                        <button type="button" onclick="aplicarFechasDocumentos()" class="px-3 py-2.5 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700" title="Aplicar rango de fechas">Aplicar fechas</button>
-                        <button type="button" onclick="limpiarFechasDocumentos()" class="px-3 py-2.5 text-xs font-bold rounded-lg border border-slate-300" title="Mostrar documentos sin filtro de fechas">Limpiar fechas</button>
+                <div class="hd-document-filters w-full lg:flex-1" aria-label="Filtros de documentos">
+                    <div class="hd-date-filter" aria-label="Rango de fechas de ingreso">
+                        <label class="hd-date-label" for="fechaInicioDocumentos">Fecha inicio
+                            <input id="fechaInicioDocumentos" type="text" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="DD/MM/AAAA" aria-label="Fecha inicial en formato día mes año" />
+                        </label>
+                        <label class="hd-date-label" for="fechaFinDocumentos">Fecha término
+                            <input id="fechaFinDocumentos" type="text" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="DD/MM/AAAA" aria-label="Fecha final en formato día mes año" />
+                        </label>
+                        <div class="hd-date-actions">
+                            <button type="button" onclick="aplicarFechasDocumentos()" class="hd-apply-dates" title="Aplicar rango de fechas">Aplicar fechas</button>
+                            <button type="button" onclick="limpiarFechasDocumentos()" class="hd-clear-dates" title="Mostrar documentos sin filtro de fechas">Limpiar fechas</button>
+                        </div>
                     </div>
-                    <select id="filterPersonal" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
-                        <option value="">Todo el Personal</option>
-                    </select>
-                    <select id="filterEstado" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
-                        <option value="">Todos los Estados</option>
-                    </select>
-                    <select id="filterOrigen" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
-                        <option value="">Todos los Orígenes</option>
-                    </select>
-                    <div class="flex items-center space-x-2 ml-auto">
-                        <button onclick="exportarExcel()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/25 transition transform active:scale-95" title="Exportar lista filtrada a Excel (.xlsx)">
+                    <div class="hd-other-filters">
+                        <select id="filterPersonal" onchange="filterDocuments()" aria-label="Filtrar por personal"><option value="">Todo el Personal</option></select>
+                        <select id="filterEstado" onchange="filterDocuments()" aria-label="Filtrar por estado"><option value="">Todos los Estados</option></select>
+                        <select id="filterOrigen" onchange="filterDocuments()" aria-label="Filtrar por origen"><option value="">Todos los Orígenes</option></select>
+                    </div>
+                    <div class="hd-export-actions">
+                        <button onclick="exportarExcel()" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md" title="Exportar lista filtrada a Excel (.xlsx)">
                             <i class="fa-solid fa-file-excel text-sm"></i><span>Exportar Excel</span>
                         </button>
-                        <button onclick="enviarListaCorreo()" class="inline-flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md shadow-indigo-600/25 transition transform active:scale-95" title="Preparar correo y descargar Excel para adjuntar">
+                        <button onclick="enviarListaCorreo()" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-xl text-xs font-extrabold shadow-md" title="Preparar correo y descargar Excel para adjuntar">
                             <i class="fa-solid fa-paper-plane text-sm"></i><span>Enviar por Correo</span>
                         </button>
                     </div>
