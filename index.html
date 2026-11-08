@@ -640,6 +640,22 @@ html, body { max-width:100%; }
         </div>
     </div>
 
+    <!-- Compartir expediente desde la fila de acciones: transferencia privada y confirmación móvil. -->
+    <div id="modalCompartirWhatsApp" class="fixed inset-0 bg-slate-900/75 z-[65] hidden flex items-center justify-center p-3" role="dialog" aria-modal="true" aria-labelledby="tituloCompartirWhatsApp">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 space-y-4">
+        <div class="flex justify-between items-center gap-3">
+          <h3 id="tituloCompartirWhatsApp" class="text-lg font-extrabold text-slate-900"><i class="fa-brands fa-whatsapp text-green-600 mr-2"></i>Compartir expediente</h3>
+          <button type="button" onclick="cerrarModalWhatsApp()" aria-label="Cerrar" class="bg-slate-100 text-slate-700 rounded-lg px-3 py-2">✕</button>
+        </div>
+        <p id="descripcionCompartirWhatsApp" class="text-sm text-slate-700"></p>
+        <p id="estadoWhatsApp" role="status" aria-live="polite" class="text-sm font-semibold text-blue-700">Preparando archivo...</p>
+        <p class="text-xs text-slate-500">El ZIP incluye un resumen del expediente y todos los sustentos y descargos. Solo se enviará al contacto que selecciones.</p>
+        <button type="button" id="botonEnviarWhatsApp" onclick="enviarZipExpedienteMovil()" disabled class="w-full bg-green-600 text-white rounded-xl py-3 font-extrabold disabled:opacity-40"><i class="fa-brands fa-whatsapp mr-1"></i> Enviar por WhatsApp</button>
+        <button type="button" id="botonDescargarWhatsApp" onclick="descargarZipExpedienteMovil()" disabled class="w-full bg-slate-100 text-blue-800 rounded-xl py-3 font-bold disabled:opacity-40"><i class="fa-solid fa-download mr-1"></i> Descargar ZIP</button>
+        <p class="text-xs text-slate-500">En Android se abre el menú para compartir: selecciona WhatsApp y luego el contacto o grupo. Si el navegador no admite compartir ZIP, utiliza «Descargar ZIP».</p>
+      </div>
+    </div>
+
     <!-- VISOR DE SUSTENTOS (PARA TODOS LOS ROLES, INCLUIDO VISITA) -->
     <div id="visorAdjuntosModal" class="fixed inset-0 bg-slate-900/70 z-50 hidden flex items-center justify-center p-4">
       <div class="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto space-y-4">
@@ -1233,6 +1249,7 @@ html, body { max-width:100%; }
                         <td class="py-3.5 px-4 text-slate-600 max-w-[160px] truncate border-r border-slate-200/80" title="${observaciones}">${observaciones}</td>
                         <td class="py-3.5 px-4 text-center space-x-1">
                             <button onclick="enviarCorreoIndividual(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition" title="Notificar por Correo"><i class="fa-solid fa-envelope text-xs"></i></button>
+                            <button type="button" onclick="prepararExpedienteWhatsApp(${actualIdx})" class="w-8 h-8 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 transition" title="Compartir expediente por WhatsApp" aria-label="WhatsApp: compartir expediente"><i class="fa-brands fa-whatsapp text-base"></i></button>
                             <button onclick="verAdjuntosDocumento(${actualIdx})" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200" title="Consulta: ficha completa y adjuntos"><i class="fa-solid fa-eye text-xs"></i></button>
                             ${canEditOrDelete ? `
                                 <button onclick="editDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
@@ -1708,6 +1725,88 @@ html, body { max-width:100%; }
                 console.error('Exportar expediente:',error);
                 estado.textContent='No se pudo exportar: '+(error.message||error);
             }finally{btn.disabled=false;btn.classList.remove('opacity-50');}
+        }
+
+        // Acceso directo a WhatsApp desde la fila del expediente.
+        // Tras descargar los adjuntos se exige una segunda pulsación para iniciar
+        // navigator.share con una activación real del usuario (requisito Android).
+        let zipExpedienteMovilPreparado = null;
+        let zipExpedienteMovilEnProceso = false;
+        function cerrarModalWhatsApp() {
+            if(zipExpedienteMovilEnProceso) return;
+            document.getElementById('modalCompartirWhatsApp').classList.add('hidden');
+            zipExpedienteMovilPreparado = null;
+        }
+        async function prepararExpedienteWhatsApp(idx) {
+            if(zipExpedienteMovilEnProceso) return;
+            const doc=appData.Documentos && appData.Documentos[idx];
+            if(!doc || !currentUser || !window.hidraSessionToken) {
+                alert('Inicia sesión para compartir expedientes.'); return;
+            }
+            if(!window.JSZip){ alert('No se pudo cargar el módulo ZIP. Comprueba tu conexión.'); return; }
+            const panel=document.getElementById('modalCompartirWhatsApp');
+            const estado=document.getElementById('estadoWhatsApp');
+            const enviar=document.getElementById('botonEnviarWhatsApp');
+            const descargar=document.getElementById('botonDescargarWhatsApp');
+            enviar.disabled=true;descargar.disabled=true;
+            zipExpedienteMovilPreparado=null;
+            zipExpedienteMovilEnProceso=true;
+            panel.classList.remove('hidden');
+            const numero=String(getProp(doc,['Numero_Documento',1])||'Expediente');
+            document.getElementById('descripcionCompartirWhatsApp').textContent='Expediente: '+numero;
+            estado.textContent='Preparando resumen del expediente...';
+            try {
+                const adjuntos=adjuntosDeNumero(numero);
+                const zip=new JSZip();
+                zip.file('Resumen_del_expediente.html',resumenHtmlExpediente_(doc,adjuntos));
+                let bytes=0;
+                for(let i=0;i<adjuntos.length;i++) {
+                    const a=adjuntos[i];
+                    const id=String(getProp(a,['ID',0])||'');
+                    const tipo=String(getProp(a,['Tipo_Sustento',2]))==='Atencion'?'Atencion':'Sustentos';
+                    const nombre=(i+1)+'_'+nombreSeguroExpediente_(getProp(a,['Nombre_Archivo',3])||'Archivo');
+                    estado.textContent='Descargando adjunto '+(i+1)+' de '+adjuntos.length+'...';
+                    const blob=await blobAdjuntoParaCompartir_(id,estado,'Adjunto '+(i+1)+' de '+adjuntos.length);
+                    bytes+=blob.size;
+                    if(bytes>40*1024*1024) throw new Error('Los adjuntos superan 40 MB; descarga los archivos individualmente.');
+                    zip.file(tipo+'/'+nombre,blob);
+                }
+                estado.textContent='Comprimiendo expediente...';
+                const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
+                const nombreArchivo='Expediente_'+nombreSeguroExpediente_(numero)+'.zip';
+                zipExpedienteMovilPreparado={file:new File([blob],nombreArchivo,{type:'application/zip'}),blob,nombreArchivo,numero};
+                estado.textContent='Expediente preparado. Pulsa «Enviar por WhatsApp» y elige un contacto.';
+                enviar.disabled=false;descargar.disabled=false;
+            } catch(error) {
+                console.error('Preparación de expediente WhatsApp:',error);
+                estado.textContent='No se pudo preparar el expediente: '+(error.message||error);
+            } finally { zipExpedienteMovilEnProceso=false; }
+        }
+        async function enviarZipExpedienteMovil() {
+            const paquete=zipExpedienteMovilPreparado;
+            if(!paquete)return;
+            const estado=document.getElementById('estadoWhatsApp');
+            if(navigator.share && navigator.canShare && navigator.canShare({files:[paquete.file]})) {
+                try {
+                    // Debe ejecutarse directamente desde el toque del usuario.
+                    await navigator.share({files:[paquete.file],title:'Expediente '+paquete.numero});
+                    estado.textContent='Archivo enviado al menú para compartir.';
+                    return;
+                } catch(error) {
+                    if(error.name==='AbortError') {estado.textContent='Envío cancelado. Puedes intentarlo nuevamente.';return;}
+                    console.warn('Compartir archivo ZIP:',error);
+                }
+            }
+            estado.textContent='Tu navegador no puede entregar directamente este ZIP a WhatsApp. Pulsa «Descargar ZIP» y compártelo desde Archivos o Descargas.';
+        }
+        function descargarZipExpedienteMovil() {
+            const paquete=zipExpedienteMovilPreparado;
+            if(!paquete)return;
+            const url=URL.createObjectURL(paquete.blob);
+            const a=document.createElement('a');a.href=url;a.download=paquete.nombreArchivo;
+            document.body.appendChild(a);a.click();a.remove();
+            setTimeout(()=>URL.revokeObjectURL(url),60000);
+            document.getElementById('estadoWhatsApp').textContent='ZIP descargado. Abre Descargas, selecciona el archivo y compártelo con WhatsApp.';
         }
 
         function eliminarSustento(id) {
