@@ -211,6 +211,7 @@ html, body { max-width:100%; }
            </label>
            <label class="block font-bold text-sm text-slate-700">Contraseña
              <input id="accesoClave" name="clave" type="password" autocomplete="current-password" required class="w-full mt-2 px-4 py-3 border border-blue-200 rounded-xl bg-white" placeholder="Tu contraseña" />
+            <button type="button" onclick="alternarVisibilidadClave('accesoClave', this)" class="ml-2 px-3 py-2 border border-blue-200 rounded-xl text-blue-700 font-bold" title="Mostrar u ocultar contraseña" aria-label="Mostrar contraseña"><i class="fa-solid fa-eye"></i></button>
            </label>
            <p id="estadoLoginConexion" role="status" class="text-xs font-bold text-slate-500">Conexión lista para verificar al ingresar.</p>
            <p id="errorLogin" role="alert" class="text-sm text-rose-700 font-semibold hidden"></p>
@@ -235,7 +236,7 @@ html, body { max-width:100%; }
                 <div>
                     <h1 class="font-extrabold text-white text-lg sm:text-xl tracking-tight leading-tight flex items-center gap-2">
                         <i class="fa-solid fa-bolt text-yellow-400"></i>
-                        HIDRANDINA <span class="hd-brand-divider" aria-hidden="true"></span> <span class="hd-brand-secondary">Control de Documentos</span>
+                        HIDRANDINA <span class="hd-brand-divider" aria-hidden="true"></span> <span class="hd-brand-secondary">Atención de Documentos</span>
                     </h1>
                     <div class="flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-200">
                         <span class="hd-author font-medium text-blue-200 bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-400/30 backdrop-blur-md">
@@ -322,6 +323,11 @@ html, body { max-width:100%; }
                     <input type="text" id="searchInput" oninput="filterDocuments()" placeholder="Buscar documento, asunto..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-inner">
                 </div>
                 <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                    <div class="flex flex-wrap gap-2 items-end w-full lg:w-auto" aria-label="Rango de fechas de ingreso">
+                        <label class="text-[11px] font-bold text-slate-600">Fecha inicio<input id="fechaInicioDocumentos" type="date" onchange="filterDocuments()" class="block mt-1 px-2 py-2 bg-slate-50 border border-blue-200 rounded-lg text-xs" /></label>
+                        <label class="text-[11px] font-bold text-slate-600">Fecha término<input id="fechaFinDocumentos" type="date" onchange="filterDocuments()" class="block mt-1 px-2 py-2 bg-slate-50 border border-blue-200 rounded-lg text-xs" /></label>
+                        <button type="button" onclick="limpiarFechasDocumentos()" class="px-3 py-2 text-xs font-bold rounded-lg border border-slate-300" title="Limpiar rango de fechas">Limpiar fechas</button>
+                    </div>
                     <select id="filterPersonal" onchange="filterDocuments()" class="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition shadow-sm">
                         <option value="">Todo el Personal</option>
                     </select>
@@ -569,7 +575,7 @@ html, body { max-width:100%; }
                         <div>
                             <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Clave *</label>
                             <div class="relative mt-1.5">
-                                <input type="password" id="catalogInputClave" class="w-full px-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Contraseña">
+                                <input type="password" id="catalogInputClave" minlength="4" maxlength="12" class="w-full px-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold" placeholder="Contraseña">
                                 <button type="button" onclick="toggleModalPassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600" title="Ver Clave">
                                     <i id="modalEyeIcon" class="fa-solid fa-eye-slash"></i>
                                 </button>
@@ -625,6 +631,7 @@ html, body { max-width:100%; }
             <p class="text-xs text-slate-600">Al cambiar de implementación se verificará el administrador en el nuevo servidor antes de guardar.</p>
             <label for="claveCambioServidor" class="block text-sm font-bold text-slate-700">Contraseña del administrador para verificar el nuevo servidor</label>
             <input type="password" id="claveCambioServidor" autocomplete="off" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold" placeholder="Solo necesaria al cambiar la URL">
+            <button type="button" onclick="alternarVisibilidadClave('claveCambioServidor', this)" class="ml-2 px-3 py-2 border border-blue-200 rounded-xl text-blue-700 font-bold" title="Mostrar u ocultar contraseña" aria-label="Mostrar contraseña"><i class="fa-solid fa-eye"></i></button>
             <p id="estadoCambioServidor" role="status" class="text-xs font-bold text-slate-600"></p>
             <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                 <button onclick="closeConfigModal()" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Cancelar</button>
@@ -658,6 +665,22 @@ html, body { max-width:100%; }
             localStorage.setItem(BACKEND_SEED_KEY, 'v67');
         }
 
+        function alternarVisibilidadClave(id, boton) {
+            const input = document.getElementById(id);
+            if (!input) return;
+            input.type = input.type === 'password' ? 'text' : 'password';
+            if (boton) {
+                boton.setAttribute('aria-label', input.type === 'text' ? 'Ocultar contraseña' : 'Mostrar contraseña');
+                const ico = boton.querySelector('i');
+                if (ico) ico.className = input.type === 'text' ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            }
+        }
+        function toggleModalPassword(){
+            alternarVisibilidadClave('catalogInputClave',document.querySelector('[onclick="toggleModalPassword()"]'));
+        }
+        function validarClaveNueva(clave) {
+            return /^(?=.{4,12}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S+$/.test(String(clave||''));
+        }
         function validBackendUrl(url) {
             return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(String(url || '').trim());
         }
@@ -679,14 +702,21 @@ html, body { max-width:100%; }
         let chartsInstance = { estados: null, origenes: null };
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Cada apertura solicita usuario y contraseña; no guardamos sesión en navegador.
+            // Restaurar token sólo en la misma pestaña/sesión (nunca contraseña).
             checkSession();
             limpiarCacheAntigua_();
         });
 
         function checkSession() {
             currentUser = null;
-            document.getElementById('loginModal').classList.remove('hidden');
+            const token = sessionStorage.getItem('hidrandina_session_token');
+            if (token && /^[a-f0-9]{64}$/.test(token)) {
+                window.hidraSessionToken = token;
+                // La sesión siempre se valida en servidor, nunca se acepta sin validación.
+                fetchData().then(ok => { if (!ok) document.getElementById('loginModal').classList.remove('hidden'); });
+            } else {
+                document.getElementById('loginModal').classList.remove('hidden');
+            }
         }
 
         function limpiarCacheAntigua_() {
@@ -699,6 +729,9 @@ html, body { max-width:100%; }
             if (!currentUser) return;
             const isVisita = currentUser.tipo === 'Visita';
             const isAdmin = currentUser.tipo === 'Administrador';
+            const btnCatalogo = document.getElementById('tab-btn-catalogos');
+            if (btnCatalogo) btnCatalogo.style.display = isAdmin ? '' : 'none';
+            document.querySelectorAll('[data-mobile-tab="catalogos"]').forEach(el => el.style.display=isAdmin ? '' : 'none');
 
             const btnNuevoDoc = document.getElementById('btnNuevoDocHeader');
             if (btnNuevoDoc) btnNuevoDoc.style.display = isVisita ? 'none' : 'inline-flex';
@@ -716,7 +749,9 @@ html, body { max-width:100%; }
             try {if(window.hidraSessionToken)await postGateway({action:'logout'},15000).catch(()=>{});}
             finally {
               window.hidraSessionToken = null;
+              sessionStorage.removeItem('hidrandina_session_token');
               currentUser = null;
+              cachePreview.clear();cachePreviewBytes=0;
               appData = {Documentos:[],Personal:[],Estados:[],Origenes:[],Alarmas:[],Adjuntos:[]};
               limpiarCacheAntigua_();
               document.getElementById('loginModal').classList.remove('hidden');
@@ -807,7 +842,7 @@ html, body { max-width:100%; }
             });
         }
         async function fetchData() {
-            if(!window.hidraSessionToken)return;
+            if(!window.hidraSessionToken)return false;
             setConnectionStatus('sync','Conectando...');
             try {
                 const data=await postGateway({action:'read'});
@@ -819,18 +854,33 @@ html, body { max-width:100%; }
                 document.getElementById('userSessionBadge').innerText=`${currentUser.nombre} (${currentUser.tipo})`;
                 document.getElementById('userSessionBadge').classList.remove('hidden');
                 applyUserPermissions(); window.handleGASResponse(data);
+                return true;
             }catch(err){
-                document.getElementById('loginModal').classList.remove('hidden');
+                // Fallo de red ≠ sesión vencida: no expulsar al usuario por un error temporal.
+                const mensaje=String(err.message||err);
+                const expirado=/sesi[oó]n (finalizada|revocada|caducada|requerida)|debes iniciar sesi[oó]n/i.test(mensaje);
+                if (expirado) {
+                    window.hidraSessionToken=null;
+                    sessionStorage.removeItem('hidrandina_session_token');
+                    currentUser=null;
+                    document.getElementById('loginModal').classList.remove('hidden');
+                }
                 setConnectionStatus('error','No sincronizado');
                 const rec=document.getElementById('btnRecuperarAcceso'); if(rec) rec.classList.remove('hidden');
                 console.error(err);
-                alert('No se pudieron obtener los datos: '+(err.message||err));
+                if (currentUser) console.warn('Problema de sincronización; sesión mantenida:',mensaje);
+                else {
+                    const aviso=document.getElementById('errorLogin');
+                    if(aviso){aviso.textContent='No se pudo sincronizar: '+mensaje;aviso.classList.remove('hidden');}
+                }
+                return false;
             }
         }
         async function executeGASAction(params, successCallback) {
             setConnectionStatus('sync','Sincronizando con nube...');
             try {
                 const res=await postGateway(params);
+                if (params.action !== 'read') { cachePreview.clear(); cachePreviewBytes=0; }
                 setConnectionStatus('active','Guardado en nube');
                 if(successCallback) await successCallback(res); else await fetchData();
             }catch(err){
@@ -842,7 +892,7 @@ html, body { max-width:100%; }
         }
 
         function renderAll() {
-            renderTable(appData.Documentos);
+            renderTable(obtenerDocumentosFiltradosActuales());
             populateSelects();
             renderStatsAndCharts();
             renderCatalogsManagement();
@@ -880,11 +930,24 @@ html, body { max-width:100%; }
             return { vencimiento: vencimientoFormatted, diasTranscurridos, diasFaltantes, diasExceso };
         }
 
+        function limpiarFechasDocumentos() {
+            document.getElementById('fechaInicioDocumentos').value = '';
+            document.getElementById('fechaFinDocumentos').value = '';
+            filterDocuments();
+        }
         function obtenerDocumentosFiltradosActuales() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const personal = document.getElementById('filterPersonal').value;
             const estado = document.getElementById('filterEstado').value;
             const origen = document.getElementById('filterOrigen').value;
+            const fInicio = document.getElementById('fechaInicioDocumentos').value;
+            const fFin = document.getElementById('fechaFinDocumentos').value;
+            if (fInicio && fFin && fInicio > fFin) {
+                document.getElementById('fechaFinDocumentos').setCustomValidity('La fecha de término debe ser mayor o igual que la de inicio.');
+                document.getElementById('fechaFinDocumentos').reportValidity();
+                return [];
+            }
+            document.getElementById('fechaFinDocumentos').setCustomValidity('');
 
             return appData.Documentos.filter(doc => {
                 const numDoc = String(getProp(doc, ['Numero_Documento', 'Numero_Expediente', 1]) || '').toLowerCase();
@@ -892,7 +955,9 @@ html, body { max-width:100%; }
                 const resp = String(getProp(doc, ['Responsable', 8]) || '');
                 const docEstado = String(getProp(doc, ['Estado', 9]) || '');
                 const docOrigen = String(getProp(doc, ['Origen_Tipo', 2]) || '');
-                
+                const fecha = String(getProp(doc, ['Fecha_Ingreso', 4]) || '').slice(0,10);
+                if (fInicio && (!fecha || fecha < fInicio)) return false;
+                if (fFin && (!fecha || fecha > fFin)) return false;
                 return (numDoc.includes(query) || asunto.includes(query) || resp.toLowerCase().includes(query)) && 
                        (!personal || resp === personal) && 
                        (!estado || docEstado === estado) && 
@@ -1019,6 +1084,15 @@ html, body { max-width:100%; }
             window.location.href = `mailto:${correoDestino}?subject=${asuntoCorreo}&body=${encodeURIComponent(cuerpoCorreo)}`;
         }
 
+        function puedeGestionarDocumento(doc) {
+            if (!currentUser || !doc) return false;
+            if (currentUser.tipo === 'Administrador' || currentUser.tipo === 'Asistente') return true;
+            if (currentUser.tipo !== 'Operador') return false;
+            // El servidor deberá devolver Creado_Por. Los documentos antiguos sin autor
+            // no se presumen propiedad del Operador (responsable no es creador).
+            const creador = String(getProp(doc, ['Creado_Por','Usuario_Creador','Registrado_Por']) || '').trim().toLowerCase();
+            return !!creador && creador === String(currentUser.usuario || '').trim().toLowerCase();
+        }
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
@@ -1061,7 +1135,7 @@ html, body { max-width:100%; }
                 const observaciones = getProp(doc, ['Observaciones', 10]) || '-';
                 const bgRow = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/70';
 
-                const canEditOrDelete = !isVisita && (isAdmin || isAsistente || (isOperador && (responsable.toLowerCase() === currentUser.nombre.toLowerCase())));
+                const canEditOrDelete = puedeGestionarDocumento(doc);
 
                 return `
                     <tr class="${bgRow} hover:bg-blue-50/60 transition duration-150">
@@ -1087,7 +1161,7 @@ html, body { max-width:100%; }
                             <button onclick="verAdjuntosDocumento(${actualIdx})" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200" title="Consulta: ficha completa y adjuntos"><i class="fa-solid fa-eye text-xs"></i></button>
                             ${canEditOrDelete ? `
                                 <button onclick="editDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
-                                ${isAdmin ? `<button onclick="deleteDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
+                                ${canEditOrDelete ? `<button onclick="deleteDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
                             ` : ''}
                         </td>
                     </tr>
@@ -1185,6 +1259,8 @@ html, body { max-width:100%; }
         function renderCharts() { renderStatsAndCharts(); }
 
         function openDocFormModal(idx = null) {
+            if (!currentUser || currentUser.tipo === 'Visita') return;
+            if (idx !== null && !puedeGestionarDocumento(appData.Documentos[idx])) { alert('Solo puedes editar documentos que registraste.'); return; }
             document.getElementById('docForm').reset();
             archivosEnCola = [];
             limpiarPrevisualizaciones();
@@ -1251,6 +1327,14 @@ html, body { max-width:100%; }
                 dDef.setDate(dDef.getDate() + 15);
                 document.getElementById('formFechaVencimiento').value = dDef.toISOString().split('T')[0];
             }
+            if (currentUser && currentUser.tipo === 'Operador') {
+                const nombre = String(currentUser.nombre || '').trim();
+                const op = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === nombre.toLowerCase());
+                if (!op) { alert('Tu usuario no tiene un responsable asociado en Personal. Consulta al administrador.'); return; }
+                respSelect.value = op.value;
+                respSelect.disabled = true;
+                respSelect.title = 'Como Operador Registrador solo puedes asignarte documentos a ti mismo.';
+            } else { respSelect.disabled = false; respSelect.title=''; }
             document.getElementById('docFormModal').classList.remove('hidden');
         }
 
@@ -1280,7 +1364,8 @@ html, body { max-width:100%; }
                 const fileId = String(getProp(a, ['Drive_File_ID',5]) || '');
                 const url = 'https://drive.google.com/file/d/'+ encodeURIComponent(fileId) + '/view';
                 const mostrar = fileId ? `<button type="button" class="text-blue-700 font-bold underline" onclick="mostrarPreviewGuardado('${id}','${nombre}','${escapeHtmlSustento(fileId)}')">Vista previa</button> <a class="text-blue-700 font-bold underline ml-2" href="${escapeHtmlSustento(url)}" target="_blank" rel="noopener noreferrer">Abrir en Drive (requiere permiso)</a>` : '<span class="text-red-600">Archivo no disponible</span>';
-                const quitar = (permitirEliminar && currentUser && currentUser.tipo === 'Administrador') ? `<button type="button" onclick="reemplazarSustento('${id}')" class="text-blue-700 font-bold px-2 py-1 border border-blue-200 rounded" title="Reemplazar archivo">Reemplazar</button><button type="button" onclick="eliminarSustento('${id}')" class="text-rose-700 font-bold px-2 py-1 border border-rose-200 rounded" title="Eliminar adjunto">Eliminar</button>` : '';
+                const documentoAsociado=appData.Documentos.find(d=>String(getProp(d,['Numero_Documento',1])).trim().toLowerCase()===String(numero).trim().toLowerCase());
+                const quitar = (permitirEliminar && puedeGestionarDocumento(documentoAsociado)) ? `<button type="button" onclick="reemplazarSustento('${id}')" class="text-blue-700 font-bold px-2 py-1 border border-blue-200 rounded" title="Reemplazar archivo">Reemplazar</button><button type="button" onclick="eliminarSustento('${id}')" class="text-rose-700 font-bold px-2 py-1 border border-rose-200 rounded" title="Eliminar adjunto">Eliminar</button>` : '';
                 return `<div class="p-3 rounded-xl border border-blue-100 bg-white flex justify-between items-center gap-3 text-xs"><div class="min-w-0"><div class="font-bold text-slate-900 break-all"><i class="fa-solid fa-file-lines text-blue-600 mr-1"></i>${nombre}</div><div class="text-slate-500 mt-1">${tipo}</div><div class="mt-2">${mostrar}</div></div>${quitar}</div>`;
             }).join('');
         }
@@ -1288,6 +1373,18 @@ html, body { max-width:100%; }
         // La vista previa NO depende de permisos individuales de Google Drive.
         let vistaObjetoUrl = null;
         let vistaSolicitud = 0;
+        const cachePreview = new Map();
+        let cachePreviewBytes=0;
+        function guardarCachePreview(id,blob) {
+            if (!blob || blob.size>8*1024*1024) return;
+            while(cachePreviewBytes+blob.size>24*1024*1024 && cachePreview.size) {
+                const key=cachePreview.keys().next().value;
+                cachePreviewBytes -= cachePreview.get(key).size;
+                cachePreview.delete(key);
+            }
+            if(cachePreview.has(id))cachePreviewBytes-=cachePreview.get(id).size;
+            cachePreview.set(id,blob);cachePreviewBytes+=blob.size;
+        }
         async function mostrarPreviewGuardado(adjuntoId, nombre, driveId) {
             const solicitud=++vistaSolicitud;
             const cont=document.getElementById('visorAdjuntosModal');
@@ -1301,6 +1398,11 @@ html, body { max-width:100%; }
             preview.classList.remove('hidden');cont.classList.remove('hidden');
             estado.textContent='Preparando vista previa segura...';estado.classList.remove('hidden');
             try {
+                const blobCache=cachePreview.get(String(adjuntoId));
+                let blob;
+                if (blobCache) {
+                    blob=blobCache;
+                } else {
                 const partes=[];let total=null;let mime='application/octet-stream';let tamano=0;
                 for(let parte=0;total===null||parte<total;parte++) {
                     const res=await postGateway({action:'previewAdjunto',adjuntoId:String(adjuntoId),parte:String(parte)},120000);
@@ -1314,8 +1416,11 @@ html, body { max-width:100%; }
                     partes.push(bytes);
                     estado.textContent=`Cargando vista previa: ${Math.round(100*(parte+1)/total)} %`;
                 }
-                const blob=new Blob(partes,{type:mime});
+                blob=new Blob(partes,{type:mime});
                 if(tamano&&blob.size!==tamano)throw new Error('La descarga no está completa.');
+                guardarCachePreview(String(adjuntoId),blob);
+                }
+                const mime=blob.type || 'application/octet-stream';
                 vistaObjetoUrl=URL.createObjectURL(blob);
                 estado.classList.add('hidden');
                 const lower=String(nombre).toLowerCase();
@@ -1432,7 +1537,7 @@ html, body { max-width:100%; }
 
         function eliminarSustento(id) {
             const idx = document.getElementById('docIndex').value;
-            if (idx === '' || !currentUser || currentUser.tipo !== 'Administrador') return;
+            if (idx === '' || !currentUser || !puedeGestionarDocumento(appData.Documentos[Number(idx)])) return;
             if (!confirm('¿Eliminar este sustento? Dejará de verse en el sistema y el archivo se enviará a la papelera de Drive.')) return;
             const numero = getProp(appData.Documentos[Number(idx)], ['Numero_Documento', 1]);
             // Se envía la petición al servidor antes de alterar la vista local.
@@ -1446,7 +1551,7 @@ html, body { max-width:100%; }
 
         let idAdjuntoParaReemplazar = null;
         function reemplazarSustento(id) {
-            if (!currentUser || currentUser.tipo !== 'Administrador') return;
+            if (!currentUser || !puedeGestionarDocumento(appData.Documentos[Number(document.getElementById('docIndex').value)])) return;
             idAdjuntoParaReemplazar = String(id);
             const input = document.getElementById('inputReemplazoAdjunto');
             input.value = '';
@@ -1615,6 +1720,14 @@ html, body { max-width:100%; }
 
         function saveDocument(e) {
             e.preventDefault();
+            if (!currentUser || currentUser.tipo === 'Visita') return;
+            const currentIndex = document.getElementById('docIndex').value;
+            if (currentIndex !== '' && !puedeGestionarDocumento(appData.Documentos[Number(currentIndex)])) {
+                alert('No puedes modificar documentos registrados por otros usuarios.'); return;
+            }
+            if (currentUser.tipo === 'Operador' && document.getElementById('formResponsable').value.trim().toLowerCase() !== String(currentUser.nombre||'').trim().toLowerCase()) {
+                alert('Solo puedes registrar documentos a tu nombre.'); return;
+            }
             const form = document.getElementById('docForm');
             const boton = form.querySelector('button[type="submit"]');
             const numDoc = document.getElementById('formNumeroDocumento').value.trim();
@@ -1662,7 +1775,7 @@ html, body { max-width:100%; }
         function editDocument(idx) { openDocFormModal(idx); }
 
         async function deleteDocument(idx) {
-            if (!currentUser || currentUser.tipo !== 'Administrador') { alert('Solo el administrador puede eliminar documentos.'); return; }
+            if (!currentUser || !puedeGestionarDocumento(appData.Documentos[idx])) { alert('No estás autorizado a eliminar este documento.'); return; }
             const doc = appData.Documentos[idx];
             if (!doc) return;
             const numDoc = String(getProp(doc, ['Numero_Documento', 1]));
@@ -1763,6 +1876,7 @@ html, body { max-width:100%; }
         }
 
         function openCatalogModal(type, index = null) {
+            if (!currentUser || currentUser.tipo !== 'Administrador') return;
             document.getElementById('catalogForm').reset();
             document.getElementById('catalogType').value = type;
             document.getElementById('catalogModalTitle').innerText = `Catálogo - ${type}`;
@@ -1846,6 +1960,7 @@ html, body { max-width:100%; }
 
         function saveCatalogItem(e) {
             e.preventDefault();
+            if (!currentUser || currentUser.tipo !== 'Administrador') return;
             const type = document.getElementById('catalogType').value;
             const val = document.getElementById('catalogInputValue').value.trim();
             const secondary = document.getElementById('catalogInputSecondary') ? document.getElementById('catalogInputSecondary').value.trim() : '';
@@ -1855,6 +1970,10 @@ html, body { max-width:100%; }
             const clave = document.getElementById('catalogInputClave') ? document.getElementById('catalogInputClave').value.trim() : '';
             const tipo_usuario = document.getElementById('catalogInputTipoUsuario') ? document.getElementById('catalogInputTipoUsuario').value.trim() : '';
             if (!val) return;
+            if (type === 'Personal' && clave && !validarClaveNueva(clave)) {
+                alert('La contraseña debe tener entre 4 y 12 caracteres, mayúscula, minúscula, número y carácter especial, sin espacios.');
+                document.getElementById('catalogInputClave').focus(); return;
+            }
 
             const oldIndex = document.getElementById('catalogOldIndex').value;
             const oldVal = (oldIndex !== "" && appData[type][oldIndex]) ? 
@@ -1879,6 +1998,7 @@ html, body { max-width:100%; }
         function editCatalogItem(type, index) { openCatalogModal(type, index); }
 
         function deleteCatalogItem(type, index) {
+            if (!currentUser || currentUser.tipo !== 'Administrador') return;
             const item = appData[type][index];
             const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
             if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
@@ -1887,6 +2007,7 @@ html, body { max-width:100%; }
         }
 
         function switchTab(tabId) {
+            if (tabId === 'catalogos' && (!currentUser || currentUser.tipo !== 'Administrador')) return;
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
@@ -1953,6 +2074,7 @@ html, body { max-width:100%; }
                 const anteriorToken = window.hidraSessionToken;
                 localStorage.setItem(BACKEND_STORAGE_KEY,url);
                 window.hidraSessionToken = nuevoToken;
+                sessionStorage.setItem('hidrandina_session_token', nuevoToken);
                 claveEl.value = '';
                 closeConfigModal();
                 window.handleGASResponse(data);
@@ -2005,6 +2127,7 @@ html, body { max-width:100%; }
           // Guardar solo después de confirmar el perfil en el nuevo servidor.
           localStorage.setItem(BACKEND_STORAGE_KEY, url);
           window.hidraSessionToken = temporaryToken;
+          sessionStorage.setItem('hidrandina_session_token', temporaryToken);
           document.getElementById('accesoClave').value = '';
           document.getElementById('errorLogin').classList.add('hidden');
           estado.textContent = 'Conexión verificada y guardada.';
@@ -2032,11 +2155,22 @@ html, body { max-width:100%; }
           const res=await postGateway({action:'login',usuario,clave},45000);
           if(!res.sessionToken)throw new Error('Sesión inválida.');
           window.hidraSessionToken=res.sessionToken;
+          sessionStorage.setItem('hidrandina_session_token',res.sessionToken);
           document.getElementById('accesoClave').value='';
-          await fetchData();
-          document.getElementById('estadoLoginConexion').textContent=currentUser?'Sincronizado':'No sincronizado';
+          // La autenticación finaliza al recibir la sesión. La carga de datos continúa
+          // en segundo plano; no debe prolongar innecesariamente el formulario.
+          currentUser = res.user && res.user.tipo ? {nombre:res.user.nombre,usuario:res.user.usuario,tipo:res.user.tipo} : null;
+          if(currentUser){
+              document.getElementById('loginModal').classList.add('hidden');
+              document.getElementById('userSessionBadge').textContent=`${currentUser.nombre} (${currentUser.tipo})`;
+              document.getElementById('userSessionBadge').classList.remove('hidden');
+              applyUserPermissions();
+          }
+          fetchData().catch(err=>console.warn(err));
+          document.getElementById('estadoLoginConexion').textContent='Sincronizando documentos...';
         }catch(e){
           window.hidraSessionToken=null;
+          sessionStorage.removeItem('hidrandina_session_token');
           setConnectionStatus('error','No sincronizado');
           document.getElementById('estadoLoginConexion').textContent='No sincronizado';
           document.getElementById('btnRecuperarAcceso').classList.remove('hidden');
