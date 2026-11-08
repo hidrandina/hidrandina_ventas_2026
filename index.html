@@ -1735,7 +1735,7 @@ html, body { max-width:100%; }
                 const valor=getProp(doc,claves);
                 return nombre+': '+(valor===null||valor===undefined||String(valor).trim()===''?'—':String(valor).trim());
             };
-            const lista=[
+            return [
                 '*HIDRANDINA – ATENCIÓN DE DOCUMENTOS*',
                 '*RESUMEN DEL EXPEDIENTE*',
                 campo('N.º de documento',['Numero_Documento',1]),
@@ -1745,18 +1745,8 @@ html, body { max-width:100%; }
                 campo('Fecha de vencimiento',['Fecha_Vencimiento',5]),
                 campo('Responsable',['Responsable',8]),
                 campo('Estado',['Estado',9]),
-                campo('Observaciones',['Observaciones',10]),
-                '',
-                '*ARCHIVOS DEL EXPEDIENTE*'
-            ];
-            if(!adjuntos.length)lista.push('Sin archivos adjuntos.');
-            else adjuntos.forEach((a,i)=>{
-                const tipo=String(getProp(a,['Tipo_Sustento',2])||'').toLowerCase()==='atencion'?'Descargo/atención':'Sustento';
-                const nombre=String(getProp(a,['Nombre_Archivo',3])||'Archivo');
-                lista.push((i+1)+'. '+tipo+': '+nombre);
-            });
-            lista.push('','Los archivos se pueden adjuntar por separado usando «Descargar ZIP» en el aplicativo.');
-            return lista.join('\n');
+                campo('Observaciones',['Observaciones',10])
+            ].join('\n');
         }
 
         // Acceso directo a WhatsApp desde la fila del expediente.
