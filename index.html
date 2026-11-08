@@ -214,6 +214,14 @@ html, body { max-width:100%; }
            </label>
            <p id="errorLogin" role="alert" class="text-sm text-rose-700 font-semibold hidden"></p>
            <button id="btnIngreso" type="submit" class="w-full py-3.5 bg-blue-600 text-white font-extrabold rounded-xl shadow hover:bg-blue-700">Ingresar</button>
+            <button type="button" onclick="mostrarRecuperacionConexion()" class="w-full py-2 text-sm font-extrabold text-blue-700 hover:underline">Configurar conexión Apps Script</button>
+            <div id="recuperacionConexion" class="hidden space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <label for="urlRecuperacion" class="block text-sm font-bold text-slate-700">URL de Google Apps Script</label>
+              <input id="urlRecuperacion" type="url" autocomplete="off" spellcheck="false" class="w-full px-3 py-3 rounded-xl border border-blue-200 bg-white text-sm" placeholder="https://script.google.com/macros/s/.../exec">
+              <p class="text-xs text-slate-600">Escribe arriba tu usuario y contraseña de administrador. Solo se guardará la URL después de comprobar tu perfil en esa implementación. Utiliza únicamente enlaces de confianza.</p>
+              <button id="btnRecuperarConexion" type="button" onclick="recuperarConexionAdmin()" class="w-full py-3 rounded-xl bg-slate-800 text-white font-bold">Verificar administrador y guardar URL</button>
+              <p id="estadoRecuperacion" class="text-xs font-semibold text-slate-700" role="status" aria-live="polite"></p>
+            </div>
          </form>
          <p class="text-xs text-slate-500">Solicita tus credenciales al administrador. No se permite el registro público.</p>
        </div>
@@ -632,9 +640,13 @@ html, body { max-width:100%; }
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbwsnipNNhhmQnf4mm5WhsfLOFliPeIpRhHYIuIEXmpF3uYmtzyIf9lrBxOww-2c8YVl/exec";
 
+        const BACKEND_STORAGE_KEY = 'hidrandina_gas_url';
+        function validBackendUrl(url) {
+            return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(String(url || '').trim());
+        }
         function getBackendUrl() {
-            // Esta versión utiliza exclusivamente el endpoint Firebase verificado.
-            return DEFAULT_GAS_URL;
+            const stored = localStorage.getItem(BACKEND_STORAGE_KEY);
+            return validBackendUrl(stored) ? stored : DEFAULT_GAS_URL;
         }
 
         let appData = {
@@ -661,7 +673,7 @@ html, body { max-width:100%; }
         }
 
         function limpiarCacheAntigua_() {
-            ['hidrandina_gas_url','hidrandina_current_user','hidrandina_docs_cache','hidrandina_pers_cache',
+            ['hidrandina_current_user','hidrandina_docs_cache','hidrandina_pers_cache',
              'hidrandina_esta_cache','hidrandina_orig_cache','hidrandina_alar_cache',
              'hidrandina_adjuntos_cache'].forEach(k=>localStorage.removeItem(k));
         }
@@ -675,7 +687,7 @@ html, body { max-width:100%; }
             if (btnNuevoDoc) btnNuevoDoc.style.display = isVisita ? 'none' : 'inline-flex';
 
             const btnConfig = document.getElementById('btnConfigAppsScript');
-            if (btnConfig) btnConfig.style.display = 'none'; // Endpoint fijo para acceso Firebase
+            if (btnConfig) { btnConfig.classList.remove('hidden'); btnConfig.style.display = isAdmin ? 'inline-flex' : 'none'; }
 
             ['btnAñadirPersonal', 'btnAñadirEstados', 'btnAñadirOrigenes', 'btnAñadirAlarmas'].forEach(btnId => {
                 const btn = document.getElementById(btnId);
@@ -739,14 +751,16 @@ html, body { max-width:100%; }
         };
 
         // Transporte POST por formulario/iframe para evitar tokens en URL y acciones JSONP públicas.
-        async function postGateway(params, timeoutMs=95000) {
-            const token = window.hidraSessionToken || '';
+        async function postGateway(params, timeoutMs=95000, options={}) {
+            const token = options.sessionToken ?? (window.hidraSessionToken || '');
             if(!token&&params.action!=='login')throw new Error('Debes iniciar sesión.');
+            const targetUrl = options.url || getBackendUrl();
+            if(!validBackendUrl(targetUrl))throw new Error('URL de Apps Script inválida.');
             const requestId = 'rq_' + Date.now() + '_' + Math.random().toString(36).slice(2);
             return new Promise((resolve,reject)=>{
                 const frame = document.createElement('iframe'); frame.name=requestId;
                 frame.style.display='none'; frame.title='Comunicación segura';
-                const form=document.createElement('form'); form.method='POST'; form.action=getBackendUrl();
+                const form=document.createElement('form'); form.method='POST'; form.action=targetUrl;
                 form.target=requestId; form.style.display='none';
                 const fields={...params,requestId,sessionToken:token};
                 Object.entries(fields).forEach(([k,v])=>{
@@ -1880,16 +1894,71 @@ html, body { max-width:100%; }
 
         function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
 
-        function saveBackendUrl() {
+        async function saveBackendUrl() {
+            if (!currentUser || currentUser.tipo !== 'Administrador') {
+                alert('Solo el Administrador puede cambiar la URL.'); return;
+            }
             const url = document.getElementById('inputBackendUrl').value.trim();
-            if (url && url !== DEFAULT_GAS_URL) { alert('La conexión está fijada a la implementación Firebase de HIDRANDINA.'); return; }
-            closeConfigModal(); fetchData();
+            if (!validBackendUrl(url)) {
+                alert('Ingresa una URL válida de implementación de Google Apps Script, terminada en /exec.'); return;
+            }
+            if (url === getBackendUrl()) { closeConfigModal(); return; }
+            if (!confirm('¿Deseas guardar esta URL de Apps Script? Se cerrará tu sesión para ingresar con el servidor seleccionado.')) return;
+            // Finalizar la sesión anterior ANTES de cambiar la URL.
+            await logoutSession();
+            localStorage.setItem(BACKEND_STORAGE_KEY, url);
+            closeConfigModal();
+            alert('URL guardada en este dispositivo. Ingresa con tu usuario y contraseña.');
         }
     </script>
 
     <script>
       // Sesión en memoria: cada vez que se abre/recarga la página hay que ingresar.
       window.hidraSessionToken=null;
+      window.mostrarRecuperacionConexion = function() {
+        const panel = document.getElementById('recuperacionConexion');
+        panel.classList.toggle('hidden');
+        if (!panel.classList.contains('hidden')) {
+          document.getElementById('urlRecuperacion').value = getBackendUrl();
+          document.getElementById('estadoRecuperacion').textContent = '';
+        }
+      };
+      window.recuperarConexionAdmin = async function() {
+        const url = document.getElementById('urlRecuperacion').value.trim();
+        const usuario = document.getElementById('accesoUsuario').value.trim();
+        const clave = document.getElementById('accesoClave').value;
+        const estado = document.getElementById('estadoRecuperacion');
+        const boton = document.getElementById('btnRecuperarConexion');
+        if (!validBackendUrl(url)) { estado.textContent = 'Ingresa una URL válida de Apps Script, terminada en /exec.'; return; }
+        if (!usuario || !clave) { estado.textContent = 'Ingresa tu usuario y contraseña de administrador en los campos superiores.'; return; }
+        boton.disabled = true;
+        estado.textContent = 'Verificando el acceso de administrador...';
+        let temporaryToken = '';
+        try {
+          const res = await postGateway({action:'login',usuario,clave},45000,{url,sessionToken:''});
+          if (!res.sessionToken) throw new Error('No se recibió una sesión válida.');
+          temporaryToken = res.sessionToken;
+          const data = await postGateway({action:'read'},45000,{url,sessionToken:temporaryToken});
+          if (!data || !data.success || !data.user || data.user.tipo !== 'Administrador') {
+            throw new Error('Se requiere una cuenta con perfil Administrador en el servidor seleccionado.');
+          }
+          // Guardar solo después de confirmar el perfil en el nuevo servidor.
+          localStorage.setItem(BACKEND_STORAGE_KEY, url);
+          window.hidraSessionToken = temporaryToken;
+          document.getElementById('accesoClave').value = '';
+          document.getElementById('errorLogin').classList.add('hidden');
+          estado.textContent = 'Conexión verificada y guardada.';
+          await fetchData();
+          if (currentUser && currentUser.tipo === 'Administrador') {
+            document.getElementById('recuperacionConexion').classList.add('hidden');
+          }
+        } catch (error) {
+          if (temporaryToken && !window.hidraSessionToken) {
+            postGateway({action:'logout'},10000,{url,sessionToken:temporaryToken}).catch(()=>{});
+          }
+          estado.textContent = error.message || 'No se pudo verificar la conexión.';
+        } finally { boton.disabled = false; }
+      };
       window.loginUsuarioClave=async function(ev){
         ev.preventDefault();
         const btn=document.getElementById('btnIngreso');
