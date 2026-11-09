@@ -851,7 +851,11 @@ html, body { max-width:100%; }
         function loadLocalCache() { /* No se conservan documentos sensibles sin sesión. */ }
         function saveLocalCache() { /* No almacenar documentos ni credenciales en localStorage. */ }
 
+        // Estado confirmado por la última comunicación válida con el servidor.
+        let hidraUltimaConexionConfirmada = false;
         function setConnectionStatus(status, text) {
+            if (status === 'active') hidraUltimaConexionConfirmada = true;
+            if (status === 'error') hidraUltimaConexionConfirmada = false;
             const badge = document.getElementById('connection-badge');
             if (status === 'active') {
                 badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 backdrop-blur-md";
@@ -923,7 +927,13 @@ html, body { max-width:100%; }
                     if(!/^https:\/\/([a-z0-9-]+\.)*(google\.com|googleusercontent\.com)$/i.test(event.origin))return;
                     const data=event.data;
                     if(!data || data.source!=='hidrandina-secure-post' || data.requestId!==requestId)return;
-                    data.success?finish(null,data):finish(new Error(data.message||'Acceso denegado'));
+                    if (data.success) { finish(null,data); }
+                    else {
+                        // Respuesta válida del servidor: error de negocio, NO caída de conexión.
+                        const errorNegocio = new Error(data.message || 'Operación rechazada');
+                        errorNegocio.respuestaServidor = true;
+                        finish(errorNegocio);
+                    }
                 }
                 window.addEventListener('message',receive);
                 document.body.appendChild(frame); document.body.appendChild(form);
@@ -979,7 +989,13 @@ html, body { max-width:100%; }
                 setConnectionStatus('active','Guardado en nube');
                 if(successCallback) await successCallback(res); else await fetchData();
             }catch(err){
-                setConnectionStatus('error','Error al guardar');
+                if (err.respuestaServidor) {
+                    // Usuario duplicado, permisos o validación: servidor accesible.
+                    setConnectionStatus('active','Sincronizado');
+                } else {
+                    // Sin respuesta confirmada: no afirmar que está sincronizado.
+                    setConnectionStatus('error','No sincronizado');
+                }
                 const b=document.querySelector('#docForm button[type="submit"]');
                 if(b){b.disabled=false;b.textContent='Guardar en Google Sheets';}
                 alert('No se completó la operación: '+(err.message||err));
