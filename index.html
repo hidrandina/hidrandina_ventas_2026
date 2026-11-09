@@ -773,21 +773,20 @@ html, body { max-width:100%; }
             // Restaurar token sólo en la misma pestaña/sesión (nunca contraseña).
             checkSession();
             limpiarCacheAntigua_();
-            // Renueva de forma ligera mientras el usuario mantiene el programa abierto y visible.
-            // No cierra sesión por una falla momentánea de red.
-            let pingEnCurso=false;
-            setInterval(async()=>{
-                if(pingEnCurso || document.hidden || !currentUser || !window.hidraSessionToken)return;
-                pingEnCurso=true;
-                try { await postGateway({action:'ping'},25000); }
-                catch(err) {
-                    const mensaje=String(err.message||err);
-                    if(/sesi[oó]n (finalizada|revocada|caducada|requerida)|debes iniciar sesi[oó]n/i.test(mensaje)){
-                        // La invalidez auténtica se notificará en la siguiente operación.
-                        setConnectionStatus('error','Sesión vencida');
-                    } else { setConnectionStatus('error','No sincronizado'); }
-                } finally { pingEnCurso=false; }
-            },15*60*1000);
+            // Salud del servidor: consulta ligera sin descargar todos los documentos.
+            // Un error de negocio no equivale a una desconexión.
+            setInterval(() => { verificarConexionHidra_(); }, 15 * 60 * 1000);
+            // Si el navegador suspendió temporizadores, verificar al volver.
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) reanudarConexionHidra_();
+            });
+            window.addEventListener('focus', reanudarConexionHidra_);
+            window.addEventListener('online', reanudarConexionHidra_);
+            window.addEventListener('pageshow', reanudarConexionHidra_);
+            // Reintentar automáticamente cuando una comprobación temporal falla.
+            setInterval(() => {
+                if (!hidraUltimaConexionConfirmada) verificarConexionHidra_();
+            }, 60 * 1000);
         });
 
         function checkSession() {
@@ -853,6 +852,46 @@ html, body { max-width:100%; }
 
         // Estado confirmado por la última comunicación válida con el servidor.
         let hidraUltimaConexionConfirmada = false;
+        let hidraPingPendiente_ = false;
+        let hidraUltimoPing_ = 0;
+        let hidraUltimaReanudacion_ = 0;
+        function esSesionCaducadaHidra_(mensaje) {
+            return /sesi[oó]n (finalizada|revocada|caducada|requerida)|debes iniciar sesi[oó]n/i.test(String(mensaje || ''));
+        }
+        async function verificarConexionHidra_() {
+            if (document.hidden || hidraPingPendiente_ || hidraCerrandoSesion ||
+                !currentUser || !window.hidraSessionToken) return;
+            const token = window.hidraSessionToken;
+            const version = hidraSesionVersion;
+            hidraPingPendiente_ = true;
+            hidraUltimoPing_ = Date.now();
+            try {
+                await postGateway({action:'ping'}, 35000, {sessionToken:token});
+                if (token !== window.hidraSessionToken || version !== hidraSesionVersion) return;
+                setConnectionStatus('active', 'Sincronizado');
+            } catch(err) {
+                if (token !== window.hidraSessionToken || version !== hidraSesionVersion) return;
+                const mensaje = String(err.message || err);
+                if (err.respuestaServidor && !esSesionCaducadaHidra_(mensaje)) {
+                    // Servidor respondió, incluso si rechazó esta solicitud.
+                    setConnectionStatus('active', 'Servidor disponible');
+                } else if (esSesionCaducadaHidra_(mensaje)) {
+                    setConnectionStatus('error', 'Sesión vencida');
+                } else {
+                    setConnectionStatus('error', 'No sincronizado');
+                }
+                console.warn('Comprobación de conexión:', mensaje);
+            } finally {hidraPingPendiente_ = false;}
+        }
+        function reanudarConexionHidra_() {
+            if (document.hidden || !currentUser || !window.hidraSessionToken || hidraCerrandoSesion) return;
+            const ahora = Date.now();
+            if (ahora - hidraUltimaReanudacion_ < 12000) return;
+            hidraUltimaReanudacion_ = ahora;
+            // Tras regresar, renovar datos; si se perdió la red, el minuto de reintento se encarga.
+            fetchData().catch(err => console.warn('Reanudación:', err));
+        }
+
         function setConnectionStatus(status, text) {
             if (status === 'active') hidraUltimaConexionConfirmada = true;
             if (status === 'error') hidraUltimaConexionConfirmada = false;
