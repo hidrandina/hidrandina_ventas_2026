@@ -10,7 +10,7 @@
     <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
-    <title>GESTIÓN DE DOCUMENTOS Y AMPLIACIÓN DE REDES OM5</title>
+    <title>GESTIÓN DE DOCUMENTOS Y AMPLIACIONES OM5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -259,6 +259,24 @@ html, body { max-width:100%; }
 #tab-om5 #om5Tabla tbody tr:nth-child(even){background:#f2f7fe}
 #tab-om5 #om5Tabla tbody tr:hover{background:#e6f0ff}
 @media(max-width:767px){.mobile-bottom-nav{grid-template-columns:repeat(4,1fr)!important}#tab-om5 #om5Tabla th,#tab-om5 #om5Tabla td{min-width:120px;max-width:280px}body>nav>div{overflow-x:auto}}
+
+/* Cabecera institucional: título legible, con espacios y adaptación a pantallas */
+.glass-header>div {height:auto!important;min-height:78px!important;gap:12px!important;}
+.glass-header>div>div:first-child {min-width:0;flex:1 1 auto;}
+.glass-header>div>div:last-child {flex:0 0 auto;}
+.glass-header h1 {white-space:normal!important;flex-wrap:wrap!important;column-gap:10px!important;row-gap:3px!important;letter-spacing:0!important;line-height:1.3!important;}
+.glass-header .hd-brand-secondary {font-size:clamp(13px,1.22vw,19px)!important;letter-spacing:0!important;word-spacing:0.11em!important;white-space:normal!important;overflow-wrap:normal!important;font-weight:750!important;}
+@media (max-width:1100px) {
+ .glass-header>div {flex-wrap:wrap!important;padding-top:12px!important;padding-bottom:12px!important;}
+ .glass-header>div>div:first-child {flex-basis:100%;}
+ .glass-header h1 {font-size:18px!important;}
+ .glass-header .hd-brand-secondary {font-size:15px!important;}
+}
+@media (max-width:767px) {
+ .glass-header .hd-brand-secondary {display:inline!important;font-size:13px!important;line-height:1.4!important;}
+ .glass-header .hd-brand-divider {display:none!important;}
+}
+
 </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
@@ -300,7 +318,7 @@ html, body { max-width:100%; }
                 <div>
                     <h1 class="font-extrabold text-white text-lg sm:text-xl tracking-tight leading-tight flex items-center gap-2">
                         <i class="fa-solid fa-bolt text-yellow-400"></i>
-                        HIDRANDINA <span class="hd-brand-divider" aria-hidden="true"></span> <span class="hd-brand-secondary">GESTIÓN DE DOCUMENTOS Y AMPLIACIÓN DE REDES OM5</span>
+                        HIDRANDINA <span class="hd-brand-divider" aria-hidden="true"></span> <span class="hd-brand-secondary">GESTIÓN DE DOCUMENTOS Y AMPLIACIONES OM5</span>
                     </h1>
                     <div class="flex flex-wrap items-center space-x-3 mt-1.5 text-xs text-slate-200">
                         <span class="hd-author font-medium text-blue-200 bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-400/30 backdrop-blur-md">
