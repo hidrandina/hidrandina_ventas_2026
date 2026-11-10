@@ -2584,7 +2584,7 @@ html, body { max-width:100%; }
           const rows=om5.filtered.slice(om5.page*om5.perPage,(om5.page+1)*om5.perPage);
           const cols=Math.max(1,...om5.data.map(row=>row.length));
           // La primera fila se muestra como datos originales: B1 es título, no encabezado obligatorio.
-          let markup='<thead><tr>'+Array.from({length:cols},(_,i)=>'<th>'+om5Escape(om5LetraCol(i))+'</th>').join('')+'</tr></thead><tbody>';
+          let markup='<tbody>';
           for(const row of rows)markup+='<tr>'+Array.from({length:cols},(_,i)=>'<td>'+om5Escape(row[i])+'</td>').join('')+'</tr>';
           tabla.innerHTML=markup+(rows.length?'':'<tr><td colspan="'+cols+'">Sin resultados</td></tr>')+'</tbody>';
           om5El('om5Contador').textContent=total+' filas visibles de '+om5.data.length+' filas';
