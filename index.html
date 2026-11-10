@@ -363,8 +363,8 @@ html, body { max-width:100%; }
           <div class="hd-title-row"><div class="hd-title-icon"><i class="fa-solid fa-tower-broadcast"></i></div><div><h2>Ampliaciones de Redes OM5</h2><p>Consulta dinámica y de solo lectura de las hojas del archivo vinculado.</p></div></div>
           <div class="bg-white rounded-2xl border border-blue-100 shadow-sm p-4 space-y-4">
             <div class="flex flex-wrap gap-3 items-end justify-between">
-              <label class="text-sm font-bold text-slate-700 flex-1 min-w-48">Hoja disponible
-                <select id="om5Selector" onchange="om5ElegirHoja()" class="block w-full mt-2 border border-slate-300 rounded-xl p-3 bg-white"><option value="">Selecciona una hoja</option></select>
+              <label class="text-sm font-bold text-slate-700 flex-1 min-w-48">Selecciona modalidad de ampliación
+                <select id="om5Selector" onchange="om5ElegirHoja()" class="block w-full mt-2 border border-slate-300 rounded-xl p-3 bg-white"><option value="">Selecciona una modalidad</option></select>
               </label>
               <button type="button" onclick="om5Refrescar()" class="bg-blue-700 text-white px-4 py-3 rounded-xl font-bold"><i class="fa-solid fa-rotate mr-2"></i>Actualizar hojas</button>
             </div>
@@ -381,7 +381,7 @@ html, body { max-width:100%; }
               <label class="flex items-center text-xs gap-2 ml-auto text-slate-600"><input type="checkbox" id="om5SoloFiltradas" checked>Exportar filas filtradas</label>
             </div>
             <div class="overflow-auto max-h-[64vh] border border-slate-200 rounded-xl" tabindex="0" aria-label="Contenido de la hoja OM5">
-              <table id="om5Tabla" class="min-w-max w-full text-xs border-collapse"><tbody><tr><td class="p-4">Selecciona una hoja.</td></tr></tbody></table>
+              <table id="om5Tabla" class="min-w-max w-full text-xs border-collapse"><tbody><tr><td class="p-4">Selecciona una modalidad.</td></tr></tbody></table>
             </div>
             <div class="flex flex-wrap items-center justify-between gap-3">
               <span id="om5Contador" class="text-xs font-semibold text-slate-500"></span>
@@ -2566,7 +2566,7 @@ html, body { max-width:100%; }
             if(seq!==om5.seq||token!==window.hidraSessionToken||version!==hidraSesionVersion)return;
             om5.hojas=Array.isArray(r.hojas)?r.hojas:[];om5.loaded=true;
             const select=om5El('om5Selector');const anterior=String(om5.gid??'');
-            select.replaceChildren(new Option('Selecciona una hoja',''));
+            select.replaceChildren(new Option('Selecciona una modalidad',''));
             for(const h of om5.hojas) select.add(new Option((h.titulo||h.nombre)+' — '+h.nombre,String(h.gid)));
             select.value=om5.hojas.some(h=>String(h.gid)===anterior)?anterior:(om5.hojas[0]?String(om5.hojas[0].gid):'');
             if(select.value)await om5ElegirHoja();else {om5.data=[];om5.filtered=[];om5TituloLimpiar();om5Estado('No hay hojas disponibles.');}
@@ -2623,7 +2623,7 @@ html, body { max-width:100%; }
           return [titulo,encabezados,...registros];
         }
         function om5Archivo(){
-          if(!om5.gid||!om5.data.length)throw new Error('Selecciona una hoja con datos.');
+          if(!om5.gid||!om5.data.length)throw new Error('Selecciona una modalidad con datos.');
           if(!window.XLSX)throw new Error('No se cargó la biblioteca Excel; revisa tu conexión.');
           const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(om5ExportArray());
           XLSX.utils.book_append_sheet(wb,ws,'Consulta OM5');
