@@ -1420,19 +1420,31 @@ html, body { max-width:100%; }
             estadoSel.value = currentEstado;
             origSel.value = currentOrig;
 
-            // Respetar la selección actual si la sincronización ocurre durante una edición.
-            // Nunca borrar una opción anterior si el catálogo fue modificado en paralelo.
-            const conservarSelector = (id, nombres, placeholder) => {
+            // Mantener intactos los valores del formulario abierto durante la sincronización.
+            // Antes, innerHTML reconstruía cada SELECT y borraba su selección actual.
+            const formularioAbierto = !document.getElementById('docFormModal').classList.contains('hidden');
+            const valoresFormulario = {};
+            if (formularioAbierto) {
+                ['formOrigenTipo', 'formResponsable', 'formEstado'].forEach(id => {
+                    valoresFormulario[id] = document.getElementById(id).value;
+                });
+            }
+            function actualizarSelectFormulario(id, etiqueta, opciones) {
                 const select = document.getElementById(id);
-                const anterior = select.value;
-                select.replaceChildren(new Option(placeholder, ''));
-                nombres.forEach(n => select.add(new Option(String(n), String(n))));
-                if (anterior && !nombres.some(n => String(n) === anterior)) select.add(new Option(anterior, anterior));
-                select.value = anterior;
-            };
-            conservarSelector('formOrigenTipo', origenesNombres, '-- Seleccione Origen --');
-            conservarSelector('formResponsable', personalNombres, '-- Seleccione Responsable --');
-            conservarSelector('formEstado', estadosNombres, '-- Seleccione Estado --');
+                select.replaceChildren(new Option(etiqueta, ''));
+                opciones.forEach(nombre => select.add(new Option(String(nombre), String(nombre))));
+                if (formularioAbierto) {
+                    const previo = valoresFormulario[id];
+                    if (previo && !Array.from(select.options).some(op => op.value === previo)) {
+                        // Un catálogo cambiado en la nube no puede borrar el valor del expediente en edición.
+                        select.add(new Option(previo + ' (valor registrado)', previo));
+                    }
+                    select.value = previo || '';
+                }
+            }
+            actualizarSelectFormulario('formOrigenTipo', '-- Seleccione Origen --', origenesNombres);
+            actualizarSelectFormulario('formResponsable', '-- Seleccione Responsable --', personalNombres);
+            actualizarSelectFormulario('formEstado', '-- Seleccione Estado --', estadosNombres);
 
             const dashPers = document.getElementById('dashFiltroPersonal');
             const dashOrig = document.getElementById('dashFiltroOrigen');
@@ -1497,6 +1509,7 @@ html, body { max-width:100%; }
 
         function renderCharts() { renderStatsAndCharts(); }
 
+        let documentoOriginalEnEdicion_ = '';
         function openDocFormModal(idx = null) {
             if (!currentUser || currentUser.tipo === 'Visita') return;
             if (idx !== null && !puedeGestionarDocumento(appData.Documentos[idx])) { alert('Solo puedes editar expedientes creados por ti o asignados a tu nombre.'); return; }
@@ -1519,6 +1532,8 @@ html, body { max-width:100%; }
                 if (matchResp) respSelect.value = matchResp.value;
             }
 
+            documentoOriginalEnEdicion_ = idx !== null
+                ? String(getProp(appData.Documentos[idx], ['Numero_Documento', 1]) || '') : '';
             if (idx !== null) {
                 const doc = appData.Documentos[idx];
                 document.getElementById('docModalTitle').innerText = "Editar Documento";
@@ -1593,7 +1608,7 @@ html, body { max-width:100%; }
             document.getElementById('adjuntoSeleccionLabel').textContent = tipo === 'Ingreso' ? 'Añadir sustentos del registro' : 'Añadir archivos de descargo / respuesta';
         }
 
-        function closeDocFormModal() { limpiarPrevisualizaciones(); document.getElementById('docFormModal').classList.add('hidden'); }
+        function closeDocFormModal() { limpiarPrevisualizaciones(); document.getElementById('docFormModal').classList.add('hidden'); documentoOriginalEnEdicion_ = ''; }
 
         // Sustentos: se almacenan en Drive; en Sheets se guarda únicamente la referencia.
         function adjuntosDeNumero(numero) {
@@ -2221,13 +2236,16 @@ html, body { max-width:100%; }
             e.preventDefault();
             if (!currentUser || currentUser.tipo === 'Visita') return;
             const currentIndex = document.getElementById('docIndex').value;
-            if (currentIndex !== '' && !puedeGestionarDocumento(appData.Documentos[Number(currentIndex)])) {
+            const documentoEdicion = currentIndex !== ''
+                ? appData.Documentos.find(d => String(getProp(d, ['Numero_Documento', 1]) || '') === documentoOriginalEnEdicion_)
+                : null;
+            if (currentIndex !== '' && (!documentoEdicion || !puedeGestionarDocumento(documentoEdicion))) {
                 alert('Solo puedes modificar expedientes creados por ti o asignados a tu nombre.'); return;
             }
             if (currentUser.tipo === 'Operador') {
                 const idxActual = document.getElementById('docIndex').value;
                 const responsablePermitido = idxActual !== ''
-                    ? String(getProp(appData.Documentos[Number(idxActual)], ['Responsable', 8]) || '').trim()
+                    ? String(getProp(documentoEdicion, ['Responsable', 8]) || '').trim()
                     : String(currentUser.nombre || '').trim();
                 if (document.getElementById('formResponsable').value.trim().toLowerCase() !== responsablePermitido.toLowerCase()) {
                     alert('No tienes permiso para asignar o reasignar expedientes.'); return;
@@ -2240,7 +2258,7 @@ html, body { max-width:100%; }
             const fechaVenc = document.getElementById('formFechaVencimiento').value;
             const plazos = calcularPlazos(fechaIng, fechaVenc);
             const idx = document.getElementById('docIndex').value;
-            const numeroAnterior = idx !== '' ? getProp(appData.Documentos[Number(idx)], ['Numero_Documento', 1]) : '';
+            const numeroAnterior = idx !== '' ? documentoOriginalEnEdicion_ : '';
             const archivos = archivosEnCola.slice();
             const tipo = document.getElementById('adjuntoTipo').value;
             if (archivos.some(f => !/\.(pdf|doc|docx|png|jpg|jpeg|gif|webp|bmp|tif|tiff)$/i.test(f.name))) { alert('Solo se permiten PDF, Word o imágenes.'); return; }
