@@ -232,6 +232,27 @@ html, body { max-width:100%; }
 @media(max-width:355px){#tab-documentos .hd-date-filter{grid-template-columns:1fr!important}#tab-documentos .hd-date-actions{grid-column:1!important}}
 
 
+/* OM5 - Estilo institucional: B1 es título destacado, fila 2 encabezados. */
+#tab-om5 #om5Titulo:not(:empty){
+  display:block!important;background:linear-gradient(115deg,#0a2d68 0%,#1455a9 100%)!important;
+  color:#ffffff!important;font-size:clamp(20px,2.25vw,31px)!important;
+  line-height:1.32!important;font-weight:900!important;letter-spacing:-.025em;
+  text-align:center!important;padding:19px 23px!important;border-radius:15px!important;
+  border:1px solid #3b79bd!important;box-shadow:0 7px 18px #0a36712c;
+}
+#tab-om5 #om5Titulo:empty{display:none!important}
+#tab-om5 #om5Tabla thead th{
+  background:#1556a5!important;color:#ffffff!important;font-size:clamp(13px,1.1vw,15px)!important;
+  font-weight:800!important;letter-spacing:.005em;line-height:1.35;
+  padding:14px 13px!important;vertical-align:middle!important;
+  border-color:#6e9dce!important;
+}
+#tab-om5 #om5Tabla tbody td{color:#1c3152;font-size:13px;line-height:1.5}
+@media(max-width:767px){
+  #tab-om5 #om5Titulo:not(:empty){font-size:20px!important;padding:15px 13px!important}
+  #tab-om5 #om5Tabla thead th{font-size:13px!important;padding:12px 10px!important}
+}
+
 /* OM5: pestañas adaptables para PC y móvil; no oculta columnas de la tabla OM5 */
 #tab-om5 #om5Tabla th,#tab-om5 #om5Tabla td{border:1px solid #dbe5f3;padding:9px 12px;white-space:pre-wrap;overflow-wrap:anywhere;min-width:100px;max-width:380px;vertical-align:top}
 #tab-om5 #om5Tabla thead th{background:#0c3476;color:#fff;position:sticky;top:0;z-index:2;text-align:left}
@@ -348,7 +369,7 @@ html, body { max-width:100%; }
               <button type="button" onclick="om5Refrescar()" class="bg-blue-700 text-white px-4 py-3 rounded-xl font-bold"><i class="fa-solid fa-rotate mr-2"></i>Actualizar hojas</button>
             </div>
             <p id="om5Estado" role="status" aria-live="polite" class="text-sm text-slate-600">Ingresa al módulo para consultar las hojas.</p>
-            <h3 id="om5Titulo" class="text-xl sm:text-2xl font-black text-blue-900 break-words leading-snug text-center py-3 px-4 bg-blue-50 border border-blue-200 rounded-xl" aria-live="polite"></h3>
+            <h3 id="om5Titulo" class="break-words leading-snug text-center" aria-live="polite"></h3>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <input id="om5Buscar" type="search" oninput="om5Filtrar()" placeholder="Buscar en toda la hoja" aria-label="Buscar en la hoja OM5" class="border border-slate-300 rounded-xl p-3 w-full sm:col-span-2" />
               <select id="om5Columna" onchange="om5Filtrar()" class="border border-slate-300 rounded-xl p-3"><option value="-1">Todas las columnas</option></select>
