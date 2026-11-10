@@ -2585,7 +2585,7 @@ html, body { max-width:100%; }
             om5.hojas=Array.isArray(r.hojas)?r.hojas:[];om5.loaded=true;
             const select=om5El('om5Selector');const anterior=String(om5.gid??'');
             select.replaceChildren(new Option('Selecciona una modalidad',''));
-            for(const h of om5.hojas) select.add(new Option((h.titulo||h.nombre)+' — '+h.nombre,String(h.gid)));
+            for(const h of om5.hojas) select.add(new Option(h.titulo||h.nombre||'Sin título',String(h.gid)));
             select.value=om5.hojas.some(h=>String(h.gid)===anterior)?anterior:(om5.hojas[0]?String(om5.hojas[0].gid):'');
             if(select.value)await om5ElegirHoja();else {om5.data=[];om5.filtered=[];om5TituloLimpiar();om5Estado('No hay hojas disponibles.');}
           }catch(e){if(seq===om5.seq)om5Estado('No se pudo cargar OM5: '+e.message);}
