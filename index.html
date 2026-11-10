@@ -2633,20 +2633,47 @@ html, body { max-width:100%; }
         }
         function om5Descargar(archivo){const url=URL.createObjectURL(archivo.file);const a=document.createElement('a');a.href=url;a.download=archivo.nombre;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
         function om5ExportarExcel(){try{om5Descargar(om5Archivo());om5Estado('Archivo Excel generado correctamente.');}catch(e){om5Estado(e.message);}}
+        // Compartir archivos: en algunos navegadores el Web Share API rechaza el permiso.
+        // En ese caso no detener el flujo: descargar y abrir el canal seleccionado.
         async function om5Compartir(canal){
-          try{
-            const archivo=om5Archivo();
-            // Web Share API permite adjuntar archivos en dispositivos compatibles.
-            if(navigator.canShare&&navigator.canShare({files:[archivo.file]})&&navigator.share){
-              await navigator.share({files:[archivo.file],title:'Consulta '+om5.titulo,text:'Ampliaciones OM5 - '+om5.titulo});
-              om5Estado('Selecciona '+(canal==='correo'?'tu correo':'WhatsApp')+' en el menú de compartir, si aparece.');
-            }else{
-              om5Descargar(archivo);
-              if(canal==='correo')window.location.href='mailto:?subject='+encodeURIComponent('Ampliaciones OM5 - '+om5.titulo)+'&body='+encodeURIComponent('Adjunto la consulta OM5. Agrega el archivo Excel descargado: '+archivo.nombre);
-              else window.open('https://api.whatsapp.com/send?text='+encodeURIComponent('Consulta Ampliaciones OM5: '+om5.titulo+'. Adjunto el Excel descargado manualmente.'),'_blank','noopener,noreferrer');
-              om5Estado('Se descargó '+archivo.nombre+'. Adjunta manualmente el Excel en '+(canal==='correo'?'el correo':'WhatsApp')+'.');
+          let archivo;
+          try { archivo=om5Archivo(); }
+          catch(e){ om5Estado('No se pudo preparar el Excel: '+e.message); return; }
+
+          const esMovil=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');
+          if(esMovil && typeof navigator.share==='function' &&
+             typeof navigator.canShare==='function' &&
+             navigator.canShare({files:[archivo.file]})){
+            try{
+              await navigator.share({files:[archivo.file],title:'Consulta '+om5.titulo,
+                text:'Ampliaciones OM5 - '+om5.titulo});
+              om5Estado('Archivo compartido mediante el menú del dispositivo.');
+              return;
+            }catch(e){
+              if(e.name==='AbortError'){
+                om5Estado('Compartir cancelado. No se modificó la información.');
+                return;
+              }
+              // NotAllowedError / Permission denied: continúa con descarga y enlace.
             }
-          }catch(e){if(e.name!=='AbortError')om5Estado('No fue posible compartir: '+e.message);}
+          }
+          try{
+            om5Descargar(archivo);
+            const asunto='Ampliaciones OM5 - '+om5.titulo;
+            if(canal==='correo'){
+              const url='mailto:?subject='+encodeURIComponent(asunto)+'&body='+
+                encodeURIComponent('Adjunto la consulta OM5. Agrega el Excel descargado: '+archivo.nombre);
+              window.location.href=url;
+            }else{
+              const url='https://api.whatsapp.com/send?text='+
+                encodeURIComponent('Consulta Ampliaciones OM5: '+om5.titulo+'. Adjunta el archivo descargado: '+archivo.nombre);
+              const enlace=document.createElement('a');
+              enlace.href=url;enlace.target='_blank';enlace.rel='noopener noreferrer';
+              document.body.appendChild(enlace);enlace.click();enlace.remove();
+            }
+            om5Estado('Excel descargado: '+archivo.nombre+'. Adjunta ese archivo en '+
+              (canal==='correo'?'tu correo':'WhatsApp')+'.');
+          }catch(e){om5Estado('No se pudo completar la descarga: '+e.message);}
         }
 
         function switchTab(tabId) {
