@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS — interfaz modular OM5/UIA; solo requiere postGateway() del index vigente. */
+/* HIDRANDINA_VENTAS REV09 — formularios compactos OM5/UIA. Sólo interfaz; backend no modificado. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -41,7 +41,7 @@ function render(mod){curso=mod;let n=NAV[mod],list=visible(mod),sub=list.slice(n
  $('amplTableHead').innerHTML=`<tr><th>Elegir</th><th>Ítem</th><th>${mod==='OM5'?'Solicitante':'Nombre'}</th><th>${mod==='OM5'?'Sector':'Dirección'}</th><th>Solicitudes</th>${mod==='OM5'?'<th>Resoluciones</th>':''}<th>Estado</th><th>Acción</th></tr>`;
  $('amplCount').textContent=list.length+' expedientes; página '+(n.page+1)+' de '+Math.max(1,Math.ceil(list.length/30));$('amplPrev').disabled=n.page===0;$('amplNext').disabled=(n.page+1)*30>=list.length;
  let buttons=$('amplStages');buttons.innerHTML=mod==='OM5'?ETAPAS.map((et,i)=>{let selected=sheet(mod).registros.find(r=>id(r)===n.selected),st=[null,'EstadoExpVentas','EstadoInspeccionVentas','EstadoUMD','EstadoCaptacionClientes'][i];let estado=selected&&st?get(selected,h,st):'';return `<button style="background:${i===0?'#1e67d2':estadoColor(estado)}" ${selected?'':'disabled'} onclick="Ampliaciones.open('${safe(n.selected)}',${i},false)">${safe(et[0])}</button>`;}).join(''):'<span class="hd-ampl-muted">UIA no utiliza etapas</span>';
- $('amplNew').hidden=!edit();$('amplDelete').hidden=!edit()||!(adm()||asis());$('amplRestoreBtn').hidden=!adm();$('amplAuditBtn').hidden=!adm();
+ $('amplNew').hidden=!edit();$('amplDelete').hidden=!edit()||!(adm()||asis());
 }
 function select(idValue){NAV[curso].selected=idValue;render(curso);}
 function page(delta){let n=NAV[curso];n.page=Math.max(0,n.page+delta);render(curso);}
@@ -59,7 +59,7 @@ function open(rid,stage=0,editable=false){
  if(editable&&!edit()){update('Sin permisos de edición.');return;}
  registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:row||{},mod:curso};
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
- $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA');
+ $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 10';
  const grouped=new Set();
  // Ocultar solo los campos que se renderizan en filas agrupadas; nunca eliminar sus valores reales.
  if(stage===0||curso==='UIA'){
@@ -117,6 +117,7 @@ function inlineUpload(fieldName,editable){
 }
 function docs(kind,editable){
  const g=docGroup(kind),container=g?$(g.id):null;if(!g||!container)return;
+ if(!g.rows.length){container.innerHTML='<p class="hd-ampl-schema-warning">La estructura de columnas recibida no contiene los campos esperados para '+safe(g.label)+'. No se ha cambiado ni borrado información. Comprueba que la aplicación lea la base correcta.</p>';return;}
  const maxShown=Math.max(1,...g.rows.filter(x=>x.v||x.f||x.obs).map(x=>x.i));
  const rows=g.rows.map(r=>{
   const numberLabel=(kind==='obsExp'||kind==='obsInsp')?'N.º de memorando GC':'Número de '+g.label.toLowerCase();
@@ -176,29 +177,6 @@ function fileToBase64(file){return new Promise((resolve,reject)=>{let r=new File
 async function download(aid){try{let parts=[],r;for(let i=0;;i++){r=await api('amplPreview',{adjuntoId:aid,parte:i});let bin=atob(r.base64),ar=new Uint8Array(bin.length);for(let j=0;j<bin.length;j++)ar[j]=bin.charCodeAt(j);parts.push(ar);if(i+1>=r.total)break;}let blob=new Blob(parts,{type:r.mime}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=r.nombre;a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}catch(e){update('No se pudo recuperar el adjunto: '+e.message)}}
 async function removeFile(aid){if(!confirm('¿Enviar este archivo a papelera de Google Drive?'))return;try{await api('amplDeleteAdj',{adjuntoId:aid,confirmar:'SI'});await refresh(curso);renderAttachments()}catch(e){update(e.message)}}
 async function removeExp(){let mod=curso,row=sheet(mod).registros.find(r=>id(r)===NAV[mod].selected);if(!row)return update('Selecciona un expediente.');if(!confirm('¿Eliminar expediente Ítem '+get(row,sheet(mod).headers,'Item')+' y enviar sus archivos a papelera?'))return;try{await api('amplDelete',{modulo:mod,expedienteId:id(row),confirmar:'ELIMINAR'});NAV[mod].selected='';await refresh(mod);}catch(e){update(e.message)}}
-async function showTrash(){let mod=curso;try{let r=await api('amplTrash',{modulo:mod});let names=r.registros.map(x=>`<div>Ítem ${safe(x.item)} <button onclick="Ampliaciones.restore('${safe(x.id)}')">Restaurar</button></div>`).join('');$('amplExtras').innerHTML='<h3>Papelera '+mod+'</h3>'+names;}catch(e){update(e.message)}}
-async function restore(rid){if(!confirm('¿Restaurar expediente y sus adjuntos disponibles?'))return;try{let r=await api('amplRestore',{modulo:curso,expedienteId:rid});await refresh(curso);$('amplExtras').textContent=(r.archivosNoRestaurados||[]).length?'Archivos no recuperados: '+r.archivosNoRestaurados.join(', '):'Expediente restaurado.';}catch(e){update(e.message)}}
-async function audit(){try{let r=await api('amplAudit',{modulo:curso});let rows=r.filas.map(x=>`<tr>${x.map(v=>`<td>${safe(v)}</td>`).join('')}</tr>`).join('');$('amplExtras').innerHTML='<h3>Auditoría</h3><div style="overflow:auto;max-height:400px"><table><thead><tr>'+r.headers.map(x=>'<th>'+safe(x)+'</th>').join('')+'</tr></thead><tbody>'+rows+'</tbody></table></div>';}catch(e){update(e.message)}}
-let reportChart=null;
-function summary(chartType='bar'){
- let mod=curso,rows=visible(mod),hs=sheet(mod).headers;
- let by={};for(let r of rows){let label=mod==='OM5'?get(r,hs,'Modalidad'):'UIA';label=String(label||'Sin modalidad');if(!by[label])by[label]={count:0,clients:0};by[label].count++;
- let value=Number(get(r,hs,'ClientesCaptar','N° Clientes','N Clientes'))||0;if(value>0)by[label].clients+=value;}
- let records=Object.entries(by).sort((a,b)=>a[0].localeCompare(b[0],'es'));
- $('amplExtras').innerHTML=`<h3>Reporte de ampliaciones — ${safe(mod)}</h3><p>Se contabiliza cada expediente una vez, no cada solicitud.</p><label>Título del informe <input id="amplReportTitle" value="Reporte ${safe(mod)}"></label><label>Gráfico <select id="amplChartType" onchange="Ampliaciones.summary(this.value)"><option value="bar" ${chartType==='bar'?'selected':''}>Barras</option><option value="pie" ${chartType==='pie'?'selected':''}>Circular</option></select></label><div style="overflow:auto"><table><thead><tr><th>Ítem</th><th>Modalidad</th><th>N.º de ampliaciones</th><th>Clientes a captar</th></tr></thead><tbody>${records.map(([m,v],i)=>`<tr><td>${i+1}</td><td>${safe(m)}</td><td>${v.count}</td><td>${v.clients}</td></tr>`).join('')}</tbody></table></div><div style="height:320px;max-width:550px"><canvas id="amplSummaryChart"></canvas></div>`;
- if(window.Chart){try{if(reportChart)reportChart.destroy();reportChart=new Chart($('amplSummaryChart'),{type:chartType,data:{labels:records.map(([k])=>k),datasets:[{label:'N.º de ampliaciones',data:records.map(([,v])=>v.count),backgroundColor:['#1557aa','#16988d','#df9924','#8b5bd8','#bc4f69','#45aabc']}]},options:{responsive:true,maintainAspectRatio:false}});}catch(e){update('Gráfico no disponible: '+e.message)}}
-}
-function excel(){let wb=XLSX.utils.book_new(),mod=curso,data=visible(mod),heads=sheet(mod).headers;let ws=XLSX.utils.json_to_sheet(data.map(r=>Object.fromEntries(heads.map(k=>[k,format(r[k])]))),{header:heads});ws['!cols']=heads.map(k=>({wch:Math.min(44,Math.max(17,k.length+4))}));XLSX.utils.book_append_sheet(wb,ws,mod);XLSX.writeFile(wb,mod+'_Registros_'+new Date().toISOString().slice(0,10)+'.xlsx');}
-function share(){let mod=curso,text=mod+' - '+visible(mod).length+' expedientes consultados';let a=document.createElement('a');a.href='https://api.whatsapp.com/send?text='+encodeURIComponent(text);a.target='_blank';a.rel='noopener noreferrer';a.click();}
-function localeTexts(){return sheet(curso).headers.filter(h=>!h.startsWith('__'));}
-function startUI(){document.querySelectorAll('[data-ampl-tab]').forEach(x=>x.hidden=false);}
-function init(){startUI();}
-// OCR se ejecuta solo localmente mediante Tesseract.js/Web Worker; las imágenes no se envían a API externa.
-async function tesseractReady(){if(window.Tesseract)return window.Tesseract;await new Promise((yes,no)=>{let s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';s.onload=yes;s.onerror=()=>no(Error('No se cargó OCR local'));document.head.appendChild(s)});return window.Tesseract;}
-function ocrMessage(v){$('amplOCRStatus').textContent=v;}
-function candidates(text,confidence){let list=[];let numbers=text.match(/(?:\d[\s-]*){9,16}/g)||[];numbers.forEach(n=>{let val=canonical(n);if(val.length>=8)list.push({type:'sol',value:val,uncertain:confidence<75});});
- let lines=text.split(/\n/).map(x=>x.trim()).filter(x=>x.length>3);for(let l of lines){if(/resoluci[oó]n/i.test(l))list.push({type:'res',value:l,uncertain:confidence<80});else if(/solicitante|sector|pueblo|nombre/i.test(l))list.push({type:/sector|pueblo/i.test(l)?'sector':'nombre',value:l.split(':').slice(1).join(':').trim()||l,uncertain:confidence<80});}
- return list;}
 async function recognize(){let f=$('amplOCRFile').files?.[0];if(!f)return ocrMessage('Selecciona una imagen o PDF.');if(!navigator.onLine)return ocrMessage('Se necesita conexión a internet.');ocrFile=f;ocrCanceled=false;ocrCandidates=[];let run=$('amplOCRRun');run.disabled=true;try{
  let T=await tesseractReady(),worker=await T.createWorker('spa',1,{logger:m=>{if(m.status==='recognizing text')ocrMessage('Reconociendo texto: '+Math.round((m.progress||0)*100)+'%')}});recognizer=worker;
  if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){let doc=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;for(let n=1;n<=doc.numPages&&!ocrCanceled;n++){let p=await doc.getPage(n),viewport=p.getViewport({scale:1.45});let canvas=document.createElement('canvas');canvas.width=viewport.width;canvas.height=viewport.height;await p.render({canvasContext:canvas.getContext('2d'),viewport}).promise;let out=await worker.recognize(canvas);ocrCandidates.push(...candidates(out.data.text,out.data.confidence||0));canvas.width=canvas.height=0;ocrMessage('Página '+n+' de '+doc.numPages+' — '+Math.round(n/doc.numPages*100)+'%');}}
@@ -215,6 +193,6 @@ function match(row,mod,c){let h=sheet(mod).headers,vals=[];if(c.type==='sol'){fo
 async function searchOCR(){let candidates=selectedCandidates();if(!candidates.length)return ocrMessage('Selecciona al menos un dato.');try{await Promise.all(['OM5','UIA'].filter(m=>!STORE[m]).map(m=>refresh(m)));let container=$('amplOCRResults');let html='';for(let mod of ['OM5','UIA']){let items=sheet(mod).registros.map(r=>{let matched=candidates.map(c=>({c,score:match(r,mod,c)})).filter(x=>x.score>=.70);return {r,matched,score:Math.max(0,...matched.map(x=>x.score))};}).filter(x=>x.matched.length).sort((a,b)=>b.score-a.score);html+=`<h3>${mod} (${items.length})</h3>`+items.map(x=>`<div class="hd-ampl-result"><b>Ítem ${safe(get(x.r,sheet(mod).headers,'Item','Ítem'))}</b><p>${safe(get(x.r,sheet(mod).headers,'Solicitante','Nombre'))}</p><small>${x.matched.map(z=>safe(z.c.value)+' ('+(z.score===1?'exacta':'aproximada')+')').join(', ')}</small><div><button onclick="Ampliaciones.ocrOpen('${mod}','${safe(id(x.r))}')">Abrir ficha</button><button onclick="Ampliaciones.ocrLocate('${mod}','${safe(id(x.r))}')">Localizar en lista</button></div></div>`).join('');}container.innerHTML=html;ocrMessage('Búsqueda realizada.');}catch(e){ocrMessage('Error: '+e.message)}}
 function ocrOpen(mod,rid){curso=mod;let sec=$('tab-'+mod.toLowerCase());window.switchTab(mod.toLowerCase());NAV[mod].selected=rid;open(rid,0,false);}
 function ocrLocate(mod,rid){window.switchTab(mod.toLowerCase());curso=mod;NAV[mod].filter='';NAV[mod].page=Math.floor(sheet(mod).registros.findIndex(r=>id(r)===rid)/30);NAV[mod].selected=rid;render(mod);}
-window.Ampliaciones={getData:mod=>STORE[mod],enter,refresh,select,page,search,open,close,save,addDoc,deleteDocField,summary,upload,download,removeFile,removeExp,showTrash,restore,audit,excel,share,recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,reset:()=>{STORE.OM5=null;STORE.UIA=null;ocrCandidates=[];ocrFile=null;ocrCanceled=true;}};
+window.Ampliaciones={getData:mod=>STORE[mod],enter,refresh,select,page,search,open,close,save,addDoc,deleteDocField,summary,upload,download,removeFile,removeExp,excel,share,recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,reset:()=>{STORE.OM5=null;STORE.UIA=null;ocrCandidates=[];ocrFile=null;ocrCanceled=true;}};
 window.amplModuleReady=init;
 })();
