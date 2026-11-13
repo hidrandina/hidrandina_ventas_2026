@@ -278,6 +278,54 @@ html, body { max-width:100%; }
 }
 
 </style>
+
+<style id="hdExecutiveStyles">
+/* Revisión 03: navegación ejecutiva; no modifica reglas de negocio */
+:root{--hd-side-width:264px;--hd-top-height:86px}
+html,body{overflow-x:hidden!important}
+body{background:#eef4fc!important}
+.glass-header{z-index:46!important;background:linear-gradient(100deg,#06183f,#0a3575)!important}
+.glass-header>div{max-width:none!important;padding-left:20px!important;padding-right:20px!important}
+.glass-header h1{font-size:clamp(15px,1.5vw,23px)!important}
+.hd-executive-sidebar{position:fixed!important;top:var(--hd-top-height)!important;bottom:0;left:0;width:var(--hd-side-width);background:linear-gradient(180deg,#092653,#051934);color:#e6eefb;z-index:38;overflow-y:auto;padding:18px 12px 26px;box-shadow:4px 0 20px #071d3821;display:flex;flex-direction:column;gap:4px;scrollbar-width:thin}
+.hd-side-heading{padding:18px 11px 6px;margin-top:5px;font-size:11px;letter-spacing:.055em;font-weight:900;color:#e3eefd;border-bottom:1px solid #a6c7ff38}
+.hd-side-item{border:0!important;border-radius:10px!important;padding:11px 12px!important;display:flex!important;gap:12px!important;align-items:center;min-height:44px;color:#e6eefb!important;background:transparent!important;font-weight:650!important;font-size:13px!important;line-height:1.3!important;text-align:left;width:100%;cursor:pointer;white-space:normal}
+.hd-side-item i{font-size:17px!important;width:20px;flex-shrink:0;text-align:center}
+.hd-side-item:hover{background:#ffffff17!important;color:white!important}
+.hd-side-item.hd-side-active{background:linear-gradient(90deg,#086be6,#227ff2)!important;color:white!important;box-shadow:0 3px 10px #05193655}
+#hdMainContent{margin-left:var(--hd-side-width)!important;width:calc(100% - var(--hd-side-width))!important;max-width:none!important;padding:26px 22px 52px!important;min-width:0}
+.hd-menu-toggle,.hd-menu-scrim{display:none}
+.hd-executive-panel{background:transparent!important}
+.hd-executive-intro{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-bottom:13px;border-bottom:1px solid #d4dfef}
+.hd-executive-intro h2{font-weight:900;font-size:clamp(22px,2vw,29px);color:#102f65;margin:0}
+.hd-executive-intro h2 i{margin-right:9px}
+.hd-executive-intro p{color:#557096;margin:4px 0 0;font-size:14px}
+.hd-updated{color:#215190;border:1px solid #cadef7;background:#f5faff;border-radius:10px;padding:9px 13px;font-size:12px;font-weight:700}
+.hd-executive-status{font-size:12px;min-height:15px;color:#52739c;margin:6px 0}
+.hd-executive-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:14px 0 20px}
+.hd-kpi{min-width:0;min-height:112px;display:flex;align-items:center;justify-content:center;gap:22px;border:1px solid #c5daf5;border-radius:14px;padding:14px 18px;text-align:left;box-shadow:0 5px 12px #25508a0d;cursor:pointer;transition:transform .15s ease}
+.hd-kpi:hover{transform:translateY(-2px)}
+.hd-kpi i{font-size:44px}.hd-kpi span{display:flex;flex-direction:column;gap:2px}.hd-kpi small{font-size:15px;font-weight:800;color:#16305b}.hd-kpi strong{font-size:34px;line-height:1.1;color:#0e2650}
+.hd-kpi-blue{background:linear-gradient(135deg,#f7fbff,#d7eaff);color:#056dec}.hd-kpi-green{background:linear-gradient(135deg,#f7fff7,#daf5dd);color:#0e9c4c}.hd-kpi-purple{background:linear-gradient(135deg,#fbfaff,#e4dfff);color:#6141c7}
+.hd-executive-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(230px,.68fr);gap:16px;align-items:start}
+.hd-exec-card{background:#fff;border:1px solid #d4e0f0;border-radius:14px;padding:16px;box-shadow:0 5px 18px #254c8511;min-width:0}
+.hd-exec-card h3{font-size:17px;font-weight:850;color:#112e5d;margin:0 0 13px}
+.hd-exec-card h3 i{margin-right:7px;color:#1672ed}
+.hd-chart-holder{height:238px;position:relative}
+.hd-exec-note{font-size:12px;color:#7183a1;margin-top:10px;min-height:18px}
+.hd-quick-links{grid-row:span 2;display:flex;flex-direction:column;gap:9px}
+.hd-action{width:100%;display:flex;align-items:center;gap:10px;padding:11px 13px;text-align:left;border-radius:10px;font-weight:800;font-size:13px;min-height:44px;border:1px solid #c3d8f2}
+.hd-action i{width:20px;text-align:center}.hd-act-blue{background:#0e6be4;color:white;border-color:#0e6be4}.hd-act-green{background:#079b50;color:white;border-color:#079b50}.hd-act-purple{background:#6240c6;color:white;border-color:#6240c6}.hd-act-light{background:#f8fbff;color:#0e3771}
+.hd-action:hover{filter:brightness(.97)}
+.hd-recent-card,.hd-alert-card{min-height:250px}
+.hd-recent-table{width:100%;border-collapse:collapse;font-size:12px}
+.hd-recent-table th{background:#0a3c7c;color:white;padding:8px;text-align:left}.hd-recent-table td{padding:8px;border-bottom:1px solid #e4ebf5;overflow-wrap:anywhere}.hd-recent-table tr:nth-child(even){background:#f6f9fe}
+.hd-alert-item{background:#f3f7fd;border:1px solid #dfebf8;border-radius:10px;padding:13px;margin:7px 0;color:#17396d;font-size:13px}
+.hd-alert-item i{margin-right:7px}
+@media(max-width:1170px){.hd-executive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hd-quick-links{grid-row:auto;grid-column:span 2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.hd-quick-links h3{grid-column:span 2}}
+@media(max-width:900px){:root{--hd-top-height:0px}.hd-executive-sidebar{top:0!important;width:min(290px,83vw)!important;transform:translateX(-105%);transition:transform .22s ease;z-index:58;padding-top:73px}.hd-executive-sidebar.hd-menu-open{transform:translateX(0)}.hd-menu-toggle{display:flex;position:fixed;left:12px;bottom:14px;z-index:55;background:#0868df;color:white;border:0;border-radius:14px;align-items:center;gap:9px;padding:12px 15px;box-shadow:0 7px 21px #07356866;font-weight:800}.hd-menu-scrim.hd-scrim-active{display:block;position:fixed;inset:0;background:#081c3d99;z-index:57}.hd-menu-toggle.hd-menu-behind{z-index:56}#hdMainContent{margin-left:0!important;width:100%!important;padding:20px 14px 92px!important}.glass-header{position:relative!important}.hd-executive-kpis{gap:10px}.hd-kpi{min-height:98px;gap:11px;padding:12px}.hd-kpi i{font-size:28px}.hd-kpi strong{font-size:25px}.hd-kpi small{font-size:12px}.mobile-bottom-nav{display:none!important}}
+@media(max-width:620px){.hd-executive-intro{flex-direction:column}.hd-executive-kpis{grid-template-columns:1fr}.hd-kpi{justify-content:flex-start;min-height:85px;padding:13px 20px}.hd-kpi i{font-size:35px}.hd-kpi strong{font-size:29px}.hd-executive-grid{grid-template-columns:1fr}.hd-quick-links{grid-column:auto;grid-template-columns:1fr}.hd-quick-links h3{grid-column:auto}.hd-chart-holder{height:230px}}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -351,36 +399,56 @@ html, body { max-width:100%; }
         </div>
     </header>
 
-    <!-- Navegación por Pestañas -->
-    <nav class="bg-white border-b border-slate-200/90 px-4 sm:px-6 lg:px-8 shadow-md sticky top-20 z-20">
-        <div class="max-w-7xl mx-auto flex space-x-8">
-            <button onclick="switchTab('documentos')" id="tab-btn-documentos" class="tab-btn py-4 px-3 border-b-2 border-blue-600 text-blue-600 font-extrabold text-sm flex items-center space-x-2.5 transition">
-                <i class="fa-solid fa-folder-tree text-lg"></i>
-                <span>Gestión de Documentos</span>
-            </button>
-            <button onclick="switchTab('om5')" id="tab-btn-om5" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2 transition">
-                <i class="fa-solid fa-tower-broadcast"></i><span>Ampliaciones OM5</span>
-            </button>
-            <button onclick="switchTab('uia')" id="tab-btn-uia" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm">Ampliaciones UIA</button>
-            <button onclick="switchTab('ocr')" id="tab-btn-ocr" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm">Buscar con foto / voz</button>
-            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
-                <i class="fa-solid fa-chart-pie text-lg"></i>
-                <span>Dashboard Documentos</span>
-            </button>
-            <button onclick="switchTab('dash-ampl')" id="tab-btn-dash-ampl" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 font-bold text-sm">Dashboard Ampliaciones</button>
-            <button onclick="switchTab('reportes')" id="tab-btn-reportes" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 font-bold text-sm">Reportes</button>
-            <button onclick="switchTab('copias')" id="tab-btn-copias" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 font-bold text-sm">Copias de seguridad</button>
-            <button onclick="switchTab('personal')" id="tab-btn-personal" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 font-bold text-sm">Personal y usuarios</button>
-            <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
-                <i class="fa-solid fa-sliders text-lg"></i>
-                <span>Gestión de Catálogos</span>
-            </button>
-        </div>
+    <!-- NAVEGACIÓN EJECUTIVA: conserva IDs y lógica de autorización existentes -->
+    <button id="hdMenuToggle" type="button" class="hd-menu-toggle" onclick="hdToggleMenu()" aria-label="Abrir menú" aria-controls="hdExecutiveSidebar" aria-expanded="false"><i class="fa-solid fa-bars"></i> Menú</button>
+    <div id="hdMenuScrim" class="hd-menu-scrim" onclick="hdCloseMenu()" aria-hidden="true"></div>
+    <nav id="hdExecutiveSidebar" class="hd-executive-sidebar" aria-label="Navegación principal">
+      <div class="hd-side-group"><button id="tab-btn-ejecutivo" class="tab-btn hd-side-item" onclick="switchTab('ejecutivo')"><i class="fa-solid fa-house"></i><span>Panel Ejecutivo</span></button></div>
+      <div class="hd-side-heading">OPERACIONES</div>
+      <button id="tab-btn-documentos" class="tab-btn hd-side-item" onclick="switchTab('documentos')"><i class="fa-regular fa-file-lines"></i><span>Gestión de Documentos</span></button>
+      <button id="tab-btn-om5" class="tab-btn hd-side-item" onclick="switchTab('om5')"><i class="fa-solid fa-tower-broadcast"></i><span>Ampliaciones OM5</span></button>
+      <button id="tab-btn-uia" class="tab-btn hd-side-item" onclick="switchTab('uia')"><i class="fa-solid fa-network-wired"></i><span>Ampliaciones UIA</span></button>
+      <button id="tab-btn-ocr" class="tab-btn hd-side-item" onclick="switchTab('ocr')"><i class="fa-solid fa-camera"></i><span>Búsqueda inteligente</span></button>
+      <div class="hd-side-heading">ANÁLISIS</div>
+      <button id="tab-btn-dashboard" class="tab-btn hd-side-item" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-column"></i><span>Dashboard Documentos</span></button>
+      <button id="tab-btn-dash-ampl" class="tab-btn hd-side-item" onclick="switchTab('dash-ampl')"><i class="fa-solid fa-chart-pie"></i><span>Dashboard Ampliaciones</span></button>
+      <button id="tab-btn-reportes" class="tab-btn hd-side-item" onclick="switchTab('reportes')"><i class="fa-regular fa-file-lines"></i><span>Reportes y gráficos</span></button>
+      <div class="hd-side-heading">ADMINISTRACIÓN</div>
+      <button id="tab-btn-personal" class="tab-btn hd-side-item" onclick="switchTab('personal')"><i class="fa-solid fa-users"></i><span>Personal y usuarios</span></button>
+      <button id="tab-btn-catalogos" class="tab-btn hd-side-item" onclick="switchTab('catalogos')"><i class="fa-solid fa-layer-group"></i><span>Gestión de catálogos</span></button>
+      <button id="tab-btn-copias" class="tab-btn hd-side-item" onclick="switchTab('copias')"><i class="fa-solid fa-database"></i><span>Copias de seguridad</span></button>
+      <button id="hdMenuConfig" class="hd-side-item" onclick="hdCloseMenu();openConfigModal()"><i class="fa-solid fa-gear"></i><span>Configuración del sistema</span></button>
     </nav>
 
     <!-- Contenido Principal -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-6">
+    <main id="hdMainContent" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-6">
 
+
+
+        <!-- PANEL EJECUTIVO: valores obtenidos de las bases, nunca cifras de demostración -->
+        <section id="tab-ejecutivo" class="hidden hd-executive-panel" aria-label="Panel Ejecutivo">
+          <div class="hd-executive-intro"><div><h2><i class="fa-solid fa-gauge-high"></i> Panel Ejecutivo</h2><p>Resumen general de la gestión de documentos y ampliaciones de redes</p></div><span id="hdExecutiveUpdated" class="hd-updated">Actualización pendiente</span></div>
+          <p id="hdExecutiveStatus" class="hd-executive-status" role="status">Consulta los indicadores de las bases de datos.</p>
+          <div class="hd-executive-kpis">
+            <button type="button" class="hd-kpi hd-kpi-blue" onclick="switchTab('documentos')" id="hdKpiDocCard"><i class="fa-regular fa-file-lines"></i><span><small>Documentos</small><strong id="hdKpiDocumentos">—</strong></span></button>
+            <button type="button" class="hd-kpi hd-kpi-green" onclick="switchTab('om5')" id="hdKpiOM5Card"><i class="fa-solid fa-tower-broadcast"></i><span><small>Expedientes OM5</small><strong id="hdKpiOM5">—</strong></span></button>
+            <button type="button" class="hd-kpi hd-kpi-purple" onclick="switchTab('uia')" id="hdKpiUIACard"><i class="fa-solid fa-network-wired"></i><span><small>Expedientes UIA</small><strong id="hdKpiUIA">—</strong></span></button>
+          </div>
+          <div class="hd-executive-grid">
+            <article class="hd-exec-card"><h3><i class="fa-solid fa-chart-pie"></i> Documentos por estado</h3><div class="hd-chart-holder"><canvas id="hdExecDocChart" aria-label="Gráfico de documentos por estado"></canvas></div><p class="hd-exec-note" id="hdExecDocNote">Consultando información…</p></article>
+            <article class="hd-exec-card"><h3><i class="fa-solid fa-chart-column"></i> Ampliaciones OM5 por modalidad</h3><div class="hd-chart-holder"><canvas id="hdExecOM5Chart" aria-label="Gráfico de ampliaciones por modalidad"></canvas></div><p class="hd-exec-note" id="hdExecOM5Note">Consultando información…</p></article>
+            <aside class="hd-exec-card hd-quick-links"><h3><i class="fa-solid fa-bolt"></i> Accesos rápidos</h3>
+             <button data-hd-doc-action onclick="switchTab('documentos');openDocFormModal()" class="hd-action hd-act-blue"><i class="fa-solid fa-file-circle-plus"></i> Nuevo Documento</button>
+             <button data-hd-ampl-action onclick="hdExecNewAmpl('OM5')" class="hd-action hd-act-green"><i class="fa-solid fa-plus"></i> Nuevo Expediente OM5</button>
+             <button data-hd-ampl-action onclick="hdExecNewAmpl('UIA')" class="hd-action hd-act-purple"><i class="fa-solid fa-plus"></i> Nuevo Expediente UIA</button>
+             <button onclick="switchTab('ocr')" class="hd-action hd-act-light"><i class="fa-solid fa-magnifying-glass"></i> Buscar expediente</button>
+             <button onclick="switchTab('reportes')" class="hd-action hd-act-light"><i class="fa-solid fa-file-export"></i> Exportar reporte</button>
+             <button id="hdExecBackup" onclick="switchTab('copias')" class="hd-action hd-act-light"><i class="fa-solid fa-database"></i> Crear copia de seguridad</button>
+            </aside>
+            <article class="hd-exec-card hd-recent-card"><h3><i class="fa-solid fa-list-check"></i> Últimos registros</h3><div id="hdExecRecent" class="hd-recent-content">Cargando registros…</div></article>
+            <article class="hd-exec-card hd-alert-card"><h3><i class="fa-solid fa-bell"></i> Alertas de seguimiento</h3><div id="hdExecAlerts">Consultando estados…</div></article>
+          </div>
+        </section>
 
         <!-- NUEVA INTERFAZ OM5 / UIA — aislada de Gestión de Documentos -->
         <section id="tab-om5" class="hidden hd-ampl-section"></section>
@@ -961,11 +1029,17 @@ html, body { max-width:100%; }
               if(button && hdEsSoloOM5_(currentUser.tipo))button.style.display='none';
               document.querySelectorAll('[data-mobile-tab="'+x+'"]').forEach(el=>{if(hdEsSoloOM5_(currentUser.tipo))el.style.display='none';});
             });
-            if(hdEsSoloOM5_(currentUser.tipo) && typeof Ampliaciones!=='undefined') setTimeout(()=>switchTab('om5'),0);
+            // El Panel Ejecutivo admite usuarios de solo lectura de OM5; sin redirecciones inesperadas.
             const btnCatalogo = document.getElementById('tab-btn-catalogos');
             if (btnCatalogo) btnCatalogo.style.display = isAdmin ? '' : 'none';
             document.querySelectorAll('[data-mobile-tab="catalogos"]').forEach(el => el.style.display=isAdmin ? '' : 'none');
 
+            const execDoc = document.getElementById('hdKpiDocCard');
+            if(execDoc) execDoc.style.display = canDocs ? '' : 'none';
+            document.querySelectorAll('[data-hd-doc-action]').forEach(el=>el.style.display=canDocs && !isVisita?'':'none');
+            document.querySelectorAll('[data-hd-ampl-action]').forEach(el=>el.style.display=isAmpliaciones&&!String(currentUser.tipo).includes('Visitante')?'':'none');
+            const execCopy=document.getElementById('hdExecBackup');if(execCopy)execCopy.style.display=canBackup?'':'none';
+            const menuConfig=document.getElementById('hdMenuConfig');if(menuConfig)menuConfig.style.display=isAdmin?'':'none';
             const btnNuevoDoc = document.getElementById('btnNuevoDocHeader');
             if (btnNuevoDoc) btnNuevoDoc.style.display = isVisita ? 'none' : 'inline-flex';
 
@@ -1154,6 +1228,7 @@ html, body { max-width:100%; }
                 document.getElementById('userSessionBadge').classList.remove('hidden');
                 applyUserPermissions();
                 window.handleGASResponse(data);
+                if(!window.hdExecInitialShown){window.hdExecInitialShown=true;switchTab('ejecutivo');}
                 return true;
             } catch (err) {
                 if (hidraCerrandoSesion || versionUsada !== hidraSesionVersion ||
@@ -2658,8 +2733,49 @@ html, body { max-width:100%; }
         async function hdReporteVista(){const out=document.getElementById('hdReporteVista'),status=document.getElementById('hdReporteEstado');status.textContent='Preparando reporte...';try{const d=await hdDatosReporte_(),q=document.getElementById('hdRepFiltro').value.trim().toLowerCase();const rows=d.registros.filter(r=>!q||d.headers.some(k=>String(r[k]??'').toLowerCase().includes(q)));hdUltimoReporte={rows,headers:d.headers,modulo:document.getElementById('hdRepModulo').value};status.textContent=`${rows.length} registros. Se exportarán todos los campos y filas filtrados.`;out.innerHTML='<table class="hd-ampl-grid"><thead><tr>'+d.headers.map(k=>'<th>'+hdEsc_(k)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(0,100).map(r=>'<tr>'+d.headers.map(k=>'<td>'+hdEsc_(r[k] instanceof Date?r[k].toLocaleDateString('es-PE'):r[k])+'</td>').join('')+'</tr>').join('')+'</tbody></table>'+(rows.length>100?'<p>Vista previa de 100 filas; la exportación incluirá todas.</p>':'');}catch(err){hdUltimoReporte=null;status.textContent='Error: '+err.message;out.innerHTML='';}}
         async function hdReporteExcel(){await hdReporteVista();if(!hdUltimoReporte)return;if(!window.XLSX)return alert('No se pudo cargar la librería de Excel.');const r=hdUltimoReporte,titulo=document.getElementById('hdRepTitulo').value.trim()||'Reporte de expedientes';const matr=[r.headers,...r.rows.map(x=>r.headers.map(k=>{let v=x[k];return v instanceof Date?v.toISOString().slice(0,10):v??'';}))];const ws=XLSX.utils.aoa_to_sheet(matr);ws['!cols']=r.headers.map((h,i)=>({wch:Math.min(45,Math.max(15,h.length+3))}));const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,ws,'Detalle');XLSX.writeFile(book,(titulo+' - '+r.modulo).replace(/[\/:*?"<>|]/g,'_')+'.xlsx');}
         async function hdCrearCopia(){const b=document.getElementById('hdBackupBtn'),s=document.getElementById('hdBackupEstado'),out=document.getElementById('hdBackupResultados');b.disabled=true;s.textContent='Generando copias con los permisos de tu cuenta...';out.innerHTML='';try{const r=await postGateway({action:'amplBackup'},110000);out.innerHTML='<h3>Copias generadas en Google Drive</h3>'+r.archivos.map(f=>`<p><a href="${hdEsc_(f.url)}" target="_blank" rel="noopener">${hdEsc_(f.nombre)}</a></p>`).join('')+'<p>Abre cada copia para descargarla en Excel. La descarga requiere permisos de Google Drive.</p>';s.textContent='Se crearon las copias. Comprueba que puedes abrir ambas.';}catch(err){s.textContent='No se pudo completar la copia: '+err.message;}finally{b.disabled=false;}}
+        // Menú lateral ejecutivo: conserva switchTab y permisos validados por el backend.
+        function hdToggleMenu(){const side=document.getElementById('hdExecutiveSidebar'),scrim=document.getElementById('hdMenuScrim');const open=!side.classList.contains('hd-menu-open');side.classList.toggle('hd-menu-open',open);scrim.classList.toggle('hd-scrim-active',open);document.getElementById('hdMenuToggle').setAttribute('aria-expanded',String(open));}
+        function hdCloseMenu(){document.getElementById('hdExecutiveSidebar')?.classList.remove('hd-menu-open');document.getElementById('hdMenuScrim')?.classList.remove('hd-scrim-active');document.getElementById('hdMenuToggle')?.setAttribute('aria-expanded','false');}
+        async function hdExecNewAmpl(mod){
+          switchTab(mod.toLowerCase());
+          try{await Ampliaciones.enter(mod);Ampliaciones.open('',0,true);}
+          catch(err){const target=document.getElementById('amplStatus');if(target)target.textContent='No se pudo abrir el formulario: '+(err.message||err);}
+        }
+        let hdExecCharts=[];let hdExecRun=0;
+        function hdExecText_(id,value){const el=document.getElementById(id);if(el)el.textContent=String(value);}
+        function hdExecGraph_(id,type,labels,values,colors){const canvas=document.getElementById(id);if(!canvas||!window.Chart)return;const ctx=canvas.getContext('2d');if(!ctx)return;hdExecCharts.push(new Chart(ctx,{type,data:{labels,datasets:[{label:'Expedientes',data:values,backgroundColor:colors,borderWidth:0,borderRadius:type==='bar'?5:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type!=='bar',position:'bottom'},tooltip:{enabled:true}},scales:type==='bar'?{y:{beginAtZero:true,ticks:{precision:0}}}:undefined}}));}
+        async function hdRenderExecutive(){
+          const job=++hdExecRun;
+          hdExecCharts.forEach(c=>{try{c.destroy()}catch(_){}});hdExecCharts=[];
+          const canDoc=!hdEsSoloOM5_(currentUser?.tipo),canAmpl=hdAccesoAmpliaciones_();
+          hdExecText_('hdExecutiveStatus','Actualizando indicadores con las bases de datos…');
+          const docs=canDoc && Array.isArray(appData?.Documentos)?appData.Documentos:null;
+          hdExecText_('hdKpiDocumentos',docs?docs.length.toLocaleString('es-PE'):'—');
+          const results=await Promise.allSettled(canAmpl?['OM5','UIA'].map(mod=>hdAsegurarAmpl_(mod)):[]);
+          if(job!==hdExecRun || document.getElementById('tab-ejecutivo')?.classList.contains('hidden'))return;
+          const om5=results[0]?.status==='fulfilled'?results[0].value:null;
+          const uia=results[1]?.status==='fulfilled'?results[1].value:null;
+          hdExecText_('hdKpiOM5',om5?om5.registros.length.toLocaleString('es-PE'):'—');
+          hdExecText_('hdKpiUIA',uia?uia.registros.length.toLocaleString('es-PE'):'—');
+          const date=new Date();hdExecText_('hdExecutiveUpdated','Actualizado: '+date.toLocaleString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}));
+          const status=[];if(canDoc&&!docs)status.push('Documentos todavía no disponibles');if(canAmpl&&!om5)status.push('OM5: '+(results[0]?.reason?.message||'no disponible'));if(canAmpl&&!uia)status.push('UIA: '+(results[1]?.reason?.message||'no disponible'));
+          hdExecText_('hdExecutiveStatus',status.length?status.join(' · '):'Indicadores consultados correctamente.');
+          const counts={};
+          if(docs){docs.forEach(d=>{const state=String(getProp(d,['Estado',9])||'Sin estado').trim()||'Sin estado';counts[state]=(counts[state]||0)+1;});const arr=Object.entries(counts).sort((a,b)=>b[1]-a[1]);hdExecGraph_('hdExecDocChart','doughnut',arr.map(x=>x[0]),arr.map(x=>x[1]),['#22a456','#f6ae1c','#ec4648','#3b82f6','#8b5cf6','#8fa7c4']);hdExecText_('hdExecDocNote',docs.length+' documentos, agrupados por su estado real.');}
+          else hdExecText_('hdExecDocNote',canDoc?'No hay datos de Documentos disponibles.':'Sin permiso para consultar Documentos.');
+          const modes={};if(om5){om5.registros.forEach(r=>{const mode=String(hdNro_(r,['Modalidad'])||'Sin modalidad').trim()||'Sin modalidad';modes[mode]=(modes[mode]||0)+1;});const arr=Object.entries(modes).sort((a,b)=>b[1]-a[1]).slice(0,10);hdExecGraph_('hdExecOM5Chart','bar',arr.map(x=>x[0]),arr.map(x=>x[1]),'#1976ee');hdExecText_('hdExecOM5Note',om5.registros.length+' expedientes OM5, clasificados por modalidad.');}
+          else hdExecText_('hdExecOM5Note',canAmpl?'No se pudo consultar OM5.':'Sin acceso a OM5.');
+          const recent=document.getElementById('hdExecRecent');
+          if(docs && docs.length){const rows=docs.slice(-5).reverse();recent.innerHTML='<table class="hd-recent-table"><thead><tr><th>Documento</th><th>Responsable</th><th>Estado</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+hdEsc_(getProp(r,['Numero_Documento',1]))+'</td><td>'+hdEsc_(getProp(r,['Responsable',8]))+'</td><td>'+hdEsc_(getProp(r,['Estado',9]))+'</td></tr>').join('')+'</tbody></table>';}
+          else recent.textContent='No hay registros de Documentos disponibles para este usuario.';
+          const alerts=[];
+          if(docs){const pending=docs.filter(d=>/pendiente/i.test(String(getProp(d,['Estado',9])))).length;if(pending)alerts.push(pending+' documentos pendientes');const observed=docs.filter(d=>/observad/i.test(String(getProp(d,['Estado',9])))).length;if(observed)alerts.push(observed+' documentos observados');}
+          if(uia){const pending=uia.registros.filter(r=>String(hdNro_(r,['Estado Actual'])).trim().toLowerCase()==='pendiente').length;if(pending)alerts.push(pending+' expedientes UIA pendientes');}
+          const alertBox=document.getElementById('hdExecAlerts');alertBox.innerHTML=alerts.length?alerts.map(x=>'<div class="hd-alert-item"><i class="fa-solid fa-circle-info"></i>'+hdEsc_(x)+'</div>').join(''):'<div class="hd-alert-item">Sin alertas calculables con los datos disponibles.</div>';
+        }
         function switchTab(tabId) {
             if(currentUser && hdEsSoloOM5_(currentUser.tipo) && ['documentos','dashboard','catalogos'].includes(tabId))return;
+            if (!document.getElementById('tab-'+tabId)) return;
             if (tabId === 'personal' && !hdPuedeAdministrarUsuarios_()) return;
             if (tabId === 'copias' && !hdPuedeRespaldar_()) return;
             if (tabId === 'dash-ampl' && !hdAccesoAmpliaciones_()) return;
@@ -2675,7 +2791,11 @@ html, body { max-width:100%; }
             const activeBtn = document.getElementById(`tab-btn-${tabId}`);
             activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-bold');
             activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
+            document.querySelectorAll('.hd-side-item').forEach(btn=>btn.classList.toggle('hd-side-active',btn.id==='tab-btn-'+tabId));
+            hdCloseMenu();
+            const headDoc=document.getElementById('btnNuevoDocHeader');if(headDoc){headDoc.style.display=tabId==='documentos' && currentUser && hdRolDocJS_(currentUser.tipo)!=='Visita' && !hdEsSoloOM5_(currentUser.tipo)?'inline-flex':'none';}
             document.querySelectorAll('[data-mobile-tab]').forEach(btn => btn.classList.toggle('is-active', btn.dataset.mobileTab === tabId));
+            if (tabId === 'ejecutivo') hdRenderExecutive();
             if (['om5','uia'].includes(tabId)) {const work=document.getElementById('amplWorkspace');const target=document.getElementById('tab-'+tabId);if(work&&target&&!target.contains(work)){target.appendChild(work);work.querySelector('h2').textContent=tabId==='om5'?'AMPLIACIONES DE REDES OM5':'AMPLIACIONES UIA';const sel=work.querySelector('#amplField');sel.innerHTML=tabId==='om5'?'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="res">Número de resolución</option><option value="Solicitante">Solicitante</option><option value="NombreSector">Sector</option>':'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="Nombre">Nombre</option><option value="Direccion">Dirección</option>';sel.value='todos';const s=work.querySelector('#amplSearch');s.value='';work.querySelector('#amplStart').value='';work.querySelector('#amplEnd').value='';}}
             if (tabId === 'om5') om5Entrar();
             if (tabId === 'uia') Ampliaciones.enter('UIA');
