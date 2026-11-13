@@ -361,6 +361,8 @@ html, body { max-width:100%; }
             <button onclick="switchTab('om5')" id="tab-btn-om5" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2 transition">
                 <i class="fa-solid fa-tower-broadcast"></i><span>Ampliaciones OM5</span>
             </button>
+            <button onclick="switchTab('uia')" id="tab-btn-uia" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm">Ampliaciones UIA</button>
+            <button onclick="switchTab('ocr')" id="tab-btn-ocr" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm">Buscar con foto / voz</button>
             <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
                 <i class="fa-solid fa-chart-pie text-lg"></i>
                 <span>Dashboard Ejecutivo</span>
@@ -376,39 +378,19 @@ html, body { max-width:100%; }
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-6">
 
 
-        <!-- CONSULTA OM5: módulo de solo lectura independiente -->
-        <section id="tab-om5" class="hidden space-y-5">
-          <div class="hd-title-row"><div class="hd-title-icon"><i class="fa-solid fa-tower-broadcast"></i></div><div><h2>Ampliaciones de Redes OM5</h2><p>Consulta dinámica y de solo lectura de las hojas del archivo vinculado.</p></div></div>
-          <div class="bg-white rounded-2xl border border-blue-100 shadow-sm p-4 space-y-4">
-            <div class="flex flex-wrap gap-3 items-end justify-between">
-              <label class="text-sm font-bold text-slate-700 flex-1 min-w-48">Selecciona modalidad de ampliación
-                <select id="om5Selector" onchange="om5ElegirHoja()" class="block w-full mt-2 border border-slate-300 rounded-xl p-3 bg-white"><option value="">Selecciona una modalidad</option></select>
-              </label>
-              <button type="button" onclick="om5Refrescar()" class="bg-blue-700 text-white px-4 py-3 rounded-xl font-bold"><i class="fa-solid fa-rotate mr-2"></i>Actualizar hojas</button>
-            </div>
-            <p id="om5Estado" role="status" aria-live="polite" class="text-sm text-slate-600">Ingresa al módulo para consultar las hojas.</p>
-            <h3 id="om5Titulo" class="break-words leading-snug text-center" aria-live="polite"></h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input id="om5Buscar" type="search" oninput="om5Filtrar()" placeholder="Buscar en toda la hoja" aria-label="Buscar en la hoja OM5" class="border border-slate-300 rounded-xl p-3 w-full sm:col-span-2" />
-              <select id="om5Columna" onchange="om5Filtrar()" class="border border-slate-300 rounded-xl p-3"><option value="-1">Todas las columnas</option></select>
-            </div>
-            <div class="flex flex-wrap gap-2">
-              <button type="button" onclick="om5ExportarExcel()" class="bg-emerald-700 text-white px-3 py-2 rounded-lg font-bold text-sm"><i class="fa-solid fa-file-excel mr-1"></i>Excel</button>
-              <button type="button" onclick="om5Compartir('correo')" class="bg-indigo-700 text-white px-3 py-2 rounded-lg font-bold text-sm"><i class="fa-solid fa-envelope mr-1"></i>Correo</button>
-              <button type="button" onclick="om5Compartir('whatsapp')" class="bg-green-700 text-white px-3 py-2 rounded-lg font-bold text-sm"><i class="fa-brands fa-whatsapp mr-1"></i>WhatsApp</button>
-              <label class="flex items-center text-xs gap-2 ml-auto text-slate-600"><input type="checkbox" id="om5SoloFiltradas" checked>Exportar filas filtradas</label>
-            </div>
-            <div class="overflow-auto max-h-[64vh] border border-slate-200 rounded-xl" tabindex="0" aria-label="Contenido de la hoja OM5">
-              <table id="om5Tabla" class="min-w-max w-full text-xs border-collapse"><tbody><tr><td class="p-4">Selecciona una modalidad.</td></tr></tbody></table>
-            </div>
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <span id="om5Contador" class="text-xs font-semibold text-slate-500"></span>
-              <div class="flex items-center gap-2"><button type="button" id="om5Anterior" onclick="om5PaginaCambio(-1)" class="px-3 py-2 border rounded-lg">Anterior</button><span id="om5Pagina" class="text-xs"></span><button type="button" id="om5Siguiente" onclick="om5PaginaCambio(1)" class="px-3 py-2 border rounded-lg">Siguiente</button></div>
-            </div>
-            <p class="text-xs text-slate-500">Esta pantalla nunca modifica el archivo de Google Sheets. Los cambios realizados directamente en la hoja se consultan con «Actualizar hojas».</p>
-          </div>
+        <!-- NUEVA INTERFAZ OM5 / UIA — aislada de Gestión de Documentos -->
+        <section id="tab-om5" class="hidden hd-ampl-section"></section>
+        <section id="tab-uia" class="hidden hd-ampl-section"></section>
+        <section id="tab-ocr" class="hidden hd-ampl-section">
+          <h2>Buscar expedientes por fotografía, PDF o voz</h2>
+          <p>La fotografía y el PDF se reconocen localmente; no se cargan como adjuntos.</p>
+          <div class="hd-ampl-controls"><label>Fotografía / PDF <input type="file" id="amplOCRFile" accept="image/*,.pdf"></label><label>Tomar fotografía <input type="file" accept="image/*" capture="environment" onchange="document.getElementById('amplOCRFile').files=this.files;"></label>
+          <button onclick="Ampliaciones.recognize()" id="amplOCRRun">Reconocer documento</button>
+          <button onclick="Ampliaciones.ocrCancel()">Cancelar</button><button onclick="Ampliaciones.voice()">🎙 Dictar búsqueda</button></div>
+          <p id="amplOCRStatus" role="status"></p><h3>Datos reconocidos: selecciona y corrige</h3>
+          <div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
+          <div id="amplOCRResults"></div>
         </section>
-
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
             <div class="hd-title-row"><div class="hd-title-icon"><i class="fa-regular fa-file-lines"></i></div><div><h2>Gestión de Documentos</h2><p>Administra, registra y controla los documentos de la organización.</p></div></div>
@@ -710,6 +692,16 @@ html, body { max-width:100%; }
                                 <option value="Asistente">Asistente (Operativo Total)</option>
                                 <option value="Administrador">Administrador</option>
                                 <option value="Visita">Visita (Consulta)</option>
+                                <option value="Administrador Total">Administrador Total</option>
+                                <option value="Administrador documentos">Administrador Documentos</option>
+                                <option value="Operador Documentos">Operador Documentos</option>
+                                <option value="Asistente Documentos">Asistente Documentos</option>
+                                <option value="Visitante documento">Visitante Documentos</option>
+                                <option value="Administrador OM5">Administrador OM5 / UIA</option>
+                                <option value="Operador OM5">Operador OM5 / UIA</option>
+                                <option value="Asistente OM5">Asistente OM5 / UIA</option>
+                                <option value="Visitante OM5">Visitante OM5 / UIA</option>
+                                <option value="Visitante Total">Visitante Total</option>
                             </select>
                         </div>
                     </div>
@@ -789,14 +781,52 @@ html, body { max-width:100%; }
     </div>
 
 
+    <div id="amplModal" class="hd-ampl-modal" hidden>
+      <div class="hd-ampl-panel"><div class="hd-ampl-controls"><h2 id="amplFormTitle">Expediente</h2><button onclick="Ampliaciones.close()">Cerrar ✕</button></div>
+      <div id="amplFormBody" class="hd-ampl-fields"></div><hr><div id="amplExistingAttachments"></div>
+      <div class="hd-ampl-controls"><button id="amplSave" onclick="Ampliaciones.save()" class="hd-ampl-primary">Guardar en Google Sheets</button><button onclick="Ampliaciones.close()">Cancelar</button></div></div>
+    </div>
+
     <!-- Menú exclusivo para pantallas pequeñas: utiliza las funciones originales -->
     <nav class="mobile-bottom-nav" aria-label="Navegación móvil">
       <button type="button" class="is-active" data-mobile-tab="documentos" onclick="switchTab('documentos')"><i class="fa-regular fa-folder-open"></i><span>Documentos</span></button>
       <button type="button" data-mobile-tab="om5" onclick="switchTab('om5')"><i class="fa-solid fa-tower-broadcast"></i><span>OM5</span></button>
+      <button type="button" data-mobile-tab="uia" onclick="switchTab('uia')"><i class="fa-solid fa-clipboard-list"></i><span>UIA</span></button>
+      <button type="button" data-mobile-tab="ocr" onclick="switchTab('ocr')"><i class="fa-solid fa-camera"></i><span>Buscar</span></button>
       <button type="button" data-mobile-tab="dashboard" onclick="switchTab('dashboard')"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></button>
       <button type="button" data-mobile-tab="catalogos" onclick="switchTab('catalogos')"><i class="fa-solid fa-sliders"></i><span>Catálogos</span></button>
     </nav>
 
+<style>
+.hd-ampl-section{background:#f5f8ff;padding:18px;border-radius:18px;display:block}
+.hd-ampl-section[hidden],.hd-ampl-section.hidden,.hd-ampl-modal[hidden]{display:none!important}
+.hd-ampl-section h2{font-size:23px;font-weight:800;color:#132d65;margin-bottom:12px}
+.hd-ampl-section h3{font-weight:750;font-size:17px;margin:12px 0}
+.hd-ampl-section button,.hd-ampl-modal button{border:1px solid #b2c7ea;border-radius:9px;padding:8px 10px;background:white;color:#123c82;font-weight:700}
+.hd-ampl-section button:hover,.hd-ampl-modal button:hover{background:#e1ecff}
+.hd-ampl-section input,.hd-ampl-section select,.hd-ampl-modal input,.hd-ampl-modal select,.hd-ampl-modal textarea{padding:9px;border:1px solid #b7c8e6;border-radius:9px;max-width:100%;background:#fff;width:100%}
+.hd-ampl-controls{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:12px}
+.hd-ampl-controls label{min-width:145px;flex:1}
+.hd-ampl-section .hd-ampl-primary{background:#164caa;color:white}
+.hd-ampl-grid{overflow:auto;max-height:65vh;background:white;border-radius:12px;border:1px solid #d4e2fa}
+.hd-ampl-grid table{width:100%;border-collapse:collapse;min-width:800px}
+.hd-ampl-grid td,.hd-ampl-grid th{border-bottom:1px solid #d5e2f4;padding:12px;text-align:left;max-width:300px;vertical-align:top;font-size:12px}
+.hd-ampl-grid th{background:#0c3476;color:white;position:sticky;top:0}
+.hd-ampl-multi{white-space:pre-line;overflow-wrap:anywhere}
+.hd-ampl-selected{background:#ddedff}
+#amplStages{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}#amplStages button{color:white;border:0}
+.hd-ampl-modal{position:fixed;inset:0;z-index:80;background:#001b3a99;display:flex;align-items:center;justify-content:center;padding:12px}
+.hd-ampl-panel{background:white;width:min(960px,99vw);max-height:94vh;overflow-y:auto;border-radius:19px;padding:18px}
+.hd-ampl-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.hd-ampl-label{display:grid;gap:5px;min-width:0;font-size:13px;font-weight:700}
+.hd-ampl-doc{border:1px solid #dae5f8;padding:12px;border-radius:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.hd-ampl-doc b{grid-column:1/-1}
+.hd-ampl-doc label{display:grid;gap:5px}
+.hd-ampl-attach,.hd-ampl-candidate,.hd-ampl-result{padding:12px;border:1px solid #d6e4f6;margin:5px 0;border-radius:10px;overflow-wrap:anywhere}
+.hd-ampl-candidate{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.hd-ampl-attach{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hd-ampl-attach>span{flex:1}
+.hd-ampl-muted{color:#66788b;font-size:13px}#amplOCRResults{max-height:70vh;overflow:auto}
+@media(max-width:767px){.hd-ampl-fields{grid-template-columns:1fr}.hd-ampl-doc{grid-template-columns:1fr}.hd-ampl-candidate{grid-template-columns:1fr}.hd-ampl-section{padding:10px}.mobile-bottom-nav{grid-template-columns:repeat(6,1fr)!important}.mobile-bottom-nav button{font-size:9px}}
+</style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzYsQr2mOkJouXeq0pDo--9ZVGhQIgy34YCDg4YsyCrwidEwjdnWcmjXGnJQBbOicG3/exec";
@@ -891,10 +921,28 @@ html, body { max-width:100%; }
              'hidrandina_adjuntos_cache'].forEach(k=>localStorage.removeItem(k));
         }
 
+        function hdRolDocJS_(rol) {
+          return ({'Administrador Total':'Administrador','Administrador documentos':'Administrador',
+             'Asistente Documentos':'Asistente','Operador Documentos':'Operador',
+             'Visitante documento':'Visita'})[rol] || rol;
+        }
+        function hdEsSoloOM5_(rol) {return ['Administrador OM5','Operador OM5','Asistente OM5','Visitante OM5','Visitante Total'].includes(rol);}
         function applyUserPermissions() {
             if (!currentUser) return;
-            const isVisita = currentUser.tipo === 'Visita';
-            const isAdmin = currentUser.tipo === 'Administrador';
+            const isVisita = hdRolDocJS_(currentUser.tipo) === 'Visita' || hdEsSoloOM5_(currentUser.tipo);
+            const isAdmin = hdRolDocJS_(currentUser.tipo) === 'Administrador';
+            const isAmpliaciones = ['Administrador','Administrador Total','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Visitante Total'].includes(currentUser.tipo);
+            ['om5','uia','ocr'].forEach(x=>{
+              const button=document.getElementById('tab-btn-'+x);
+              if(button)button.style.display=isAmpliaciones?'':'none';
+              document.querySelectorAll('[data-mobile-tab="'+x+'"]').forEach(el=>el.style.display=isAmpliaciones?'':'none');
+            });
+            ['documentos','dashboard','catalogos'].forEach(x=>{
+              const button=document.getElementById('tab-btn-'+x);
+              if(button && hdEsSoloOM5_(currentUser.tipo))button.style.display='none';
+              document.querySelectorAll('[data-mobile-tab="'+x+'"]').forEach(el=>{if(hdEsSoloOM5_(currentUser.tipo))el.style.display='none';});
+            });
+            if(hdEsSoloOM5_(currentUser.tipo) && typeof Ampliaciones!=='undefined') setTimeout(()=>switchTab('om5'),0);
             const btnCatalogo = document.getElementById('tab-btn-catalogos');
             if (btnCatalogo) btnCatalogo.style.display = isAdmin ? '' : 'none';
             document.querySelectorAll('[data-mobile-tab="catalogos"]').forEach(el => el.style.display=isAdmin ? '' : 'none');
@@ -915,6 +963,7 @@ html, body { max-width:100%; }
             // Invalidar inmediatamente lecturas en vuelo; una respuesta atrasada no reabrirá el programa.
             hidraSesionVersion++;
             om5.seq++; om5.hojas=[];om5.data=[];om5.filtered=[];om5.gid=null;om5.loaded=false;
+            if(window.Ampliaciones?.reset)Ampliaciones.reset();
             hidraCerrandoSesion = true;
             const tokenAlCerrar = window.hidraSessionToken;
             window.hidraSessionToken = null;
@@ -973,8 +1022,8 @@ html, body { max-width:100%; }
             const ahora = Date.now();
             if (ahora - hidraUltimaReanudacion_ < 12000) return;
             hidraUltimaReanudacion_ = ahora;
-            // Tras regresar, renovar datos; si se perdió la red, el minuto de reintento se encarga.
-            fetchData().catch(err => console.warn('Reanudación:', err));
+            // Recuperar foco no implica que hayan cambiado datos: evitar READ completo.
+            if (!hidraUltimaConexionConfirmada) verificarConexionHidra_().catch(err=>console.warn('Reanudación:',err));
         }
 
         function setConnectionStatus(status, text) {
@@ -1351,8 +1400,8 @@ html, body { max-width:100%; }
 
         function puedeGestionarDocumento(doc) {
             if (!currentUser || !doc) return false;
-            if (currentUser.tipo === 'Administrador' || currentUser.tipo === 'Asistente') return true;
-            if (currentUser.tipo !== 'Operador') return false;
+            if (hdRolDocJS_(currentUser.tipo) === 'Administrador' || hdRolDocJS_(currentUser.tipo) === 'Asistente') return true;
+            if (hdRolDocJS_(currentUser.tipo) !== 'Operador') return false;
             // Edición permitida al creador original O al responsable asignado.
             const creador = String(getProp(doc, ['Creado_Por','Usuario_Creador','Registrado_Por']) || '').trim().toLowerCase();
             const responsable = String(getProp(doc, ['Responsable', 8]) || '').trim().toLowerCase();
@@ -1367,10 +1416,10 @@ html, body { max-width:100%; }
                 return;
             }
 
-            const isVisita = currentUser && currentUser.tipo === 'Visita';
-            const isAsistente = currentUser && currentUser.tipo === 'Asistente';
-            const isAdmin = currentUser && currentUser.tipo === 'Administrador';
-            const isOperador = currentUser && currentUser.tipo === 'Operador';
+            const isVisita = currentUser && hdRolDocJS_(currentUser.tipo) === 'Visita';
+            const isAsistente = currentUser && hdRolDocJS_(currentUser.tipo) === 'Asistente';
+            const isAdmin = currentUser && hdRolDocJS_(currentUser.tipo) === 'Administrador';
+            const isOperador = currentUser && hdRolDocJS_(currentUser.tipo) === 'Operador';
 
             tbody.innerHTML = docs.map((doc, idx) => {
                 const actualIdx = appData.Documentos.indexOf(doc);
@@ -1550,7 +1599,7 @@ html, body { max-width:100%; }
 
         let documentoOriginalEnEdicion_ = '';
         function openDocFormModal(idx = null) {
-            if (!currentUser || currentUser.tipo === 'Visita') return;
+            if (!currentUser || hdRolDocJS_(currentUser.tipo) === 'Visita') return;
             if (idx !== null && !puedeGestionarDocumento(appData.Documentos[idx])) { alert('Solo puedes editar expedientes creados por ti o asignados a tu nombre.'); return; }
             document.getElementById('docForm').reset();
             archivosEnCola = [];
@@ -1566,7 +1615,7 @@ html, body { max-width:100%; }
             populateSelects();
 
             const respSelect = document.getElementById('formResponsable');
-            if (currentUser && currentUser.tipo === 'Operador') {
+            if (currentUser && hdRolDocJS_(currentUser.tipo) === 'Operador') {
                 let matchResp = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === currentUser.nombre.toLowerCase());
                 if (matchResp) respSelect.value = matchResp.value;
             }
@@ -1620,7 +1669,7 @@ html, body { max-width:100%; }
                 dDef.setDate(dDef.getDate() + 15);
                 document.getElementById('formFechaVencimiento').value = dDef.toISOString().split('T')[0];
             }
-            if (currentUser && currentUser.tipo === 'Operador') {
+            if (currentUser && hdRolDocJS_(currentUser.tipo) === 'Operador') {
                 if (idx === null) {
                     const nombre = String(currentUser.nombre || '').trim();
                     const op = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === nombre.toLowerCase());
@@ -2273,7 +2322,7 @@ html, body { max-width:100%; }
 
         function saveDocument(e) {
             e.preventDefault();
-            if (!currentUser || currentUser.tipo === 'Visita') return;
+            if (!currentUser || hdRolDocJS_(currentUser.tipo) === 'Visita') return;
             const currentIndex = document.getElementById('docIndex').value;
             const documentoEdicion = currentIndex !== ''
                 ? appData.Documentos.find(d => String(getProp(d, ['Numero_Documento', 1]) || '') === documentoOriginalEnEdicion_)
@@ -2281,7 +2330,7 @@ html, body { max-width:100%; }
             if (currentIndex !== '' && (!documentoEdicion || !puedeGestionarDocumento(documentoEdicion))) {
                 alert('Solo puedes modificar expedientes creados por ti o asignados a tu nombre.'); return;
             }
-            if (currentUser.tipo === 'Operador') {
+            if (hdRolDocJS_(currentUser.tipo) === 'Operador') {
                 const idxActual = document.getElementById('docIndex').value;
                 const responsablePermitido = idxActual !== ''
                     ? String(getProp(documentoEdicion, ['Responsable', 8]) || '').trim()
@@ -2359,7 +2408,7 @@ html, body { max-width:100%; }
         // GESTIÓN DE CATÁLOGOS CON PERSONAL AMPLIADO
         // ==========================================
         function renderCatalogsManagement() {
-            const isAdmin = currentUser && currentUser.tipo === 'Administrador';
+            const isAdmin = currentUser && hdRolDocJS_(currentUser.tipo) === 'Administrador';
 
             document.getElementById('managePersonalList').innerHTML = (!appData.Personal || appData.Personal.length === 0) ? '<p class="text-xs text-slate-400 py-3 text-center">Sin registros</p>' :
                 appData.Personal.map((p, i) => {
@@ -2438,7 +2487,7 @@ html, body { max-width:100%; }
         }
 
         function openCatalogModal(type, index = null) {
-            if (!currentUser || currentUser.tipo !== 'Administrador') return;
+            if (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador') return;
             document.getElementById('catalogForm').reset();
             document.getElementById('catalogType').value = type;
             document.getElementById('catalogModalTitle').innerText = `Catálogo - ${type}`;
@@ -2522,7 +2571,7 @@ html, body { max-width:100%; }
 
         function saveCatalogItem(e) {
             e.preventDefault();
-            if (!currentUser || currentUser.tipo !== 'Administrador') return;
+            if (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador') return;
             const type = document.getElementById('catalogType').value;
             const val = document.getElementById('catalogInputValue').value.trim();
             const secondary = document.getElementById('catalogInputSecondary') ? document.getElementById('catalogInputSecondary').value.trim() : '';
@@ -2560,7 +2609,7 @@ html, body { max-width:100%; }
         function editCatalogItem(type, index) { openCatalogModal(type, index); }
 
         function deleteCatalogItem(type, index) {
-            if (!currentUser || currentUser.tipo !== 'Administrador') return;
+            if (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador') return;
             const item = appData[type][index];
             const val = typeof item === 'object' ? getProp(item, ['Nombre_Completo', 'Nombre_Estado', 'Tipo_Origen', 'Nombre_Alarma', 1]) : item;
             if (confirm(`¿Eliminar '${val}' del catálogo ${type}?`)) {
@@ -2569,133 +2618,15 @@ html, body { max-width:100%; }
         }
 
 
-        // OM5 - El backend devuelve un listado dinámico de pestañas y matrices displayValues.
-        const om5 = {hojas:[],gid:null,titulo:'',data:[],filtered:[],page:0,perPage:35,loaded:false,seq:0};
-        const om5El=id=>document.getElementById(id);
-        function om5Estado(msg){om5El('om5Estado').textContent=msg;}
-        function om5Escape(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-        function om5Entrar(){if(!currentUser)return;om5Refrescar();}
-        async function om5Refrescar(){
-          if(!currentUser||!window.hidraSessionToken)return;
-          const seq=++om5.seq,token=window.hidraSessionToken,version=hidraSesionVersion;
-          om5Estado('Leyendo lista de hojas...');
-          try{
-            const r=await postGateway({action:'om5List'},60000);
-            if(seq!==om5.seq||token!==window.hidraSessionToken||version!==hidraSesionVersion)return;
-            om5.hojas=Array.isArray(r.hojas)?r.hojas:[];om5.loaded=true;
-            const select=om5El('om5Selector');const anterior=String(om5.gid??'');
-            select.replaceChildren(new Option('Selecciona una modalidad',''));
-            for(const h of om5.hojas) select.add(new Option(h.titulo||h.nombre||'Sin título',String(h.gid)));
-            select.value=om5.hojas.some(h=>String(h.gid)===anterior)?anterior:(om5.hojas[0]?String(om5.hojas[0].gid):'');
-            if(select.value)await om5ElegirHoja();else {om5.data=[];om5.filtered=[];om5TituloLimpiar();om5Estado('No hay hojas disponibles.');}
-          }catch(e){if(seq===om5.seq)om5Estado('No se pudo cargar OM5: '+e.message);}
-        }
-        function om5TituloLimpiar(){om5El('om5Titulo').textContent='';om5El('om5Tabla').replaceChildren();om5El('om5Contador').textContent='';}
-        async function om5ElegirHoja(){
-          const gid=om5El('om5Selector').value;if(!gid)return;
-          const seq=++om5.seq,token=window.hidraSessionToken,version=hidraSesionVersion;
-          om5Estado('Cargando contenido de la hoja...');
-          try{
-            const r=await postGateway({action:'om5Sheet',gid},90000);
-            if(seq!==om5.seq||token!==window.hidraSessionToken||version!==hidraSesionVersion)return;
-            om5.gid=gid;om5.titulo=r.titulo||r.nombre||'Hoja OM5';om5.data=Array.isArray(r.valores)?r.valores:[];
-            om5El('om5Titulo').textContent=om5.titulo;
-            om5El('om5Buscar').value='';om5El('om5Columna').replaceChildren(new Option('Todas las columnas','-1'));
-            const w=Math.max(0,...om5.data.map(row=>row.length));
-            for(let i=0;i<w;i++){
-              const nombre=(om5.data[1]&&om5.data[1][i])||('Columna '+(i+1));
-              om5El('om5Columna').add(new Option(String(nombre).slice(0,70),String(i)));
-            }
-            om5.page=0;om5Filtrar();om5Estado('Hoja cargada. Consulta de solo lectura.');
-          }catch(e){if(seq===om5.seq)om5Estado('Error al consultar la hoja: '+e.message);}
-        }
-        // B1: título. Fila 2: encabezados. Desde fila 3: registros.
-        function om5Encabezados(){return om5.data.length>1?om5.data[1]:[];}
-        function om5Registros(){return om5.data.length>2?om5.data.slice(2):[];}
-        function om5Filtrar(){
-          const buscar=om5El('om5Buscar').value.trim().toLocaleLowerCase('es');
-          const col=Number(om5El('om5Columna').value);
-          om5.filtered=om5Registros().filter(row=>!buscar||(col<0?row.some(x=>String(x??'').toLocaleLowerCase('es').includes(buscar)):String(row[col]??'').toLocaleLowerCase('es').includes(buscar)));
-          om5.page=0;om5Dibujar();
-        }
-        function om5PaginaCambio(delta){const max=Math.max(0,Math.ceil(om5.filtered.length/om5.perPage)-1);om5.page=Math.max(0,Math.min(max,om5.page+delta));om5Dibujar();}
-        function om5Dibujar(){
-          const tabla=om5El('om5Tabla'),total=om5.filtered.length,max=Math.max(1,Math.ceil(total/om5.perPage));
-          const rows=om5.filtered.slice(om5.page*om5.perPage,(om5.page+1)*om5.perPage);
-          const encabezados=om5Encabezados();
-          const cols=Math.max(1,encabezados.length,...om5Registros().map(row=>row.length));
-          // Las letras A, B, C... son referencias de Excel: no forman parte de esta tabla.
-          let markup='<thead><tr>'+Array.from({length:cols},(_,i)=>'<th scope="col">'+om5Escape(encabezados[i]||('Columna '+(i+1)))+'</th>').join('')+'</tr></thead><tbody>';
-          for(const row of rows)markup+='<tr>'+Array.from({length:cols},(_,i)=>'<td>'+om5Escape(row[i])+'</td>').join('')+'</tr>';
-          if(!rows.length)markup+='<tr><td colspan="'+cols+'">Sin resultados</td></tr>';
-          tabla.innerHTML=markup+'</tbody>';
-          om5El('om5Contador').textContent=total+' registros visibles de '+om5Registros().length+' registros';
-          om5El('om5Pagina').textContent=(om5.page+1)+' / '+max;
-          om5El('om5Anterior').disabled=om5.page===0;om5El('om5Siguiente').disabled=om5.page>=max-1;
-        }
-        function om5ExportArray(){
-          // El Excel exportado conserva título y encabezados de origen, incluso con filtros.
-          const titulo=om5.data[0]||[];
-          const encabezados=om5Encabezados();
-          const registros=om5El('om5SoloFiltradas').checked?om5.filtered:om5Registros();
-          return [titulo,encabezados,...registros];
-        }
-        function om5Archivo(){
-          if(!om5.gid||!om5.data.length)throw new Error('Selecciona una modalidad con datos.');
-          if(!window.XLSX)throw new Error('No se cargó la biblioteca Excel; revisa tu conexión.');
-          const wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet(om5ExportArray());
-          XLSX.utils.book_append_sheet(wb,ws,'Consulta OM5');
-          const bytes=XLSX.write(wb,{bookType:'xlsx',type:'array'});
-          const nombre='OM5_'+(om5.titulo||'hoja').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w-]+/g,'_').slice(0,60)+'.xlsx';
-          return {file:new File([bytes],nombre,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),bytes,nombre};
-        }
-        function om5Descargar(archivo){const url=URL.createObjectURL(archivo.file);const a=document.createElement('a');a.href=url;a.download=archivo.nombre;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
-        function om5ExportarExcel(){try{om5Descargar(om5Archivo());om5Estado('Archivo Excel generado correctamente.');}catch(e){om5Estado(e.message);}}
-        // Compartir archivos: en algunos navegadores el Web Share API rechaza el permiso.
-        // En ese caso no detener el flujo: descargar y abrir el canal seleccionado.
-        async function om5Compartir(canal){
-          let archivo;
-          try { archivo=om5Archivo(); }
-          catch(e){ om5Estado('No se pudo preparar el Excel: '+e.message); return; }
-
-          const esMovil=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');
-          if(esMovil && typeof navigator.share==='function' &&
-             typeof navigator.canShare==='function' &&
-             navigator.canShare({files:[archivo.file]})){
-            try{
-              await navigator.share({files:[archivo.file],title:'Consulta '+om5.titulo,
-                text:'Ampliaciones OM5 - '+om5.titulo});
-              om5Estado('Archivo compartido mediante el menú del dispositivo.');
-              return;
-            }catch(e){
-              if(e.name==='AbortError'){
-                om5Estado('Compartir cancelado. No se modificó la información.');
-                return;
-              }
-              // NotAllowedError / Permission denied: continúa con descarga y enlace.
-            }
-          }
-          try{
-            om5Descargar(archivo);
-            const asunto='Ampliaciones OM5 - '+om5.titulo;
-            if(canal==='correo'){
-              const url='mailto:?subject='+encodeURIComponent(asunto)+'&body='+
-                encodeURIComponent('Adjunto la consulta OM5. Agrega el Excel descargado: '+archivo.nombre);
-              window.location.href=url;
-            }else{
-              const url='https://api.whatsapp.com/send?text='+
-                encodeURIComponent('Consulta Ampliaciones OM5: '+om5.titulo+'. Adjunta el archivo descargado: '+archivo.nombre);
-              const enlace=document.createElement('a');
-              enlace.href=url;enlace.target='_blank';enlace.rel='noopener noreferrer';
-              document.body.appendChild(enlace);enlace.click();enlace.remove();
-            }
-            om5Estado('Excel descargado: '+archivo.nombre+'. Adjunta ese archivo en '+
-              (canal==='correo'?'tu correo':'WhatsApp')+'.');
-          }catch(e){om5Estado('No se pudo completar la descarga: '+e.message);}
-        }
+        // OM5/UIA: módulo aislado en Ampliaciones_UI.js
+        const om5 = {seq:0,hojas:[],data:[],filtered:[],gid:null,loaded:false};
+        function om5Entrar(){if(window.Ampliaciones)Ampliaciones.enter('OM5');}
 
         function switchTab(tabId) {
-            if (tabId === 'catalogos' && (!currentUser || currentUser.tipo !== 'Administrador')) return;
+            if(currentUser && hdEsSoloOM5_(currentUser.tipo) && ['documentos','dashboard','catalogos'].includes(tabId))return;
+            if(currentUser && ['om5','uia','ocr'].includes(tabId) && !['Administrador','Administrador Total','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Visitante Total'].includes(currentUser.tipo))return;
+
+            if (tabId === 'catalogos' && (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador')) return;
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
@@ -2706,13 +2637,15 @@ html, body { max-width:100%; }
             activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-bold');
             activeBtn.classList.add('border-blue-600', 'text-blue-600', 'font-extrabold');
             document.querySelectorAll('[data-mobile-tab]').forEach(btn => btn.classList.toggle('is-active', btn.dataset.mobileTab === tabId));
+            if (['om5','uia'].includes(tabId)) {const work=document.getElementById('amplWorkspace');const target=document.getElementById('tab-'+tabId);if(work&&target&&!target.contains(work)){target.appendChild(work);work.querySelector('h2').textContent=tabId==='om5'?'AMPLIACIONES DE REDES OM5':'AMPLIACIONES UIA';const sel=work.querySelector('#amplField');sel.innerHTML=tabId==='om5'?'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="res">Número de resolución</option><option value="Solicitante">Solicitante</option><option value="NombreSector">Sector</option>':'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="Nombre">Nombre</option><option value="Direccion">Dirección</option>';sel.value='todos';const s=work.querySelector('#amplSearch');s.value='';work.querySelector('#amplStart').value='';work.querySelector('#amplEnd').value='';}}
             if (tabId === 'om5') om5Entrar();
+            if (tabId === 'uia') Ampliaciones.enter('UIA');
             if (tabId === 'dashboard') renderStatsAndCharts();
             if (tabId === 'catalogos') renderCatalogsManagement();
         }
 
         function openConfigModal() { 
-            if (!currentUser || currentUser.tipo !== 'Administrador') {
+            if (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador') {
                 alert("Acceso denegado. Solo el Administrador puede configurar Apps Script.");
                 return;
             }
@@ -2725,7 +2658,7 @@ html, body { max-width:100%; }
         function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
 
         async function saveBackendUrl() {
-            if (!currentUser || currentUser.tipo !== 'Administrador' || !window.hidraSessionToken) {
+            if (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador' || !window.hidraSessionToken) {
                 alert('Acceso restringido al administrador autenticado.');
                 return;
             }
@@ -2824,7 +2757,7 @@ html, body { max-width:100%; }
           estado.textContent = 'Conexión verificada y guardada.';
           document.getElementById('estadoLoginConexion').textContent='Sincronizado';
           await fetchData();
-          if (currentUser && currentUser.tipo === 'Administrador') {
+          if (currentUser && hdRolDocJS_(currentUser.tipo) === 'Administrador') {
             document.getElementById('recuperacionConexion').classList.add('hidden');
           }
         } catch (error) {
@@ -2876,6 +2809,30 @@ html, body { max-width:100%; }
           error.classList.remove('hidden');
         }finally{btn.disabled=false;btn.textContent='Ingresar';}
       };
+    </script>
+    <script src="./ampliaciones-ui.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded',()=>{
+        for(const mod of ['OM5']){
+          const section=document.getElementById('tab-'+mod.toLowerCase());if(!section)continue;
+          section.innerHTML=`<div id="amplWorkspace"><h2>${mod==='OM5'?'AMPLIACIONES DE REDES OM5':'AMPLIACIONES UIA'}</h2>
+          <div class="hd-ampl-controls">
+           <input id="amplSearch" type="search" placeholder="Buscar por texto" oninput="Ampliaciones.search()" />
+           <select id="amplField" onchange="Ampliaciones.search()"><option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option>${mod==='OM5'?'<option value="res">Número de resolución</option>':''}<option value="${mod==='OM5'?'Solicitante':'Nombre'}">Solicitante</option><option value="${mod==='OM5'?'NombreSector':'Direccion'}">Sector / Dirección</option></select>
+           <label>Desde <input type="date" id="amplStart" onchange="Ampliaciones.search()" /></label><label>Hasta <input type="date" id="amplEnd" onchange="Ampliaciones.search()" /></label>
+          </div><div class="hd-ampl-controls">
+           <button onclick="Ampliaciones.refresh('${mod}')">Actualizar</button><button id="amplNew" class="hd-ampl-primary" onclick="Ampliaciones.open('',0,true)">Nuevo expediente</button>
+           <button id="amplDelete" onclick="Ampliaciones.removeExp()">Eliminar seleccionado</button>
+           <button id="amplRestoreBtn" onclick="Ampliaciones.showTrash()">Papelera</button><button id="amplAuditBtn" onclick="Ampliaciones.audit()">Auditoría</button>
+           <button onclick="Ampliaciones.excel()">Exportar Excel</button><button onclick="Ampliaciones.summary()">Reporte / Gráficos</button><button onclick="Ampliaciones.share()">WhatsApp</button>
+          </div><div id="amplStages"></div><p id="amplStatus" role="status"></p>
+          <div class="hd-ampl-grid"><table><thead id="amplTableHead"></thead><tbody id="amplTableBody"></tbody></table></div>
+          <div class="hd-ampl-controls"><span id="amplCount"></span><button id="amplPrev" onclick="Ampliaciones.page(-1)">Anterior</button><button id="amplNext" onclick="Ampliaciones.page(1)">Siguiente</button></div>
+          <div id="amplExtras"></div></div>`;
+          // Una sola interfaz se presenta por vez. La carga dinámica se activa al entrar.
+
+        }
+      });
     </script>
     <script>
       // Instalación opcional PWA; no almacena documentos ni contraseñas.
