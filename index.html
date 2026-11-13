@@ -634,11 +634,11 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         <section id="tab-om5" class="hidden hd-ampl-section"></section>
         <section id="tab-uia" class="hidden hd-ampl-section"></section>
         <section id="tab-ocr" class="hidden hd-ampl-section">
-          <h2>Buscar expedientes por fotografía, PDF o voz</h2>
+          <h2>Buscar expedientes por fotografía o PDF</h2>
           <p>La fotografía y el PDF se reconocen localmente; no se cargan como adjuntos.</p>
           <div class="hd-ampl-controls"><label>Fotografía / PDF <input type="file" id="amplOCRFile" accept="image/*,.pdf"></label><label>Tomar fotografía <input type="file" accept="image/*" capture="environment" onchange="document.getElementById('amplOCRFile').files=this.files;"></label>
           <button onclick="Ampliaciones.recognize()" id="amplOCRRun">Reconocer documento</button>
-          <button onclick="Ampliaciones.ocrCancel()">Cancelar</button><button onclick="Ampliaciones.voice()">🎙 Dictar búsqueda</button></div>
+          <button onclick="Ampliaciones.ocrCancel()">Cancelar</button></div>
           <p id="amplOCRStatus" role="status"></p><h3>Datos reconocidos: selecciona y corrige</h3>
           <div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
           <div id="amplOCRResults"></div>
