@@ -326,6 +326,90 @@ body{background:#eef4fc!important}
 @media(max-width:900px){:root{--hd-top-height:0px}.hd-executive-sidebar{top:0!important;width:min(290px,83vw)!important;transform:translateX(-105%);transition:transform .22s ease;z-index:58;padding-top:73px}.hd-executive-sidebar.hd-menu-open{transform:translateX(0)}.hd-menu-toggle{display:flex;position:fixed;left:12px;bottom:14px;z-index:55;background:#0868df;color:white;border:0;border-radius:14px;align-items:center;gap:9px;padding:12px 15px;box-shadow:0 7px 21px #07356866;font-weight:800}.hd-menu-scrim.hd-scrim-active{display:block;position:fixed;inset:0;background:#081c3d99;z-index:57}.hd-menu-toggle.hd-menu-behind{z-index:56}#hdMainContent{margin-left:0!important;width:100%!important;padding:20px 14px 92px!important}.glass-header{position:relative!important}.hd-executive-kpis{gap:10px}.hd-kpi{min-height:98px;gap:11px;padding:12px}.hd-kpi i{font-size:28px}.hd-kpi strong{font-size:25px}.hd-kpi small{font-size:12px}.mobile-bottom-nav{display:none!important}}
 @media(max-width:620px){.hd-executive-intro{flex-direction:column}.hd-executive-kpis{grid-template-columns:1fr}.hd-kpi{justify-content:flex-start;min-height:85px;padding:13px 20px}.hd-kpi i{font-size:35px}.hd-kpi strong{font-size:29px}.hd-executive-grid{grid-template-columns:1fr}.hd-quick-links{grid-column:auto;grid-template-columns:1fr}.hd-quick-links h3{grid-column:auto}.hd-chart-holder{height:230px}}
 </style>
+<style id="hdSidebarContrastFix">
+/* REV04: corrige la colisión con los selectores antiguos body > nav.
+   Solo afecta al menú ejecutivo; no cambia comunicaciones ni permisos. */
+:root { --hd-top-height: 102px; }
+body > nav#hdExecutiveSidebar {
+  position: fixed !important;
+  inset: var(--hd-top-height) auto 0 0 !important;
+  width: var(--hd-side-width) !important;
+  height: auto !important;
+  padding: 18px 12px 28px !important;
+  margin: 0 !important;
+  background: linear-gradient(180deg,#092653 0%,#061a3a 100%) !important;
+  color: #f4f8ff !important;
+  border: 0 !important;
+  border-right: 1px solid #2a5184 !important;
+  border-radius: 0 !important;
+  box-shadow: 3px 0 18px #081b3b25 !important;
+  z-index: 42 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  scrollbar-color: #5075a6 transparent;
+}
+body > nav#hdExecutiveSidebar .hd-side-heading {
+  color: #bcd8ff !important;
+  border-color: #3b5c87 !important;
+  opacity: 1 !important;
+}
+body > nav#hdExecutiveSidebar .tab-btn.hd-side-item,
+body > nav#hdExecutiveSidebar button.hd-side-item {
+  color: #f4f8ff !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0 !important;
+  text-decoration: none !important;
+  text-align: left !important;
+  white-space: normal !important;
+  opacity: 1 !important;
+  padding: 12px 11px !important;
+  min-height: 44px !important;
+  width: 100% !important;
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  box-shadow: none !important;
+}
+body > nav#hdExecutiveSidebar .hd-side-item i,
+body > nav#hdExecutiveSidebar .hd-side-item span {color: inherit !important;opacity:1 !important;}
+body > nav#hdExecutiveSidebar .hd-side-item:hover,
+body > nav#hdExecutiveSidebar .hd-side-item:focus-visible {
+  color: #fff !important;
+  background: #204575 !important;
+  outline-offset: -2px;
+}
+body > nav#hdExecutiveSidebar .hd-side-item.hd-side-active,
+body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
+  color: #fff !important;
+  background: #116be5 !important;
+  box-shadow: 0 3px 9px #021b4477 !important;
+}
+@media (max-width:900px) {
+  body > nav#hdExecutiveSidebar {
+    inset: 0 auto 0 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: min(310px,86vw) !important;
+    padding: 75px 12px 28px !important;
+    z-index: 58 !important;
+    transform: translateX(-105%);
+    transition: transform .22s ease;
+  }
+  body > nav#hdExecutiveSidebar.hd-menu-open {transform: translateX(0);}
+  body > nav#hdExecutiveSidebar .tab-btn.hd-side-item {font-size: 14px !important;padding: 13px 12px !important;}
+  body > nav#hdExecutiveSidebar .hd-side-item i {font-size: 17px !important;}
+  #hdMenuToggle {display:flex !important;}
+}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
