@@ -365,8 +365,12 @@ html, body { max-width:100%; }
             <button onclick="switchTab('ocr')" id="tab-btn-ocr" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm">Buscar con foto / voz</button>
             <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
                 <i class="fa-solid fa-chart-pie text-lg"></i>
-                <span>Dashboard Ejecutivo</span>
+                <span>Dashboard Documentos</span>
             </button>
+            <button onclick="switchTab('dash-ampl')" id="tab-btn-dash-ampl" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 font-bold text-sm">Dashboard Ampliaciones</button>
+            <button onclick="switchTab('reportes')" id="tab-btn-reportes" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 font-bold text-sm">Reportes</button>
+            <button onclick="switchTab('copias')" id="tab-btn-copias" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 font-bold text-sm">Copias de seguridad</button>
+            <button onclick="switchTab('personal')" id="tab-btn-personal" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 font-bold text-sm">Personal y usuarios</button>
             <button onclick="switchTab('catalogos')" id="tab-btn-catalogos" class="tab-btn py-4 px-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-bold text-sm flex items-center space-x-2.5 transition">
                 <i class="fa-solid fa-sliders text-lg"></i>
                 <span>Gestión de Catálogos</span>
@@ -391,6 +395,11 @@ html, body { max-width:100%; }
           <div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
           <div id="amplOCRResults"></div>
         </section>
+        <!-- Funciones transversales de la plataforma -->
+        <section id="tab-dash-ampl" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Dashboard de Ampliaciones OM5 y UIA</h2><p id="hdDashEstado" role="status"></p><div id="hdDashContenido" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div><div id="hdDashGraficos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
+        <section id="tab-reportes" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Reportes del sistema</h2><div class="hd-ampl-controls"><label>Módulo <select id="hdRepModulo"><option value="Documentos">Gestión de Documentos</option><option value="OM5">Ampliaciones OM5</option><option value="UIA">Ampliaciones UIA</option></select></label><label>Título del reporte <input id="hdRepTitulo" value="Reporte de expedientes"></label><label>Buscar <input id="hdRepFiltro" placeholder="Filtrar registros"></label><button onclick="hdReporteVista()">Consultar</button><button onclick="hdReporteExcel()">Descargar Excel</button></div><p id="hdReporteEstado" role="status"></p><div id="hdReporteVista" style="max-height:65vh;overflow:auto"></div></section>
+        <section id="tab-copias" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Copias de seguridad de las bases de datos</h2><p>Genera una copia de las dos bases en Google Drive. Las descargas a Excel requieren una sesión de Google con acceso autorizado a las bases.</p><button id="hdBackupBtn" onclick="hdCrearCopia()">Generar copias ahora</button><p id="hdBackupEstado" role="status"></p><div id="hdBackupResultados"></div></section>
+        <section id="tab-personal" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Administración general de Personal y usuarios</h2><p>Usuarios y roles transversales. Se conserva la hoja Personal de la base documental.</p><div id="hdPersonalPanel" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
             <div class="hd-title-row"><div class="hd-title-icon"><i class="fa-regular fa-file-lines"></i></div><div><h2>Gestión de Documentos</h2><p>Administra, registra y controla los documentos de la organización.</p></div></div>
@@ -932,6 +941,16 @@ html, body { max-width:100%; }
             const isVisita = hdRolDocJS_(currentUser.tipo) === 'Visita' || hdEsSoloOM5_(currentUser.tipo);
             const isAdmin = hdRolDocJS_(currentUser.tipo) === 'Administrador';
             const isAmpliaciones = ['Administrador','Administrador Total','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Visitante Total'].includes(currentUser.tipo);
+            const canPerson = hdPuedeAdministrarUsuarios_();
+            const canBackup = hdPuedeRespaldar_();
+            const canDocs = !hdEsSoloOM5_(currentUser.tipo);
+            for (const [k,visible] of [['personal',canPerson],['copias',canBackup],['dash-ampl',isAmpliaciones],['reportes',canDocs||isAmpliaciones]]) {
+                const btn=document.getElementById('tab-btn-'+k);
+                if(btn) btn.style.display=visible?'':'none';
+            }
+            const pCard=document.getElementById('managePersonalList')?.closest('.bg-white');
+            const pMount=document.getElementById('hdPersonalPanel');
+            if(pCard&&pMount&&!pMount.contains(pCard))pMount.appendChild(pCard);
             ['om5','uia','ocr'].forEach(x=>{
               const button=document.getElementById('tab-btn-'+x);
               if(button)button.style.display=isAmpliaciones?'':'none';
@@ -1113,6 +1132,9 @@ html, body { max-width:100%; }
                 try{form.submit();}catch(err){finish(err);}
             });
         }
+        // Puente autenticado para el módulo OM5/UIA externo.
+        window.postGateway = postGateway;
+
         async function fetchData() {
             const tokenUsado = window.hidraSessionToken;
             if (!tokenUsado || hidraCerrandoSesion) return false;
@@ -2622,8 +2644,25 @@ html, body { max-width:100%; }
         const om5 = {seq:0,hojas:[],data:[],filtered:[],gid:null,loaded:false};
         function om5Entrar(){if(window.Ampliaciones)Ampliaciones.enter('OM5');}
 
+        // ADMINISTRACIÓN Y REPORTES. No se modifica el módulo Documentos original.
+        function hdAccesoAmpliaciones_(){return !!currentUser && ['Administrador','Administrador Total','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Visitante Total'].includes(currentUser.tipo);}
+        function hdPuedeAdministrarUsuarios_(){return !!currentUser && ['Administrador','Administrador Total','Administrador documentos'].includes(currentUser.tipo);}
+        function hdPuedeRespaldar_(){return !!currentUser && ['Administrador','Administrador Total','Administrador documentos','Asistente Documentos','Administrador OM5','Asistente OM5'].includes(currentUser.tipo);}
+        function hdEsc_(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+        async function hdAsegurarAmpl_(mod){if(!hdAccesoAmpliaciones_())throw Error('No tienes acceso a '+mod);if(!window.Ampliaciones?.getData(mod)){await Ampliaciones.refresh(mod);}let x=Ampliaciones.getData(mod);if(!x||!Array.isArray(x.registros))throw Error('No fue posible leer '+mod+'. Comprueba la URL del backend y tu sesión.');return x;}
+        function hdNro_(r,candidatos){for(const k of candidatos){const encontrado=Object.keys(r).find(x=>x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'')===k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''));if(encontrado)return r[encontrado]}return '';}
+        let hdChartsAmpl=[];
+        async function hdMostrarDashboardAmpl(){const e=document.getElementById('hdDashEstado'),out=document.getElementById('hdDashContenido'),charts=document.getElementById('hdDashGraficos');e.textContent='Consultando las bases de datos...';try{const [om5,uia]=await Promise.all([hdAsegurarAmpl_('OM5'),hdAsegurarAmpl_('UIA')]);let grupos={};let totalClientes=0;for(const r of om5.registros){let m=String(hdNro_(r,['Modalidad'])||'Sin modalidad');grupos[m]=(grupos[m]||0)+1;totalClientes+=Number(hdNro_(r,['ClientesCaptar'])||0)||0;}let pending=0,attended=0;for(const r of uia.registros){const v=String(hdNro_(r,['Estado Actual'])).toLowerCase().trim();if(v==='pendiente')pending++;if(v==='atendido')attended++;}out.innerHTML=`<article class="hd-ampl-card"><h3>OM5</h3><p><b>${om5.registros.length}</b> expedientes</p><p>${totalClientes} clientes a captar</p></article><article class="hd-ampl-card"><h3>UIA</h3><p><b>${uia.registros.length}</b> expedientes</p><p>${pending} pendientes · ${attended} atendidos · ${uia.registros.length-pending-attended} sin estado u otro</p></article>`;hdChartsAmpl.forEach(c=>c.destroy());hdChartsAmpl=[];charts.innerHTML='<div class="hd-ampl-card"><h3>OM5 por modalidad</h3><canvas id="hdChartOM5"></canvas></div><div class="hd-ampl-card"><h3>UIA por estado</h3><canvas id="hdChartUIA"></canvas></div>';if(window.Chart){hdChartsAmpl.push(new Chart(document.getElementById('hdChartOM5'),{type:'bar',data:{labels:Object.keys(grupos),datasets:[{label:'Ampliaciones',data:Object.values(grupos)}]},options:{responsive:true}}));hdChartsAmpl.push(new Chart(document.getElementById('hdChartUIA'),{type:'doughnut',data:{labels:['Pendiente','Atendido','Otro'],datasets:[{data:[pending,attended,uia.registros.length-pending-attended]}]},options:{responsive:true}}));}e.textContent='Datos obtenidos de OM5 y UIA.';}catch(err){e.textContent='No se pudo cargar el dashboard: '+err.message;out.innerHTML='';charts.innerHTML='';}}
+        let hdUltimoReporte=null;
+        async function hdDatosReporte_(){const mod=document.getElementById('hdRepModulo').value;if(mod==='Documentos'){if(hdEsSoloOM5_(currentUser?.tipo))throw Error('Sin acceso a Documentos');return {headers:['Numero_Documento','Origen_Tipo','Asunto','Fecha_Ingreso','Fecha_Vencimiento','Dias_Trancurridos','Dias_Exceso','Responsable','Estado','Observaciones'],registros:appData.Documentos};}return await hdAsegurarAmpl_(mod);}
+        async function hdReporteVista(){const out=document.getElementById('hdReporteVista'),status=document.getElementById('hdReporteEstado');status.textContent='Preparando reporte...';try{const d=await hdDatosReporte_(),q=document.getElementById('hdRepFiltro').value.trim().toLowerCase();const rows=d.registros.filter(r=>!q||d.headers.some(k=>String(r[k]??'').toLowerCase().includes(q)));hdUltimoReporte={rows,headers:d.headers,modulo:document.getElementById('hdRepModulo').value};status.textContent=`${rows.length} registros. Se exportarán todos los campos y filas filtrados.`;out.innerHTML='<table class="hd-ampl-grid"><thead><tr>'+d.headers.map(k=>'<th>'+hdEsc_(k)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(0,100).map(r=>'<tr>'+d.headers.map(k=>'<td>'+hdEsc_(r[k] instanceof Date?r[k].toLocaleDateString('es-PE'):r[k])+'</td>').join('')+'</tr>').join('')+'</tbody></table>'+(rows.length>100?'<p>Vista previa de 100 filas; la exportación incluirá todas.</p>':'');}catch(err){hdUltimoReporte=null;status.textContent='Error: '+err.message;out.innerHTML='';}}
+        async function hdReporteExcel(){await hdReporteVista();if(!hdUltimoReporte)return;if(!window.XLSX)return alert('No se pudo cargar la librería de Excel.');const r=hdUltimoReporte,titulo=document.getElementById('hdRepTitulo').value.trim()||'Reporte de expedientes';const matr=[r.headers,...r.rows.map(x=>r.headers.map(k=>{let v=x[k];return v instanceof Date?v.toISOString().slice(0,10):v??'';}))];const ws=XLSX.utils.aoa_to_sheet(matr);ws['!cols']=r.headers.map((h,i)=>({wch:Math.min(45,Math.max(15,h.length+3))}));const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,ws,'Detalle');XLSX.writeFile(book,(titulo+' - '+r.modulo).replace(/[\/:*?"<>|]/g,'_')+'.xlsx');}
+        async function hdCrearCopia(){const b=document.getElementById('hdBackupBtn'),s=document.getElementById('hdBackupEstado'),out=document.getElementById('hdBackupResultados');b.disabled=true;s.textContent='Generando copias con los permisos de tu cuenta...';out.innerHTML='';try{const r=await postGateway({action:'amplBackup'},110000);out.innerHTML='<h3>Copias generadas en Google Drive</h3>'+r.archivos.map(f=>`<p><a href="${hdEsc_(f.url)}" target="_blank" rel="noopener">${hdEsc_(f.nombre)}</a></p>`).join('')+'<p>Abre cada copia para descargarla en Excel. La descarga requiere permisos de Google Drive.</p>';s.textContent='Se crearon las copias. Comprueba que puedes abrir ambas.';}catch(err){s.textContent='No se pudo completar la copia: '+err.message;}finally{b.disabled=false;}}
         function switchTab(tabId) {
             if(currentUser && hdEsSoloOM5_(currentUser.tipo) && ['documentos','dashboard','catalogos'].includes(tabId))return;
+            if (tabId === 'personal' && !hdPuedeAdministrarUsuarios_()) return;
+            if (tabId === 'copias' && !hdPuedeRespaldar_()) return;
+            if (tabId === 'dash-ampl' && !hdAccesoAmpliaciones_()) return;
             if(currentUser && ['om5','uia','ocr'].includes(tabId) && !['Administrador','Administrador Total','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Visitante Total'].includes(currentUser.tipo))return;
 
             if (tabId === 'catalogos' && (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador')) return;
@@ -2641,7 +2680,9 @@ html, body { max-width:100%; }
             if (tabId === 'om5') om5Entrar();
             if (tabId === 'uia') Ampliaciones.enter('UIA');
             if (tabId === 'dashboard') renderStatsAndCharts();
-            if (tabId === 'catalogos') renderCatalogsManagement();
+            if (tabId === 'catalogos' || tabId === 'personal') renderCatalogsManagement();
+            if (tabId === 'dash-ampl') hdMostrarDashboardAmpl();
+            if (tabId === 'reportes') { if (hdEsSoloOM5_(currentUser?.tipo)) document.getElementById('hdRepModulo').value='OM5'; hdReporteVista(); }
         }
 
         function openConfigModal() { 
