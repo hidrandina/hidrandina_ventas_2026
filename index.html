@@ -1084,6 +1084,26 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
 .hd-ampl-attach{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hd-ampl-attach>span{flex:1}
 .hd-ampl-muted{color:#66788b;font-size:13px}#amplOCRResults{max-height:70vh;overflow:auto}
 @media(max-width:767px){.hd-ampl-fields{grid-template-columns:1fr}.hd-ampl-doc{grid-template-columns:1fr}.hd-ampl-candidate{grid-template-columns:1fr}.hd-ampl-section{padding:10px}.mobile-bottom-nav{grid-template-columns:repeat(6,1fr)!important}.mobile-bottom-nav button{font-size:9px}}
+
+/* REV08 · filas compactas progresivas · exclusivamente formularios de ampliaciones */
+#amplFormBody .hd-ampl-doc-group{grid-column:1/-1;min-width:0;margin:8px 0 12px;padding:14px;border:1px solid #d9e4f4;background:#f8fbff;border-radius:15px}
+#amplFormBody .hd-ampl-doc-group>h4{margin:0 0 12px;color:#173b78;font-size:16px;font-weight:800}
+#amplFormBody .hd-ampl-doc-list{display:flex;flex-direction:column;gap:10px}
+#amplFormBody .hd-ampl-doc{display:grid;grid-template-columns:minmax(190px,1.4fr) minmax(145px,.8fr) minmax(220px,1.2fr);gap:10px;align-items:end;background:#fff;border:1px solid #cfdef0;border-radius:12px;padding:12px;min-width:0}
+#amplFormBody .hd-ampl-doc[hidden]{display:none!important}
+#amplFormBody .hd-ampl-doc-heading{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#1c427b}
+#amplFormBody .hd-ampl-doc-cell,#amplFormBody .hd-ampl-inline-attachment{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:12px;font-weight:700;color:#345274}
+#amplFormBody .hd-ampl-doc-cell input,#amplFormBody .hd-ampl-doc-cell textarea{width:100%;min-width:0;min-height:42px;background:#fff;border:1px solid #c9d9ed;border-radius:9px;padding:9px;font-size:14px;color:#193654}
+#amplFormBody .hd-ampl-doc-cell textarea{resize:vertical;min-height:54px}
+#amplFormBody .hd-ampl-doc:has(.hd-ampl-note){grid-template-columns:minmax(200px,1.5fr) minmax(180px,1fr) minmax(220px,1.1fr)}
+#amplFormBody .hd-ampl-inline-attachment{border:1px dashed #b1c7e4;border-radius:9px;padding:8px;min-height:60px;justify-content:center}
+#amplFormBody .hd-ampl-inline-attachment input{font-size:12px;width:100%;max-width:100%}
+#amplFormBody .hd-ampl-inline-attachment small{font-size:10px;font-weight:400;color:#637b96}
+#amplFormBody .hd-ampl-doc-footer{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+#amplFormBody .hd-ampl-add{background:#e4efff;color:#1451ad;border:1px solid #97b8eb;border-radius:9px;padding:10px 14px;font-weight:800}
+#amplFormBody .hd-ampl-add:disabled{opacity:.55;cursor:not-allowed}
+#amplFormBody .hd-ampl-remove{border:1px solid #e4b9b9;color:#a32b2b;background:#fff8f8;border-radius:8px;padding:7px;font-size:11px}
+@media(max-width:800px){#amplFormBody .hd-ampl-doc,#amplFormBody .hd-ampl-doc:has(.hd-ampl-note){grid-template-columns:1fr!important}#amplFormBody .hd-ampl-doc-heading{grid-column:1}#amplFormBody .hd-ampl-doc-group{padding:10px}#amplFormBody .hd-ampl-inline-attachment{min-height:60px}}
 </style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
