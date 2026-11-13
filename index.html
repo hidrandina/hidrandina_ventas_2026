@@ -1085,7 +1085,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
 .hd-ampl-muted{color:#66788b;font-size:13px}#amplOCRResults{max-height:70vh;overflow:auto}
 @media(max-width:767px){.hd-ampl-fields{grid-template-columns:1fr}.hd-ampl-doc{grid-template-columns:1fr}.hd-ampl-candidate{grid-template-columns:1fr}.hd-ampl-section{padding:10px}.mobile-bottom-nav{grid-template-columns:repeat(6,1fr)!important}.mobile-bottom-nav button{font-size:9px}}
 
-/* REV08 · filas compactas progresivas · exclusivamente formularios de ampliaciones */
+/* REV09 · filas compactas progresivas · exclusivamente formularios de ampliaciones */
 #amplFormBody .hd-ampl-doc-group{grid-column:1/-1;min-width:0;margin:8px 0 12px;padding:14px;border:1px solid #d9e4f4;background:#f8fbff;border-radius:15px}
 #amplFormBody .hd-ampl-doc-group>h4{margin:0 0 12px;color:#173b78;font-size:16px;font-weight:800}
 #amplFormBody .hd-ampl-doc-list{display:flex;flex-direction:column;gap:10px}
@@ -1104,6 +1104,11 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
 #amplFormBody .hd-ampl-add:disabled{opacity:.55;cursor:not-allowed}
 #amplFormBody .hd-ampl-remove{border:1px solid #e4b9b9;color:#a32b2b;background:#fff8f8;border-radius:8px;padding:7px;font-size:11px}
 @media(max-width:800px){#amplFormBody .hd-ampl-doc,#amplFormBody .hd-ampl-doc:has(.hd-ampl-note){grid-template-columns:1fr!important}#amplFormBody .hd-ampl-doc-heading{grid-column:1}#amplFormBody .hd-ampl-doc-group{padding:10px}#amplFormBody .hd-ampl-inline-attachment{min-height:60px}}
+#amplFormBody .hd-ampl-schema-warning{padding:12px;border-radius:8px;color:#8e421c;background:#fff3e8;border:1px solid #f0d1b9;font-size:13px}
+#amplFormBody .hd-ampl-doc-group{background:#f7faff}
+#amplFormBody .hd-ampl-doc-heading{font-size:13px}
+#amplFormBody .hd-ampl-doc-cell input[type="date"]{max-width:100%}
+@media(max-width:800px){#amplFormBody .hd-ampl-doc-footer{align-items:flex-start;flex-direction:column}}
 </style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
@@ -3172,7 +3177,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         }finally{btn.disabled=false;btn.textContent='Ingresar';}
       };
     </script>
-    <script src="./ampliaciones-ui.js"></script>
+    <script src="./ampliaciones-ui.js?v=REV09-20261113"></script>
     <script>
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
