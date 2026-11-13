@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV09 — formularios compactos OM5/UIA. Sólo interfaz; backend no modificado. */
+/* HIDRANDINA_VENTAS REV12 — Guardar + validaciones claras + catálogo UUEE. Backend sin cambios. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -20,7 +20,46 @@ const asis=()=>(typeof currentUser !== 'undefined' && currentUser ? currentUser.
 const oper=()=>(typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : '')==='Operador OM5';
 const view=()=>adm()||asis()||oper()||['Visitante OM5','Visitante Total'].includes((typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : ''));
 const edit=()=>adm()||asis()||oper();
-const update=(txt)=>{let e=$('amplStatus');if(e)e.textContent=txt;};
+const update=(txt,type='info')=>{let e=$('amplStatus');if(e)e.textContent=txt;let m=$('amplFormStatus');if(m&&!$('amplModal')?.hidden){m.textContent=txt;m.dataset.type=type;m.hidden=!txt;}};
+let saving=false;
+function formAlert(message,type='error',fieldName=''){
+ const t=String(message||'No se pudo completar la operación.');update(t,type);
+ const e=$('amplFormStatus');if(e){e.hidden=false;e.scrollIntoView({block:'nearest',behavior:'smooth'});}
+ const target=fieldName?[...$('amplFormBody').querySelectorAll('[data-k]')].find(el=>key(el.getAttribute('data-k'))===key(fieldName)):null;
+ if(target){target.classList.add('hd-ampl-invalid');target.setAttribute('aria-invalid','true');target.focus({preventScroll:true});}
+}
+function validateBeforeSave(payload,mod,isNew){
+ // Las reglas existentes de edición histórica se conservan. Solo exigir
+ // datos base en expedientes nuevos; las solicitudes nuevas siempre llevan fecha.
+ const hs=sheet(mod).headers;
+ const lookup=(name)=>Object.keys(payload).find(h=>key(h)===key(name));
+ if(isNew){
+  const required=mod==='OM5'?['Solicitante','NombreSector','Departamento','Provincia','Distrito','UUEE','ClientesCaptar']:['Nombre','Direccion','Departamento','Provincia','Distrito'];
+  for(const label of required){
+   const actual=head(hs,label),k=lookup(label);
+   if(actual && (!k||!String(payload[k]??'').trim()))return {message:'Falta un campo obligatorio: '+(sheet(mod).etiquetas?.[key(actual)]||label)+'.',field:actual};
+  }
+ }
+ let documents=0;
+ const specs=mod==='OM5'?[['NroSolicitud','FechaSolicitud',6,'Solicitud'],['NroResolución','FechaResolucion',2,'Resolución']]:[['NroSolicitud','FechaSolicitud',3,'Solicitud']];
+ for(const [numberPrefix,datePrefix,max,label] of specs){
+  for(let i=1;i<=max;i++){
+   const numberField=field(hs,numberPrefix,i),dateField=field(hs,datePrefix,i);
+   if(!numberField)continue;
+   const n=lookup(numberField),d=dateField?lookup(dateField):null;
+   const number=n?String(payload[n]??'').trim():'';
+   const date=d?String(payload[d]??'').trim():'';
+   if(number){documents++;
+    // No bloquear la edición de una fila histórica incompleta y no modificada.
+    const previous=registro?.row||{};
+    const unchanged=!isNew && String(previous[numberField]??'').trim()===number;
+    if(dateField&&!date&&!unchanged)return {message:'Falta la fecha de '+label.toLowerCase()+' '+i+'.',field:dateField};
+   } else if(date){return {message:'Falta el número de '+label.toLowerCase()+' '+i+' para la fecha ingresada.',field:numberField};}
+  }
+ }
+ if(isNew&&!documents)return {message:'Debes ingresar al menos una solicitud'+(mod==='OM5'?' o una resolución':'')+' con su fecha.',field:field(hs,'NroSolicitud',1)};
+ return null;
+}
 const api=async(action,data={})=>{let res=await window.postGateway({action,...data},110000);return res;};
 function sheet(mod){return STORE[mod]||{headers:[],registros:[],adjuntos:[],catalogos:{}};}
 function section(){return $('tab-'+curso.toLowerCase());}
@@ -46,7 +85,7 @@ function render(mod){curso=mod;let n=NAV[mod],list=visible(mod),sub=list.slice(n
 function select(idValue){NAV[curso].selected=idValue;render(curso);}
 function page(delta){let n=NAV[curso];n.page=Math.max(0,n.page+delta);render(curso);}
 function search(){let n=NAV[curso];n.filter=$('amplSearch').value;n.col=$('amplField').value;n.start=$('amplStart').value;n.end=$('amplEnd').value;n.page=0;render(curso);}
-function valuesOptions(c){let catalog=sheet(curso).catalogos||{},map={Modalidad:'A',TipoSuministro:'B',Departamento:'C',Provincia:'D',Distrito:'E',EstadoExpVentas:'F',EstadoInspeccionVentas:'G',EstadoUMD:'H',EstadoCaptacionClientes:'I'};let col=map[Object.keys(map).find(x=>key(x)===key(c))];return col?catalog[col]||[]:[];}
+function valuesOptions(c){let catalog=sheet(curso).catalogos||{},map={Modalidad:'A',TipoSuministro:'B',Departamento:'C',Provincia:'D',Distrito:'E',EstadoExpVentas:'F',EstadoInspeccionVentas:'G',EstadoUMD:'H',EstadoCaptacionClientes:'I',UUEE:'J'};let col=map[Object.keys(map).find(x=>key(x)===key(c))];return col?catalog[col]||[]:[];}
 function fieldInput(h,value,editable){let date=/^fecha/i.test(key(h)),text=/observac|obs|memo/i.test(key(h)),opts=valuesOptions(h);if(key(h)==='estadoactual'&&curso==='UIA')opts=['Pendiente','Atendido'];let disabled=editable?'':'disabled';let val=format(value);
  if(opts.length)return `<select data-k="${safe(h)}" ${disabled}><option value="">Seleccionar...</option>${[...new Set([...opts,val].filter(Boolean))].map(v=>`<option ${v===val?'selected':''} value="${safe(v)}">${safe(v)}</option>`).join('')}</select>`;
  if(text)return `<textarea ${disabled} rows="3" data-k="${safe(h)}">${safe(val)}</textarea>`;
@@ -59,7 +98,7 @@ function open(rid,stage=0,editable=false){
  if(editable&&!edit()){update('Sin permisos de edición.');return;}
  registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:row||{},mod:curso};
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
- $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 10';
+ $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 12';
  const grouped=new Set();
  // Ocultar solo los campos que se renderizan en filas agrupadas; nunca eliminar sus valores reales.
  if(stage===0||curso==='UIA'){
@@ -90,7 +129,7 @@ function open(rid,stage=0,editable=false){
  if(curso==='OM5'&&stage===1)docs('obsExp',editable);
  if(curso==='OM5'&&stage===2)docs('obsInsp',editable);
  if(rid)renderAttachments();else $('amplExistingAttachments').textContent='También podrás añadir archivos después de guardar el expediente.';
- $('amplSave').hidden=!editable;$('amplModal').hidden=false;
+ $('amplSave').hidden=!editable;$('amplModal').hidden=false;const note=$('amplFormStatus');if(note){note.textContent='';note.hidden=true;note.dataset.type='info';}if($('amplSave')){$('amplSave').disabled=false;$('amplSave').textContent='Guardar';}
 }
 function docGroup(kind){
  let h=sheet(curso).headers;
@@ -143,33 +182,44 @@ function addDoc(kind){
  next.querySelector('input[data-k],textarea[data-k]')?.focus();
 }
 async function deleteDocField(campo){if(!registro?.id||!registro.editable)return;if(!confirm('¿Eliminar '+campo+' y enviar a la papelera TODOS sus adjuntos?'))return;try{let r=await api('amplDeleteDocument',{modulo:curso,expedienteId:registro.id,campo,confirmar:'ELIMINAR_DOCUMENTO'});let rid=registro.id;await refresh(curso);open(rid,registro.stage,true);update('Documento eliminado; '+r.adjuntos+' adjunto(s) enviados a papelera.');}catch(e){update(e.message)}}
-function close(){ $('amplModal').hidden=true;registro=null; }
+function close(){if(saving){formAlert('El guardado todavía está en curso. No cierres el formulario.','info');return;}$('amplModal').hidden=true;registro=null;}
 function collect(){let result={};$('amplFormBody').querySelectorAll('[data-k]').forEach(e=>{if(e.closest('[data-doc]')?.hidden)return;result[e.getAttribute('data-k')]=e.value.trim();});return result;}
 async function save(){
- if(!registro?.editable)return;
- const payload=collect(),mod=registro.mod;
- // Capturar los archivos ANTES de cerrar el formulario; nombre original intacto.
- const files=[...$('amplFormBody').querySelectorAll('input[data-ampl-upload]')]
-  .filter(x=>!x.closest('[data-doc]')?.hidden)
-  .flatMap(x=>[...x.files].map(file=>({campo:x.getAttribute('data-ampl-upload'),file})));
+ if(saving)return;
+ if(!registro?.editable){formAlert('No hay un expediente editable abierto.');return;}
+ const button=$('amplSave');
+ let savedOnServer=false;
  try{
-  for(const {file} of files){if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);}
-  update('Guardando expediente y validando datos...');
+  $('amplFormBody').querySelectorAll('.hd-ampl-invalid').forEach(el=>{el.classList.remove('hd-ampl-invalid');el.removeAttribute('aria-invalid');});
+  const payload=collect(),mod=registro.mod,isNew=!registro.id;
+  const validation=validateBeforeSave(payload,mod,isNew);
+  if(validation){formAlert(validation.message,'error',validation.field);return;}
+  const files=[...$('amplFormBody').querySelectorAll('input[data-ampl-upload]')]
+   .filter(x=>!x.closest('[data-doc]')?.hidden)
+   .flatMap(x=>[...x.files].map(file=>({campo:x.getAttribute('data-ampl-upload'),file})));
+  for(const {file} of files)if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);
+  saving=true;if(button){button.disabled=true;button.textContent='Guardando…';}
+  update('Guardando expediente. No cierres esta ventana.');
   const r=await api('amplSave',{modulo:mod,expedienteId:registro.id,version:registro.version,datos:JSON.stringify(payload)});
-  let failed=[];
+  if(!r||!r.expedienteId)throw Error('El servidor no confirmó el ID del expediente. Antes de reintentar, consulta la lista para evitar duplicados.');
+  savedOnServer=true;
+  const failed=[];
   for(let i=0;i<files.length;i++){
-   const {campo,file}=files[i];
-   update('Expediente guardado. Subiendo archivo '+(i+1)+' de '+files.length+': '+file.name);
+   const {campo,file}=files[i];update('Expediente guardado. Subiendo archivo '+(i+1)+' de '+files.length+': '+file.name);
    try{await api('amplUpload',{modulo:mod,expedienteId:r.expedienteId,campo,nombre:file.name,base64:await fileToBase64(file)});}
    catch(e){failed.push(file.name+': '+e.message);}
   }
-  close();await refresh(mod);NAV[mod].selected=r.expedienteId;render(mod);
-  let note='Expediente guardado.'+(r.advertencias?.length?' '+r.advertencias.join(' | '):'');
-  if(failed.length){note+=' No se pudieron adjuntar '+failed.length+' archivo(s).';alert('El expediente SE GUARDÓ, pero estos archivos NO se subieron. Vuelve a seleccionarlos en Editar:\n'+failed.join('\n'));}
-  else if(files.length)note+=' '+files.length+' archivo(s) adjuntados.';
-  update(note);
+  // No perder el aviso de guardado si fallara la recarga de la lista.
+  const note='Expediente guardado correctamente.'+(r.advertencias?.length?' '+r.advertencias.join(' | '):'');
+  $('amplModal').hidden=true;registro=null;update(note);
+  try{await refresh(mod);NAV[mod].selected=r.expedienteId;render(mod);update(note+(failed.length?' Algunos archivos no se subieron.':files.length?' '+files.length+' archivo(s) adjuntados.':''));}
+  catch(e){update(note+' No se pudo actualizar la lista automáticamente: '+e.message);}
+  if(failed.length)alert('Expediente guardado, pero estos archivos NO se subieron. Usa Editar para volver a adjuntarlos:\n'+failed.join('\n'));
   if(r.advertencias?.length)alert('Guardado con advertencias:\n'+r.advertencias.join('\n'));
- }catch(e){update('No se pudo guardar: '+e.message);}
+ }catch(e){
+  const msg=(e&&e.message)||String(e);
+  formAlert((savedOnServer?'El expediente pudo guardarse; verifica la lista antes de reintentar. ':'No se pudo guardar. ')+msg);
+ }finally{saving=false;if(button){button.disabled=false;button.textContent='Guardar';}}
 }
 function renderAttachments(){let box=$('amplExistingAttachments'),a=sheet(curso).adjuntos.filter(x=>x.expedienteId===registro.id);box.innerHTML='<h4>Archivos adjuntos</h4>'+a.map(x=>`<div class="hd-ampl-attach"><span title="${safe(x.nombre)}">${safe(x.nombre)} (${safe(x.campo)})</span><button onclick="Ampliaciones.download('${safe(x.id)}')">Ver/descargar</button>${registro.editable?`<button onclick="Ampliaciones.removeFile('${safe(x.id)}')">Eliminar</button>`:''}</div>`).join('')+(registro.editable?`<label>Vincular nuevo archivo a campo <select id="amplAttachmentField">${sheet(curso).headers.filter(h=>/^nro(solicitud|resoluc)|^memo/i.test(key(h))).map(x=>`<option>${safe(x)}</option>`).join('')}</select></label><input type="file" id="amplUploadInput" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.gif"><button onclick="Ampliaciones.upload()">Subir adjuntos</button>`:'');}
 async function upload(){if(!registro?.id)return;let input=$('amplUploadInput'),campo=$('amplAttachmentField').value;if(!input?.files?.length)return;try{for(let file of input.files){if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);let b64=await fileToBase64(file);await api('amplUpload',{modulo:curso,expedienteId:registro.id,campo,nombre:file.name,base64:b64});}await refresh(curso);registro.row=sheet(curso).registros.find(r=>id(r)===registro.id);renderAttachments();update('Archivos subidos correctamente.');}catch(e){update('Error al subir archivo: '+e.message)}}
