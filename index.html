@@ -3177,7 +3177,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         }finally{btn.disabled=false;btn.textContent='Ingresar';}
       };
     </script>
-    <script src="./ampliaciones-ui.js?v=REV10-20261113"></script>
+    <script src="./ampliaciones-ui.js?v=REV09-20261113"></script>
     <script>
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
@@ -3190,6 +3190,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           </div><div class="hd-ampl-controls">
            <button onclick="Ampliaciones.refresh('${mod}')">Actualizar</button><button id="amplNew" class="hd-ampl-primary" onclick="Ampliaciones.open('',0,true)">Nuevo expediente</button>
            <button id="amplDelete" onclick="Ampliaciones.removeExp()">Eliminar seleccionado</button>
+           <button id="amplRestoreBtn" onclick="Ampliaciones.showTrash()">Papelera</button><button id="amplAuditBtn" onclick="Ampliaciones.audit()">Auditoría</button>
            <button onclick="Ampliaciones.excel()">Exportar Excel</button><button onclick="Ampliaciones.summary()">Reporte / Gráficos</button><button onclick="Ampliaciones.share()">WhatsApp</button>
           </div><div id="amplStages"></div><p id="amplStatus" role="status"></p>
           <div class="hd-ampl-grid"><table><thead id="amplTableHead"></thead><tbody id="amplTableBody"></tbody></table></div>
