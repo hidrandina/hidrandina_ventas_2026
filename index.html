@@ -3203,7 +3203,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             document.getElementById('hdReporteEstado').textContent='Error al exportar Excel: '+e.message;
           }
         }
-        /* REV22 - Copias locales (Google Sheets fuente / Excel profesional / adjuntos).
+        /* REV24 - Copias locales (Google Sheets fuente / Excel profesional / adjuntos).
            La base original JAMÁS se escribe. La exportación fuente siempre trae el libro
            completo (OM5+UIA están en el mismo Google Sheets) para evitar alterar el original. */
         let hdBackupAbortado_ = false;
@@ -3316,18 +3316,36 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           return zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:5},mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
         }
         function hdBBase64Bytes_(b64){const b=atob(b64),arr=new Uint8Array(b.length);for(let i=0;i<b.length;i++)arr[i]=b.charCodeAt(i);return arr;}
+        /* REV24: exportación única; PROHIBIDO recombinar fragmentos de exportaciones distintas.
+           Antes de guardar, verificar CRC de TODOS los componentes y filas de OM5/UIA. */
         async function hdBOriginal_(mod,status,onPart){
-          const blocks=[];let count=null;
-          for(let part=0;count===null||part<count;part++){
-            if(hdBackupAbortado_)throw Error('Descarga cancelada.');
-            status.textContent='Descargando copia original '+mod+': fragmento '+(part+1)+' de '+(count||'?')+'...';
-            const r=await postGateway({action:'amplBackupExport',modulo:mod,parte:String(part)},120000);
-            if(count===null)count=Number(r.total);
-            if(!Number.isInteger(count)||count<1||count>100||part>=count||Number(r.parte)!==part)throw Error('Fragmentación incorrecta del archivo original.');
-            blocks.push(hdBBase64Bytes_(r.base64));
-            if(onPart)onPart((part+1)/count);
+          if(hdBackupAbortado_)throw Error('Descarga cancelada.');
+          status.textContent='Generando una única copia original de '+mod+'...';
+          if(onPart)onPart(0.08);
+          const r=await postGateway({action:'amplBackupExport',modulo:mod,completo:'1'},120000);
+          if(!r||!r.base64||r.modo!=='completo')throw Error('El servidor no entregó una copia íntegra. Actualiza la implementación de Apps Script a la Revisión 24.');
+          if(hdBackupAbortado_)throw Error('Descarga cancelada.');
+          const bytes=hdBBase64Bytes_(r.base64);
+          if(bytes.length<100||bytes.length!==Number(r.bytes))throw Error('El tamaño del respaldo no coincide. No se guardará un archivo incompleto.');
+          if(onPart)onPart(0.50);
+          status.textContent='Verificando integridad ZIP, CRC y hojas de '+mod+'...';
+          try{await JSZip.loadAsync(bytes,{checkCRC32:true});}
+          catch(e){throw Error('La copia original tiene un componente XLSX dañado (CRC). Se canceló la descarga. '+(e.message||''));}
+          let libro;
+          try{libro=XLSX.read(bytes,{type:'array',bookSheets:false,cellStyles:false});}
+          catch(e){throw Error('No fue posible leer el XLSX original. Se canceló la descarga. '+(e.message||''));}
+          const expected=r.filasEsperadas||{};
+          const required=mod==='Documentos'?['Documentos']:['OM5','UIA'];
+          for(const name of required){
+            const sheet=libro.Sheets[name];
+            if(!sheet)throw Error('La copia original no contiene la hoja requerida: '+name+'. No se guardó el archivo.');
+            const rows=XLSX.utils.sheet_to_json(sheet,{header:1,blankrows:false});
+            // Si el origen tiene registros, una copia solo con encabezados no es válida.
+            if(Number(expected[name]||0)>1&&rows.length<2)throw Error('La hoja '+name+' está vacía en la exportación, aunque tiene datos en la base original. Respaldo cancelado.');
           }
-          return new Blob(blocks,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+          if(onPart)onPart(1);
+          status.textContent='Copia original íntegra: '+required.join(' y ')+'.';
+          return new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
         }
         async function hdBAdjunto_(mod,item,status,onPart){
           const id=String(item.id||item.ID||item[0]||'');if(!id)throw Error('Adjunto sin ID.');
