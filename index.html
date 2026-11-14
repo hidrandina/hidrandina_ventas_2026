@@ -1714,7 +1714,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         }
 
 
-        /* REV20 | Exportación Excel institucional para TODOS los módulos.
+        /* REV21 | Exportación Excel institucional para TODOS los módulos.
            Se aplica formato OOXML con JSZip: SheetJS Community no escribe estilos.
            No altera reportes en pantalla, bases, filtros, ni módulos OM5/UIA. */
         function hdExcelUsuario_(){
@@ -1766,21 +1766,23 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           if(!window.XLSX||!window.JSZip)throw Error('No se cargaron las bibliotecas necesarias para generar Excel con formato.');
           if(!headers.length)throw Error('El reporte no tiene columnas.');
           const widths=hdExcelAnchos_(headers,filas);
+          // REV21: datos del reporte arriba; metadatos únicamente al pie.
+          const metadataStart=filas.length+5; // filas Excel: título=1, vacío=2, encabezado=3, registros desde 4
           const matriz=[
             ['HIDRANDINA S.A. — '+titulo],
-            ['Fecha y hora de generación: '+hdExcelFecha_()],
-            ['Usuario: '+hdExcelUsuario_()],
-            ['Módulo: '+modulo+'   |   Registros: '+filas.length],
             [],
             headers,
-            ...filas
+            ...filas,
+            [],
+            ['Fecha y hora de generación: '+hdExcelFecha_()],
+            ['Usuario: '+hdExcelUsuario_()],
+            ['Módulo: '+modulo+'   |   Registros: '+filas.length]
           ];
           const ws=XLSX.utils.aoa_to_sheet(matriz);
-          const endCol=XLSX.utils.encode_col(headers.length-1);
-          ws['!merges']=[1,2,3,4].map(n=>({s:{r:n-1,c:0},e:{r:n-1,c:headers.length-1}}));
+          // Metadatos al pie, sin filtros ni filas vacías dentro de la tabla.
+          ws['!merges']=[1,metadataStart,metadataStart+1,metadataStart+2].map(n=>({s:{r:n-1,c:0},e:{r:n-1,c:headers.length-1}}));
           ws['!cols']=widths.map(w=>({wch:w}));
-          ws['!rows']=[{hpt:34},{hpt:24},{hpt:24},{hpt:24},{hpt:10},{hpt:40},...filas.map(r=>({hpt:hdExcelAlto_(r,widths)}))];
-          ws['!autofilter']={ref:'A6:'+endCol+(filas.length+6)};
+          ws['!rows']=[{hpt:34},{hpt:10},{hpt:40},...filas.map(r=>({hpt:hdExcelAlto_(r,widths)})),{hpt:12},{hpt:25},{hpt:25},{hpt:25}];
           const book=XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(book,ws,'Reporte');
           const raw=XLSX.write(book,{bookType:'xlsx',type:'array',compression:true});
@@ -1791,15 +1793,18 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           sheet=sheet.replace(/<c\b([^>]*?)>/g,(tag,attributes)=>{
             const ref=/\br="([A-Z]+)(\d+)"/.exec(attributes);
             if(!ref)return tag;
-            const row=+ref[2],style=row===1?1:row<=4?2:row===6?3:row>=7?4:0;
+            const row=+ref[2];
+            const style=row===1?1:row===3?3:row>=4&&row<=filas.length+3?4:row>=metadataStart?2:0;
             return '<c'+attributes.replace(/\s+s="[^"]*"/g,'')+' s="'+style+'">';
           });
-          const views='<sheetViews><sheetView workbookViewId="0" showGridLines="0">'
-          +'<pane ySplit="6" topLeftCell="A7" activePane="bottomLeft" state="frozen"/>'
-          +'<selection pane="bottomLeft" activeCell="A7" sqref="A7"/>'
+          const views='<sheetViews><sheetView workbookViewId="0" showGridLines="0" zoomScale="90" zoomScaleNormal="90">'
+          +'<pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/>'
+          +'<selection pane="bottomLeft" activeCell="A4" sqref="A4"/>'
           +'</sheetView></sheetViews>';
           if(/<sheetViews[\s>]/.test(sheet))sheet=sheet.replace(/<sheetViews\b[^>]*>[\s\S]*?<\/sheetViews>/,views);
           else sheet=sheet.replace(/(<sheetData\b)/,views+'$1');
+          // No permitir autofiltros heredados de ninguna ruta de exportación.
+          sheet=sheet.replace(/<autoFilter\b[^>]*\/>/g,'').replace(/<autoFilter\b[^>]*>[\s\S]*?<\/autoFilter>/g,'');
           zip.file('xl/worksheets/sheet1.xml',sheet);
           const file=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:5},mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
           const url=URL.createObjectURL(file);
