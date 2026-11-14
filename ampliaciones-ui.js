@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV12 RECUPERACIÓN — Guardar + validaciones claras + catálogo UUEE. Backend sin cambios. */
+/* HIDRANDINA_VENTAS REV16 OCR Y PREVIEW — Guardar + validaciones claras + catálogo UUEE. Backend sin cambios. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -233,18 +233,31 @@ let previewObjectUrl=null, previewGeneration=0, previewPdf=null, previewPage=1;
 function previewModal(){return $('hdAmplPreviewModal');}
 function closePreview(){previewGeneration++;if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null;}previewPdf=null;let modal=previewModal();if(modal){modal.hidden=true;$('hdAmplPreviewBody').replaceChildren();}}
 function localPreview(file){if(!file)return;previewBlob(file,file.name,file.type);}
+// Los adjuntos ya consultados se reutilizan dentro de la sesión (máximo 18 MB).
+const previewCache=new Map();let previewCacheBytes=0;
+function cacheAttachment(id,blob,name,mime){
+ if(blob.size>10*1024*1024)return;
+ while(previewCacheBytes+blob.size>18*1024*1024 && previewCache.size){const oldest=previewCache.keys().next().value;previewCacheBytes-=previewCache.get(oldest).blob.size;previewCache.delete(oldest);}
+ previewCache.set(id,{blob,name,mime});previewCacheBytes+=blob.size;
+}
 async function previewSaved(aid){
- const t=++previewGeneration;openPreview('Cargando archivo…');
+ const t=++previewGeneration;
+ const cached=previewCache.get(aid);
+ if(cached){await previewBlob(cached.blob,cached.name,cached.mime,t);return;}
+ openPreview('Cargando vista previa…');
  try{
   const parts=[];let info=null;
   for(let i=0;i<100;i++){
    const p=await api('amplPreview',{adjuntoId:aid,parte:i});if(t!==previewGeneration)return;
-   if(!p||!p.base64)throw Error('Respuesta incompleta de Google Drive.');
+   if(!p||!p.base64)throw Error('Respuesta incompleta del archivo.');
    info=p;const b=atob(p.base64),a=new Uint8Array(b.length);for(let j=0;j<b.length;j++)a[j]=b.charCodeAt(j);parts.push(a);
    if(i+1>=Number(p.total||1))break;
+   const status=$('hdAmplPreviewBody');if(status)status.textContent='Descargando fragmento '+(i+1)+' de '+p.total+'…';
   }
   if(t!==previewGeneration)return;
-  await previewBlob(new Blob(parts,{type:info.mime||'application/octet-stream'}),info.nombre||'Archivo',info.mime||'',t);
+  const blob=new Blob(parts,{type:info.mime||'application/octet-stream'}),name=info.nombre||'Archivo',mime=info.mime||'';
+  cacheAttachment(aid,blob,name,mime);
+  await previewBlob(blob,name,mime,t);
  }catch(e){if(t===previewGeneration)$('hdAmplPreviewBody').textContent='No se pudo visualizar: '+(e.message||e);}
 }
 function openPreview(name){const m=previewModal();if(!m)return;m.hidden=false;$('hdAmplPreviewTitle').textContent=name;$('hdAmplPreviewBody').textContent='Preparando vista previa…';$('hdAmplPreviewDownload').hidden=true;}
@@ -304,7 +317,7 @@ function renderPendingFilePreviews(input){
  });
 }
 document.addEventListener('change',e=>{if(e.target.matches('input[data-ampl-upload],#amplUploadInput'))renderPendingFilePreviews(e.target);});
-// REV15 OCR: funciones ausentes en REV12, que bloqueaban todas las búsquedas.
+// REV16: OCR conservador. Sin franjas con whitelist: causaban cifras inventadas.
 function ocrMessage(message){const e=$('amplOCRStatus');if(e)e.textContent=message;}
 let tesseractLoading=null;
 function tesseractReady(){
@@ -312,132 +325,117 @@ function tesseractReady(){
  if(tesseractLoading)return tesseractLoading;
  tesseractLoading=new Promise((resolve,reject)=>{
   const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
-  script.onload=()=>window.Tesseract?.createWorker?resolve(window.Tesseract):reject(Error('El motor OCR no se inició.'));
-  script.onerror=()=>reject(Error('No se pudo descargar el motor OCR. Comprueba internet.'));
+  script.onload=()=>window.Tesseract?.createWorker?resolve(window.Tesseract):reject(Error('No se inició el OCR.'));
+  script.onerror=()=>reject(Error('No se pudo descargar el motor OCR. Revisa la conexión.'));
   document.head.appendChild(script);
  }).catch(e=>{tesseractLoading=null;throw e;});return tesseractLoading;
 }
-// REV14: priorizar cifras útiles y su contexto, sin inventar el tipo de documento.
+// Reconocer solo números auténticos. No convertir palabras mal leídas en números.
 function numericTokens(source){
- const raw=String(source||'');let found=[];
- // Capturar números aislados, sin convertir bloques de caracteres ilegibles en expedientes.
- const regex=/(?:^|[^\dA-Za-z])([0-9OolI|SBZ]{5,13})(?=$|[^\dA-Za-z])/g;
- for(const m of raw.matchAll(regex)){
-  const original=m[1],fixed=original.replace(/[Oo]/g,'0').replace(/[Il|]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2');
-  if(!/^\d{5,12}$/.test(fixed))continue;
-  // Una cadena formada casi únicamente por «1» es un artefacto habitual en fotos de pantallas.
-  const repetitions=Math.max(...'0123456789'.split('').map(d=>fixed.split(d).length-1));
-  if(repetitions/fixed.length>.72 || /^(\d)\1{4,}$/.test(fixed))continue;
-  found.push({value:fixed,raw:original,converted:fixed!==original});
+ const out=[];const raw=String(source||'');
+ for(const m of raw.matchAll(/(?:^|[^A-Za-z0-9])([0-9]{5,12})(?=$|[^A-Za-z0-9])/g)){
+  const value=m[1];const freq=[...'0123456789'].map(d=>value.split(d).length-1);
+  if(Math.max(...freq)/value.length>.72)continue;
+  out.push({value,converted:false});
  }
- return found;
+ return out;
 }
-function candidates(text,confidence=100,mode='general'){
- const result=[],known=new Set();
- const add=(type,value,priority=0,uncertain=false)=>{
-  value=String(value||'').trim().replace(/^[#:\s-]+|[\s.;,]+$/g,'');
-  if(value.length<3||value.length>130)return;
-  const identity=type+':'+(['nombre','sector'].includes(type)?key(value):canonical(value));
-  if(known.has(identity))return;known.add(identity);
-  result.push({type,value,priority,confidence:Number(confidence)||0,uncertain:uncertain||Number(confidence)<80});
- };
- const lines=String(text||'').replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
- for(const line of lines){
-  const sol=/solicitud|solicito|solicitudes|\bsol\.?\b/i.test(line);
-  const res=/resoluci[oó]n|resoluciones|\bres\.?\b/i.test(line);
-  for(const t of numericTokens(line)){
-   const type=sol&&!res?'sol':res&&!sol?'res':'numero';
-   add(type,t.value,type==='numero'?1:3,t.converted||Number(confidence)<80);
-  }
-  if(mode==='general'){
-   let m=line.match(/(?:solicitante|interesado|administrado|nombre\s+del\s+solicitante|raz[oó]n\s+social)\s*[:\-]\s*(.{4,90})/i);
-   if(m)add('nombre',m[1],2);
-   m=line.match(/(?:sector|localidad|caser[ií]o|centro\s+poblado|direcci[oó]n)\s*[:\-]\s*(.{4,90})/i);
-   if(m)add('sector',m[1],2);
-  }
+function candidates(text,confidence=90){
+ const out=[];for(const line of String(text||'').replace(/\r/g,'').split('\n')){
+  const sol=/solicitud|\bsol\.?\b/i.test(line),res=/resoluci[oó]n|\bres\.?\b/i.test(line);
+  for(const n of numericTokens(line))out.push({type:sol&&!res?'sol':res&&!sol?'res':'numero',value:n.value,confidence:Number(confidence)||0,priority:sol||res?3:1,uncertain:Number(confidence)<80});
+  let m=line.match(/(?:solicitante|interesado|administrado|raz[oó]n social)\s*[:\-]\s*(.{4,80})/i);
+  if(m)out.push({type:'nombre',value:m[1].trim(),confidence:Number(confidence)||0,priority:2,uncertain:true});
+  m=line.match(/(?:sector|localidad|caser[ií]o|centro poblado|direcci[oó]n)\s*[:\-]\s*(.{4,80})/i);
+  if(m)out.push({type:'sector',value:m[1].trim(),confidence:Number(confidence)||0,priority:2,uncertain:true});
  }
- return result;
+ return out;
 }
 function mergeCandidates(items){
- const map=new Map();
- for(const x of items){
-  const token=['sol','res','numero'].includes(x.type)?canonical(x.value):key(x.value);
-  if(!token)continue;
-  const k=x.type+':'+token,prev=map.get(k);
-  if(!prev){map.set(k,{...x,checks:1});continue;}
-  prev.checks++;
-  if((x.confidence||0)>(prev.confidence||0))prev.confidence=x.confidence;
-  if((x.priority||0)>(prev.priority||0))prev.priority=x.priority;
-  prev.uncertain=prev.uncertain&&x.uncertain;
- }
- const explicit=new Set([...map.values()].filter(c=>c.type==='sol'||c.type==='res').map(c=>canonical(c.value)));
- const confidenceScore=c=>((c.confidence||0)/100)+(c.checks>=2?.40:0)+(c.priority>=3?.45:0)+(c.value.length>=6&&c.value.length<=10?.15:0);
- const ranked=[...map.values()].filter(c=>c.type!=='numero'||!explicit.has(canonical(c.value)))
-   .sort((a,b)=>confidenceScore(b)-confidenceScore(a));
- // Mostrar pocas alternativas numéricas: una lectura incorrecta nunca se considera coincidencia confirmada.
- let numericCount=0;
- return ranked.filter(c=>{if(['numero','sol','res'].includes(c.type)){numericCount++;return numericCount<=5;}return true;}).slice(0,10)
-   .map(c=>({...c,uncertain:c.uncertain||(c.checks<2&&c.priority<3)||(c.confidence||0)<68}));
+ const m=new Map();for(const c of items){const k=c.type+':'+(['numero','sol','res'].includes(c.type)?canonical(c.value):key(c.value));if(!k||k.endsWith(':'))continue;
+  const prev=m.get(k);if(!prev)m.set(k,{...c,checks:1});else{prev.checks++;prev.confidence=Math.max(prev.confidence||0,c.confidence||0);prev.uncertain=prev.uncertain&&c.uncertain;prev.priority=Math.max(prev.priority||0,c.priority||0);}}
+ const arr=[...m.values()].sort((a,b)=>(b.priority||0)-(a.priority||0)||(b.checks||0)-(a.checks||0)||(b.confidence||0)-(a.confidence||0));
+ const explicit=new Set(arr.filter(c=>c.type==='sol'||c.type==='res').map(c=>canonical(c.value)));
+ let num=0;return arr.filter(c=>{if(c.type==='numero'&&explicit.has(canonical(c.value)))return false;if(['numero','sol','res'].includes(c.type))return ++num<=5;return true;}).slice(0,9)
+ .map(c=>({...c,uncertain:c.uncertain||(c.confidence||0)<82||(c.checks<2&&c.priority<3)}));
 }
-async function numericSecondPass(worker,file){
- // Leer franjas individuales de la foto para evitar que líneas de Excel se confundan con dígitos.
- let base=null,bitmap=null;const collected=[];
+// Selección opcional de una zona: evita que líneas, bordes y cifras ajenas distraigan al OCR.
+let ocrImage=null,ocrImageUrl=null,ocrCrop=null,ocrDrag=null;
+function resetCrop(){ocrCrop=null;drawCrop();}
+function releaseOCRImage(){if(ocrImageUrl){URL.revokeObjectURL(ocrImageUrl);ocrImageUrl=null;}ocrImage=null;ocrCrop=null;}
+function drawCrop(){
+ const canvas=$('amplOCRCropCanvas');if(!canvas||!ocrImage)return;
+ const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(ocrImage,0,0,canvas.width,canvas.height);
+ if(ocrCrop){const x=ocrCrop.x*canvas.width,y=ocrCrop.y*canvas.height,w=ocrCrop.w*canvas.width,h=ocrCrop.h*canvas.height;
+  ctx.fillStyle='rgba(12,95,224,.10)';ctx.fillRect(x,y,w,h);ctx.strokeStyle='#0962e2';ctx.lineWidth=3;ctx.strokeRect(x,y,w,h);}
+}
+async function showOCRImage(){
+ const f=$('amplOCRFile')?.files?.[0],panel=$('amplOCRCropPanel'),canvas=$('amplOCRCropCanvas');
+ releaseOCRImage();if(!panel||!canvas)return;panel.hidden=true;
+ if(!f||(!f.type.startsWith('image/')&&!/\.(jpg|jpeg|png|webp|gif|bmp)$/i.test(f.name)))return;
  try{
-  bitmap=await createImageBitmap(file);
-  const iw=bitmap.width,ih=bitmap.height;
-  if(!iw||!ih)return [];
-  const scale=Math.min(2.3,Math.max(1,1600/Math.max(iw,ih)));
-  base=document.createElement('canvas');base.width=Math.round(iw*scale);base.height=Math.round(ih*scale);
-  const ctx=base.getContext('2d',{willReadFrequently:true});ctx.drawImage(bitmap,0,0,base.width,base.height);
-  // Cuatro bandas superpuestas: localiza cifras aunque no haya etiqueta «Solicitud».
-  const ranges=[[0,.36],[.22,.60],[.47,.84],[.69,1]];
-  await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789',preserve_interword_spaces:'1'});
-  for(const [start,end] of ranges){
-   if(ocrCanceled)break;
-   const top=Math.floor(base.height*start),height=Math.floor(base.height*(end-start));
-   const piece=document.createElement('canvas');piece.width=base.width;piece.height=height;
-   const c=piece.getContext('2d',{willReadFrequently:true});c.drawImage(base,0,top,base.width,height,0,0,base.width,height);
-   const pixels=c.getImageData(0,0,piece.width,piece.height);
-   for(let i=0;i<pixels.data.length;i+=4){
-    const gray=.299*pixels.data[i]+.587*pixels.data[i+1]+.114*pixels.data[i+2];
-    const v=gray<140?0:gray>215?255:Math.round((gray-140)*255/75);
-    pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=v;
-   }
-   c.putImageData(pixels,0,0);
-   const found=await worker.recognize(piece);
-   collected.push(...candidates(found.data.text,found.data.confidence||0,'numbers'));
-   piece.width=piece.height=0;
-  }
- }catch(_){/* OCR principal y entrada manual siguen disponibles */}
- finally{if(bitmap)bitmap.close();if(base)base.width=base.height=0;
-  try{await worker.setParameters({tessedit_pageseg_mode:'3',tessedit_char_whitelist:''});}catch(_){}}
- return collected;
+  ocrImageUrl=URL.createObjectURL(f);const img=new Image();img.decoding='async';img.src=ocrImageUrl;await img.decode();ocrImage=img;
+  const max=900,scale=Math.min(1,max/img.naturalWidth,1200/img.naturalHeight);
+  canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  drawCrop();panel.hidden=false;
+ }catch(e){ocrMessage('No se pudo mostrar la imagen: '+e.message);}
+}
+function cropPoint(event){const cv=$('amplOCRCropCanvas'),r=cv.getBoundingClientRect();return {x:Math.min(1,Math.max(0,(event.clientX-r.left)/r.width)),y:Math.min(1,Math.max(0,(event.clientY-r.top)/r.height))};}
+function cropStart(e){if(!ocrImage)return;const cv=$('amplOCRCropCanvas');cv.setPointerCapture?.(e.pointerId);ocrDrag=cropPoint(e);ocrCrop=null;e.preventDefault();}
+function cropEnd(e){if(!ocrDrag)return;const p=cropPoint(e);const x=Math.min(p.x,ocrDrag.x),y=Math.min(p.y,ocrDrag.y),w=Math.abs(p.x-ocrDrag.x),h=Math.abs(p.y-ocrDrag.y);ocrDrag=null;ocrCrop=w>.025&&h>.025?{x,y,w,h}:null;drawCrop();e.preventDefault();}
+async function preparedOCRImage(){
+ if(!ocrImage)return $('amplOCRFile').files[0];
+ const img=ocrImage,box=ocrCrop||{x:0,y:0,w:1,h:1},sx=Math.round(box.x*img.naturalWidth),sy=Math.round(box.y*img.naturalHeight),sw=Math.max(1,Math.round(box.w*img.naturalWidth)),sh=Math.max(1,Math.round(box.h*img.naturalHeight));
+ const maxSide=2500;const scale=Math.min(2, maxSide/Math.max(sw,sh));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(sw*scale));c.height=Math.max(1,Math.round(sh*scale));
+ c.getContext('2d').drawImage(img,sx,sy,sw,sh,0,0,c.width,c.height);return c;
 }
 function ocrAddManual(){const value=$('amplOCRManualText')?.value.trim();if(!value)return ocrMessage('Escribe un número, nombre o lugar.');
- const type=$('amplOCRManualType')?.value||'sol';ocrCandidates.push({type,value,uncertain:false,confidence:100,checks:3,priority:4});renderCandidates();$('amplOCRManualText').value='';ocrMessage('Dato añadido; puedes corregirlo y buscarlo.');}
-async function recognize(){let f=$('amplOCRFile').files?.[0];if(!f)return ocrMessage('Selecciona una imagen o PDF.');if(!navigator.onLine)return ocrMessage('Se necesita conexión a internet.');ocrFile=f;ocrCanceled=false;ocrCandidates=[];let run=$('amplOCRRun');run.disabled=true;try{
- let T=await tesseractReady(),worker=await T.createWorker('spa',1,{logger:m=>{if(m.status==='recognizing text')ocrMessage('Reconociendo texto: '+Math.round((m.progress||0)*100)+'%')}});recognizer=worker;
- if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){
-  if(!window.pdfjsLib)throw Error('No se pudo cargar el lector PDF.');
-  let doc=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;
-  for(let n=1;n<=doc.numPages&&!ocrCanceled;n++){
-   let p=await doc.getPage(n),txt='';
-   try{const content=await p.getTextContent();txt=content.items.map(x=>x.str||'').join(' ');}catch(_){}
-   if(txt.trim().length>30)ocrCandidates.push(...candidates(txt,99));
-   else{
-    let viewport=p.getViewport({scale:1.55});let canvas=document.createElement('canvas');canvas.width=viewport.width;canvas.height=viewport.height;
-    await p.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
-    let out=await worker.recognize(canvas);ocrCandidates.push(...candidates(out.data.text,out.data.confidence||0));canvas.width=canvas.height=0;
+ const type=$('amplOCRManualType')?.value||'numero';ocrCandidates.unshift({type,value,uncertain:false,confidence:100,checks:3,priority:4});renderCandidates();$('amplOCRManualText').value='';ocrMessage('Dato añadido; selecciónalo y pulsa Buscar.');}
+async function recognize(){
+ const f=$('amplOCRFile')?.files?.[0];if(!f)return ocrMessage('Selecciona una fotografía o PDF.');
+ if(!navigator.onLine)return ocrMessage('Se requiere conexión para descargar el motor OCR.');
+ ocrFile=f;ocrCanceled=false;ocrCandidates=[];$('amplOCRResults').textContent='';let run=$('amplOCRRun');run.disabled=true;
+ try{
+  const T=await tesseractReady();const worker=await T.createWorker('spa',1,{logger:m=>{if(m.status==='recognizing text')ocrMessage('Leyendo: '+Math.round((m.progress||0)*100)+'%');}});recognizer=worker;
+  await worker.setParameters({tessedit_pageseg_mode:'11',preserve_interword_spaces:'1'});
+  if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){
+   if(!window.pdfjsLib)throw Error('No está disponible el lector PDF.');
+   const pdf=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;
+   try{for(let n=1;n<=pdf.numPages&&!ocrCanceled;n++){
+    const p=await pdf.getPage(n);let txt='';try{txt=(await p.getTextContent()).items.map(x=>x.str||'').join('\n');}catch(_){}
+    if(numericTokens(txt).length)ocrCandidates.push(...candidates(txt,99));
+    else{const vp=p.getViewport({scale:1.6}),cn=document.createElement('canvas');cn.width=vp.width;cn.height=vp.height;
+     await p.render({canvasContext:cn.getContext('2d'),viewport:vp}).promise;const r=await worker.recognize(cn);
+     ocrCandidates.push(...candidates(r.data.text,r.data.confidence||0));cn.width=cn.height=0;}
+    ocrMessage('Página '+n+' de '+pdf.numPages);}}
+   finally{pdf.destroy?.();}
+  }else{
+   if(!ocrImage)await showOCRImage();
+   const cn=await preparedOCRImage();ocrMessage('Reconociendo '+(ocrCrop?'zona seleccionada':'imagen completa')+'…');
+   const r=await worker.recognize(cn);ocrCandidates.push(...candidates(r.data.text,r.data.confidence||0));
+   // Segunda lectura solo si no hay candidatos numéricos, evitando inventar alternativas.
+   if(!ocrCanceled&&!ocrCandidates.some(c=>['numero','sol','res'].includes(c.type))){
+    await worker.setParameters({tessedit_pageseg_mode:'6'});const again=await worker.recognize(cn);
+    ocrCandidates.push(...candidates(again.data.text,again.data.confidence||0));
    }
-   ocrMessage('Página '+n+' de '+doc.numPages+' — '+Math.round(n/doc.numPages*100)+'%');
+   if(cn instanceof HTMLCanvasElement){cn.width=cn.height=0;}
   }
- }
- else{let out=await worker.recognize(f);ocrCandidates.push(...candidates(out.data.text,out.data.confidence||0));if(!ocrCanceled){ocrMessage('Comprobando números con una segunda lectura…');ocrCandidates.push(...await numericSecondPass(worker,f));}}
- ocrCandidates=mergeCandidates(ocrCandidates);renderCandidates();if(ocrCanceled)ocrMessage('OCR cancelado; se muestran candidatos parciales.');else ocrMessage('Reconocimiento terminado. Verifica los números con la fotografía. Los resultados dudosos no se seleccionan automáticamente. Si no aparece el número correcto, utiliza «+ Añadir dato».');}
- catch(e){ocrMessage('OCR no disponible: '+e.message);}finally{if(recognizer){await recognizer.terminate().catch(()=>{});recognizer=null;}ocrFile=null;run.disabled=false;}}
-function ocrCancel(){ocrCanceled=true;ocrMessage('Cancelando reconocimiento...');}
-function renderCandidates(){let list=$('amplCandidates');list.innerHTML=ocrCandidates.map((c,i)=>`<div class="hd-ampl-candidate"><label><input type="checkbox" data-ocr="${i}" ${c.uncertain?'':'checked'}><select data-type="${i}"><option value="numero" ${c.type==='numero'?'selected':''}>Número (solicitud o resolución)</option><option value="sol" ${c.type==='sol'?'selected':''}>Solicitud</option><option value="res" ${c.type==='res'?'selected':''}>Resolución</option><option value="nombre" ${c.type==='nombre'?'selected':''}>Solicitante</option><option value="sector" ${c.type==='sector'?'selected':''}>Pueblo/sector</option></select></label><input data-value="${i}" value="${safe(c.value)}"><small>${c.uncertain?'Lectura dudosa: comprueba o corrige antes de seleccionar':'Revisar con la imagen'}</small></div>`).join('');}
+  ocrCandidates=mergeCandidates(ocrCandidates);renderCandidates();
+  if(ocrCanceled)ocrMessage('Lectura cancelada.');
+  else if(!ocrCandidates.length)ocrMessage('No se reconoció ningún número fiable. En la fotografía, marca solo el número y vuelve a pulsar Reconocer; también puedes introducirlo manualmente.');
+  else ocrMessage('Verifica las cifras antes de buscar. Para mejorar la lectura, selecciona con el dedo un rectángulo alrededor del número y pulsa Reconocer otra vez.');
+ }catch(e){ocrMessage('Error del OCR: '+(e.message||e));}
+ finally{if(recognizer){await recognizer.terminate().catch(()=>{});recognizer=null;}ocrFile=null;run.disabled=false;}
+}
+function ocrCancel(){ocrCanceled=true;ocrMessage('Cancelando…');}
+function renderCandidates(){
+ const list=$('amplCandidates');list.innerHTML=ocrCandidates.map((c,i)=>`<div class="hd-ampl-candidate"><label><input type="checkbox" data-ocr="${i}" ${c.uncertain?'':'checked'}><select data-type="${i}"><option value="numero" ${c.type==='numero'?'selected':''}>Número (solicitud o resolución)</option><option value="sol" ${c.type==='sol'?'selected':''}>Solicitud</option><option value="res" ${c.type==='res'?'selected':''}>Resolución</option><option value="nombre" ${c.type==='nombre'?'selected':''}>Solicitante</option><option value="sector" ${c.type==='sector'?'selected':''}>Pueblo/sector</option></select></label><input inputmode="numeric" data-value="${i}" value="${safe(c.value)}"><small>${c.uncertain?'Lectura no confirmada. Comprueba el número antes de seleccionarlo.':'Comprueba el número en la imagen.'}</small></div>`).join('');
+}
 function selectedCandidates(){return ocrCandidates.map((c,i)=>{let checkbox=document.querySelector(`[data-ocr="${i}"]`);return checkbox?.checked?{type:document.querySelector(`[data-type="${i}"]`).value,value:document.querySelector(`[data-value="${i}"]`).value.trim()}:null;}).filter(c=>c&&c.value);}
+// Al elegir/tomar fotografía se muestra instantáneamente; no se espera a descargar Tesseract.
+document.addEventListener('change',e=>{if(e.target.id==='amplOCRFile')showOCRImage();});
+document.addEventListener('pointerdown',e=>{if(e.target.id==='amplOCRCropCanvas')cropStart(e);});
+document.addEventListener('pointerup',e=>{if(e.target.id==='amplOCRCropCanvas')cropEnd(e);});
 function sim(a,b){a=key(a);b=key(b);if(!a||!b)return 0;if(a===b)return 1;if(a.includes(b)||b.includes(a))return .86;let dist=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=dist[0];dist[0]=i;for(let j=1;j<=b.length;j++){let tmp=dist[j];dist[j]=Math.min(dist[j]+1,dist[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=tmp;}}return 1-dist[b.length]/Math.max(a.length,b.length);}
 function matchDetail(row,mod,c){
  const h=sheet(mod).headers;
@@ -464,7 +462,7 @@ window.Ampliaciones={
   getData:mod=>STORE[mod],
   enter,refresh,select,page,search,open,close,save,
   addDoc,deleteDocField,upload,download,previewSaved,localPreview,closePreview,removeFile,removeExp,
-  recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,ocrAddManual,
+  recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,ocrAddManual,showOCRImage,resetCrop,
   // Estas tres funciones no existen en REV12. No bloquear el arranque.
   excel:()=>update('La exportación de ampliaciones no está disponible en esta revisión.'),
   summary:()=>update('El reporte de ampliaciones no está disponible en esta revisión.'),
