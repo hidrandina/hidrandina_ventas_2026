@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV16 OCR Y PREVIEW — Guardar + validaciones claras + catálogo UUEE. Backend sin cambios. */
+/* HIDRANDINA_VENTAS REV17 REPORTE OM5 40 COLUMNAS (base REV16) — Guardar + validaciones claras + catálogo UUEE. Backend sin cambios. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -53,7 +53,7 @@ function validateBeforeSave(payload,mod,isNew){
     // No bloquear la edición de una fila histórica incompleta y no modificada.
     const previous=registro?.row||{};
     const unchanged=!isNew && String(previous[numberField]??'').trim()===number;
-    if(dateField&&!date&&!unchanged)return {message:'Falta la fecha de '+label.toLowerCase()+' '+i+'.',field:dateField};
+    if(dateField&&!date&&(!unchanged||!!String(previous[dateField]??'').trim()))return {message:'La '+label.toLowerCase()+' '+i+' necesita una fecha válida. Completa la fecha antes de guardar.',field:dateField};
    } else if(date){return {message:'Falta el número de '+label.toLowerCase()+' '+i+' para la fecha ingresada.',field:numberField};}
   }
  }
@@ -75,13 +75,56 @@ function filt(row,mod){let n=NAV[mod],h=sheet(mod).headers,q=key(n.filter);if(q)
  if(n.start||n.end){let dates=h.filter(x=>/^fecha(solicitud|resoluc)/i.test(key(x))).map(k=>format(row[k]).slice(0,10)).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v));if(!dates.some(d=>(!n.start||d>=n.start)&&(!n.end||d<=n.end)))return false;}
  return true;}
 function visible(mod){return sheet(mod).registros.filter(r=>filt(r,mod));}
-function render(mod){curso=mod;let n=NAV[mod],list=visible(mod),sub=list.slice(n.page*30,(n.page+1)*30),h=sheet(mod).headers;
- let container=$('amplTableBody');if(!container)return;container.innerHTML=sub.map(row=>{let chosen=n.selected===id(row),label=mod==='OM5'?get(row,h,'Solicitante'):get(row,h,'Nombre');let sector=mod==='OM5'?get(row,h,'NombreSector'):get(row,h,'Direccion');let status=mod==='UIA'?get(row,h,'Estado Actual'):get(row,h,'EstadoExpVentas');return `<tr data-id="${safe(id(row))}" class="${chosen?'hd-ampl-selected':''}"><td><input type="radio" name="amplElegido" ${chosen?'checked':''} aria-label="Seleccionar ítem ${safe(get(row,h,'Item','Ítem'))}" onchange="Ampliaciones.select('${safe(id(row))}')"></td><td>${safe(get(row,h,'Item','Ítem'))}</td><td>${safe(label)}</td><td>${safe(sector)}</td><td class="hd-ampl-multi">${safe(numDocs(row,mod))}</td>${mod==='OM5'?`<td class="hd-ampl-multi">${safe(numRes(row,mod))}</td>`:''}<td><span style="display:inline-block;border-radius:20px;padding:3px 8px;color:#fff;background:${estadoColor(status)}">${safe(status||'Sin estado')}</span></td><td><button onclick="Ampliaciones.open('${safe(id(row))}',0,false)">Consultar</button>${edit()?` <button onclick="Ampliaciones.open('${safe(id(row))}',0,true)">Editar</button>`:''}</td></tr>`;}).join('')||'<tr><td colspan="8">No se encontraron expedientes</td></tr>';
- $('amplTableHead').innerHTML=`<tr><th>Elegir</th><th>Ítem</th><th>${mod==='OM5'?'Solicitante':'Nombre'}</th><th>${mod==='OM5'?'Sector':'Dirección'}</th><th>Solicitudes</th>${mod==='OM5'?'<th>Resoluciones</th>':''}<th>Estado</th><th>Acción</th></tr>`;
- $('amplCount').textContent=list.length+' expedientes; página '+(n.page+1)+' de '+Math.max(1,Math.ceil(list.length/30));$('amplPrev').disabled=n.page===0;$('amplNext').disabled=(n.page+1)*30>=list.length;
- let buttons=$('amplStages');buttons.innerHTML=mod==='OM5'?ETAPAS.map((et,i)=>{let selected=sheet(mod).registros.find(r=>id(r)===n.selected),st=[null,'EstadoExpVentas','EstadoInspeccionVentas','EstadoUMD','EstadoCaptacionClientes'][i];let estado=selected&&st?get(selected,h,st):'';return `<button style="background:${i===0?'#1e67d2':estadoColor(estado)}" ${selected?'':'disabled'} onclick="Ampliaciones.open('${safe(n.selected)}',${i},false)">${safe(et[0])}</button>`;}).join(''):'<span class="hd-ampl-muted">UIA no utiliza etapas</span>';
+
+/* REV17 — Modelo de 40 campos tomado exclusivamente de Reporte_OM5.
+   Solo presentación: la base de 60 columnas, sus IDs y operaciones no cambian. */
+const OM5_REPORT_HEADERS = ["Ítem", "Solicitante", "NombreSector", "Solcitudes", "Fechas", "Resoluciones", "Fechas Resoluciones", "Suministro", "TipoSuministro", "IniciativaObra", "ObservacionesObras", "UUEE", "Departamento", "Provincia", "Distrito", "Alimentador", "ClientesCaptar", "ObsExpedientes", "Memorandos Expedientes", "EstadoExpVentas", "ObsInspecciones", "MemoObsInspGC", "RedesMT", "PostesMT", "SED", "PostesBT", "RedesBT", "MemoRespGC", "EstadoInspeccionVentas", "MemoEnvioIndividualGT", "MemoEnvioGTmasivo", "Modalidad", "FechaProgramadaEjecuciónUMD", "TipoOM", "NroOM", "FechaEjecutacionUMD", "EstadoUMD", "ClientesCaptados", "ObsCaptacionClientes", "EstadoCaptacionClientes"];
+const OM5_REPORT_GROUPS = {"Solcitudes": ["NroSolicitud1", "NroSolicitud2", "NroSolicitud3", "NroSolicitud4", "NroSolicitud5", "NroSolicitud6"], "Fechas": ["FechaSolicitud1", "FechaSolicitud2", "FechaSolicitud3", "FechaSolicitud4", "FechaSolicitud5", "FechaSolicitud6"], "Resoluciones": ["NroResolución1", "NroResolución2"], "Fechas Resoluciones": ["FechaResolucion1", "FechaResolucion2"], "ObsExpedientes": ["ObsExpediente1", "ObsExpediente2", "ObsExpediente3"], "Memorandos Expedientes": ["MemoObsGC1", "MemoObsGC2", "MemoObsGC3"], "ObsInspecciones": ["ObsInspecciones1", "ObsInspecciones2", "ObsInspecciones3"], "MemoObsInspGC": ["MemoObsInspGC1", "MemoObsInspGC2", "MemoObsInspGC3"]};
+const OM5_REPORT_PAIRS = [['Solcitudes','Fechas'],['Resoluciones','Fechas Resoluciones'],['ObsExpedientes','Memorandos Expedientes'],['ObsInspecciones','MemoObsInspGC']];
+function om5ReportColumn(row,header,hs){
+  const group=OM5_REPORT_GROUPS[header];
+  if(!group){const col=head(hs,header);return col?format(row[col]):'';}
+  const pair=OM5_REPORT_PAIRS.find(x=>x.includes(header));
+  const a=OM5_REPORT_GROUPS[pair?pair[0]:header]||group,b=OM5_REPORT_GROUPS[pair?pair[1]:header]||[];
+  const indexes=group.map((_,i)=>i).filter(i=>{
+    const x=head(hs,a[i]||''),y=head(hs,b[i]||'');
+    return (x&&String(row[x]??'').trim())||(y&&String(row[y]??'').trim());
+  });
+  return indexes.map(i=>{const col=head(hs,group[i]);return col?om5ReportDate(header,format(row[col])):'';}).join('\n');
+}
+function om5ReportDate(header,value){
+  if(!/fecha/i.test(header))return value;
+  const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m?m[3]+'/'+m[2]+'/'+m[1]:value;
+}
+function om5ReportRows(data){const hs=data.headers||[];return (data.registros||[]).map(row=>{
+ const result={};for(const header of OM5_REPORT_HEADERS)result[header]=om5ReportColumn(row,header,hs);
+ result.__HD_ID=row.__HD_ID||'';return result;
+});}
+window.HDReporteOM5={headers:OM5_REPORT_HEADERS,convert:om5ReportRows};
+
+function render(mod){
+ curso=mod;
+ const n=NAV[mod], source=visible(mod), sub=source.slice(n.page*30,(n.page+1)*30), h=sheet(mod).headers;
+ const body=$('amplTableBody'),theader=$('amplTableHead');if(!body||!theader)return;
+ if(mod==='OM5'){
+  const columns=OM5_REPORT_HEADERS, report=om5ReportRows({headers:h,registros:sub});
+  theader.innerHTML='<tr><th class="hd-choose">Elegir</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'<th>Acción</th></tr>';
+  body.innerHTML=report.map((row,i)=>{const original=sub[i],uid=id(original),chosen=n.selected===uid;
+    return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td class="hd-choose"><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' aria-label="Seleccionar ítem '+safe(row['Ítem'])+'" onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td>'+
+    columns.map(k=>'<td title="'+safe(row[k]).replace(/\n/g,' / ')+'" class="'+(OM5_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(row[k])+'</td>').join('')+
+    '<td class="hd-report-actions"><button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td></tr>';
+  }).join('')||'<tr><td colspan="42">No se encontraron expedientes</td></tr>';
+ }else{
+  theader.innerHTML='<tr><th>Elegir</th><th>Ítem</th><th>Nombre</th><th>Dirección</th><th>Solicitudes</th><th>Estado</th><th>Acción</th></tr>';
+  body.innerHTML=sub.map(row=>{const uid=id(row),chosen=n.selected===uid,status=get(row,h,'Estado Actual');return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td><td>'+safe(get(row,h,'Item','Ítem'))+'</td><td>'+safe(get(row,h,'Nombre'))+'</td><td>'+safe(get(row,h,'Direccion'))+'</td><td class="hd-report-multiline">'+safe(numDocs(row,mod))+'</td><td><span style="display:inline-block;border-radius:20px;padding:3px 8px;color:#fff;background:'+estadoColor(status)+'">'+safe(status||'Sin estado')+'</span></td><td><button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td></tr>';}).join('')||'<tr><td colspan="7">No se encontraron expedientes</td></tr>';
+ }
+ $('amplCount').textContent=source.length+' expedientes; página '+(n.page+1)+' de '+Math.max(1,Math.ceil(source.length/30));
+ $('amplPrev').disabled=n.page===0;$('amplNext').disabled=(n.page+1)*30>=source.length;
+ const buttons=$('amplStages');if(buttons){buttons.innerHTML=mod==='OM5'?ETAPAS.map((et,i)=>{const selected=sheet(mod).registros.find(r=>id(r)===n.selected),st=[null,'EstadoExpVentas','EstadoInspeccionVentas','EstadoUMD','EstadoCaptacionClientes'][i],estado=selected&&st?get(selected,h,st):'';return '<button style="background:'+(i===0?'#1e67d2':estadoColor(estado))+'" '+(selected?'':'disabled')+' onclick="Ampliaciones.open(\''+safe(n.selected)+'\','+i+',false)">'+safe(et[0])+'</button>';}).join(''):'<span class="hd-ampl-muted">UIA no utiliza etapas</span>';}
  $('amplNew').hidden=!edit();$('amplDelete').hidden=!edit()||!(adm()||asis());
 }
+
 function select(idValue){NAV[curso].selected=idValue;render(curso);}
 function page(delta){let n=NAV[curso];n.page=Math.max(0,n.page+delta);render(curso);}
 function search(){let n=NAV[curso];n.filter=$('amplSearch').value;n.col=$('amplField').value;n.start=$('amplStart').value;n.end=$('amplEnd').value;n.page=0;render(curso);}
@@ -464,8 +507,8 @@ window.Ampliaciones={
   addDoc,deleteDocField,upload,download,previewSaved,localPreview,closePreview,removeFile,removeExp,
   recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,ocrAddManual,showOCRImage,resetCrop,
   // Estas tres funciones no existen en REV12. No bloquear el arranque.
-  excel:()=>update('La exportación de ampliaciones no está disponible en esta revisión.'),
-  summary:()=>update('El reporte de ampliaciones no está disponible en esta revisión.'),
+  excel:()=>{if(typeof window.hdReporteExcel!=='function')return update('El reporte no está disponible.');document.getElementById('hdRepModulo').value=curso;window.hdReporteExcel();},
+  summary:()=>{document.getElementById('hdRepModulo').value=curso;window.switchTab('reportes');},
   share:()=>update('El envío por WhatsApp de ampliaciones no está disponible en esta revisión.'),
   reset:()=>{STORE.OM5=null;STORE.UIA=null;ocrCandidates=[];ocrFile=null;ocrCanceled=true;}
 };
