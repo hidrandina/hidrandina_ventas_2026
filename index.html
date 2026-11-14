@@ -277,6 +277,15 @@ html, body { max-width:100%; }
  .glass-header .hd-brand-divider {display:none!important;}
 }
 
+
+/* REV12: mostrar estados y errores de guardado DENTRO del formulario */
+/* REV12: mensajes visibles y localización del campo incompleto */
+.hd-ampl-form-status:not([hidden]){position:sticky;top:0;z-index:8;box-shadow:0 3px 10px rgba(30,54,88,.12)}
+.hd-ampl-invalid{outline:2px solid #bf352e!important;outline-offset:2px;background:#fff9f7!important}
+
+.hd-ampl-form-status:not([hidden]){display:block;padding:12px 15px;margin:12px 0;border-radius:10px;border:1px solid #e3a49f;background:#fff1ef;color:#8d211b;font-weight:700;white-space:pre-line}
+.hd-ampl-form-status[data-type=info]:not([hidden]){background:#eef5ff;border-color:#8fb5f5;color:#124b89}
+#amplSave:disabled{opacity:.65;cursor:wait}
 </style>
 
 <style id="hdExecutiveStyles">
@@ -889,7 +898,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                 </div>
                 <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
                     <button type="button" onclick="closeDocFormModal()" class="px-5 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold transition">Cancelar</button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar en Google Sheets</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 transition">Guardar</button>
                 </div>
             </form>
         </div>
@@ -1041,8 +1050,9 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
 
     <div id="amplModal" class="hd-ampl-modal" hidden>
       <div class="hd-ampl-panel"><div class="hd-ampl-controls"><h2 id="amplFormTitle">Expediente</h2><button onclick="Ampliaciones.close()">Cerrar ✕</button></div>
+      <p id="amplFormStatus" class="hd-ampl-form-status" role="alert" aria-live="assertive" hidden></p>
       <div id="amplFormBody" class="hd-ampl-fields"></div><hr><div id="amplExistingAttachments"></div>
-      <div class="hd-ampl-controls"><button id="amplSave" onclick="Ampliaciones.save()" class="hd-ampl-primary">Guardar en Google Sheets</button><button onclick="Ampliaciones.close()">Cancelar</button></div></div>
+      <div class="hd-ampl-controls"><button id="amplSave" onclick="Ampliaciones.save()" class="hd-ampl-primary">Guardar</button><button onclick="Ampliaciones.close()">Cancelar</button></div></div>
     </div>
 
     <!-- Menú exclusivo para pantallas pequeñas: utiliza las funciones originales -->
@@ -1473,7 +1483,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                     setConnectionStatus('error','No sincronizado');
                 }
                 const b=document.querySelector('#docForm button[type="submit"]');
-                if(b){b.disabled=false;b.textContent='Guardar en Google Sheets';}
+                if(b){b.disabled=false;b.textContent='Guardar';}
                 alert('No se completó la operación: '+(err.message||err));
             }
         }
@@ -2681,7 +2691,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                     fetchData();
                 } finally {
                     boton.disabled = false;
-                    boton.textContent = 'Guardar en Google Sheets';
+                    boton.textContent = 'Guardar';
                 }
             });
         }
@@ -3177,7 +3187,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         }finally{btn.disabled=false;btn.textContent='Ingresar';}
       };
     </script>
-    <script src="./ampliaciones-ui.js?v=REV09-20261113"></script>
+    <script src="./ampliaciones-ui.js?v=REV12-20261113"></script>
     <script>
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
@@ -3190,7 +3200,6 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           </div><div class="hd-ampl-controls">
            <button onclick="Ampliaciones.refresh('${mod}')">Actualizar</button><button id="amplNew" class="hd-ampl-primary" onclick="Ampliaciones.open('',0,true)">Nuevo expediente</button>
            <button id="amplDelete" onclick="Ampliaciones.removeExp()">Eliminar seleccionado</button>
-           <button id="amplRestoreBtn" onclick="Ampliaciones.showTrash()">Papelera</button><button id="amplAuditBtn" onclick="Ampliaciones.audit()">Auditoría</button>
            <button onclick="Ampliaciones.excel()">Exportar Excel</button><button onclick="Ampliaciones.summary()">Reporte / Gráficos</button><button onclick="Ampliaciones.share()">WhatsApp</button>
           </div><div id="amplStages"></div><p id="amplStatus" role="status"></p>
           <div class="hd-ampl-grid"><table><thead id="amplTableHead"></thead><tbody id="amplTableBody"></tbody></table></div>
