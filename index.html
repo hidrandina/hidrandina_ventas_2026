@@ -3203,7 +3203,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             document.getElementById('hdReporteEstado').textContent='Error al exportar Excel: '+e.message;
           }
         }
-        /* REV24 - Copias locales (Google Sheets fuente / Excel profesional / adjuntos).
+        /* REV26 - Copias locales (Google Sheets fuente / Excel profesional / adjuntos).
            La base original JAMÁS se escribe. La exportación fuente siempre trae el libro
            completo (OM5+UIA están en el mismo Google Sheets) para evitar alterar el original. */
         let hdBackupAbortado_ = false;
@@ -3320,31 +3320,54 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
            Antes de guardar, verificar CRC de TODOS los componentes y filas de OM5/UIA. */
         async function hdBOriginal_(mod,status,onPart){
           if(hdBackupAbortado_)throw Error('Descarga cancelada.');
-          status.textContent='Generando una única copia original de '+mod+'...';
-          if(onPart)onPart(0.08);
-          const r=await postGateway({action:'amplBackupExport',modulo:mod,completo:'1'},120000);
-          if(!r||!r.base64||r.modo!=='completo')throw Error('El servidor no entregó una copia íntegra. Actualiza la implementación de Apps Script a la Revisión 24.');
-          if(hdBackupAbortado_)throw Error('Descarga cancelada.');
-          const bytes=hdBBase64Bytes_(r.base64);
-          if(bytes.length<100||bytes.length!==Number(r.bytes))throw Error('El tamaño del respaldo no coincide. No se guardará un archivo incompleto.');
-          if(onPart)onPart(0.50);
-          status.textContent='Verificando integridad ZIP, CRC y hojas de '+mod+'...';
+          status.textContent='Solicitando una exportación única de '+mod+'...';
+          if(onPart)onPart(0.04);
+          const first=await postGateway({action:'amplBackupExport',modulo:mod,completo:'1'},120000);
+          if(!first||first.modo!=='fragmentos'||!first.backupId||!first.base64){
+            throw Error('El servidor no entregó el protocolo de respaldo REV26. Verifica que el Código.gs de REV26 esté desplegado en la URL configurada.');
+          }
+          const count=Number(first.total),size=Number(first.bytes);
+          if(!Number.isInteger(count)||count<1||count>500||!Number.isInteger(size)||size<100||size>12*1024*1024)
+            throw Error('El servidor indicó un tamaño o cantidad de fragmentos inválidos.');
+          const chunks=[];let received=0;
+          for(let i=0;i<count;i++){
+            if(hdBackupAbortado_)throw Error('Descarga cancelada.');
+            status.textContent='Recibiendo respaldo original de '+mod+': fragmento '+(i+1)+' de '+count+'.';
+            const r=i===0?first:await postGateway({action:'amplBackupExport',modulo:mod,
+              backupId:first.backupId,parte:String(i)},120000);
+            if(!r||r.modo!=='fragmentos'||r.backupId!==first.backupId||Number(r.parte)!==i||Number(r.total)!==count||!r.base64)
+              throw Error('Fragmento '+(i+1)+' incompleto o de otra exportación. Se canceló el respaldo.');
+            const part=hdBBase64Bytes_(r.base64);
+            chunks.push(part);received+=part.length;
+            if(received>size)throw Error('El respaldo excede el tamaño esperado. Se canceló la descarga.');
+            if(onPart)onPart(0.08+0.67*(i+1)/count);
+          }
+          if(received!==size)throw Error('El tamaño del archivo no coincide con el original. No se guardará.');
+          const bytes=new Uint8Array(size);let offset=0;
+          for(const part of chunks){bytes.set(part,offset);offset+=part.length;}
+          status.textContent='Validando archivo, CRC y hojas de '+mod+'...';
+          if(onPart)onPart(0.80);
+          if(first.sha256&&window.crypto&&crypto.subtle){
+            const hash=await crypto.subtle.digest('SHA-256',bytes);
+            const hex=[...new Uint8Array(hash)].map(x=>x.toString(16).padStart(2,'0')).join('');
+            if(hex!==first.sha256)throw Error('La huella SHA-256 del respaldo no coincide. No se guardará.');
+          }
           try{await JSZip.loadAsync(bytes,{checkCRC32:true});}
-          catch(e){throw Error('La copia original tiene un componente XLSX dañado (CRC). Se canceló la descarga. '+(e.message||''));}
+          catch(e){throw Error('El XLSX no superó la prueba de integridad CRC: '+(e.message||e));}
           let libro;
           try{libro=XLSX.read(bytes,{type:'array',bookSheets:false,cellStyles:false});}
-          catch(e){throw Error('No fue posible leer el XLSX original. Se canceló la descarga. '+(e.message||''));}
-          const expected=r.filasEsperadas||{};
+          catch(e){throw Error('La copia original no puede abrirse como libro Excel: '+(e.message||e));}
+          const expected=first.filasEsperadas||{};
           const required=mod==='Documentos'?['Documentos']:['OM5','UIA'];
           for(const name of required){
-            const sheet=libro.Sheets[name];
-            if(!sheet)throw Error('La copia original no contiene la hoja requerida: '+name+'. No se guardó el archivo.');
-            const rows=XLSX.utils.sheet_to_json(sheet,{header:1,blankrows:false});
-            // Si el origen tiene registros, una copia solo con encabezados no es válida.
-            if(Number(expected[name]||0)>1&&rows.length<2)throw Error('La hoja '+name+' está vacía en la exportación, aunque tiene datos en la base original. Respaldo cancelado.');
+            const sh=libro.Sheets[name];
+            if(!sh)throw Error('Falta la hoja '+name+' en el respaldo original.');
+            const rows=XLSX.utils.sheet_to_json(sh,{header:1,blankrows:false});
+            if(Number(expected[name]||0)>1&&rows.length<2)
+              throw Error('La hoja '+name+' está vacía en el respaldo pero tiene registros en Google Sheets.');
           }
           if(onPart)onPart(1);
-          status.textContent='Copia original íntegra: '+required.join(' y ')+'.';
+          status.textContent='Respaldo original verificado: '+required.join(' y ')+'.';
           return new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
         }
         async function hdBAdjunto_(mod,item,status,onPart){
