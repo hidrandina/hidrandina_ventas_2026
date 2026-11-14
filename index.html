@@ -3377,10 +3377,12 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           if(!mods.length){status.textContent='Selecciona al menos una base de datos.';return;}
           if(fmt==='profesional'&&desde&&hasta&&desde>hasta){status.textContent='La fecha inicial no puede ser posterior a la final.';return;}
           if(mods.includes('Documentos')&&hdEsSoloOM5_(currentUser?.tipo)){status.textContent='Tu perfil no puede descargar la base Documentos.';return;}
-          // REV25: Descarga estándar del navegador. No se solicita acceso de lectura/escritura
-          // a carpetas locales: Chrome no permite otorgar ese permiso automáticamente.
-          // Chrome utiliza Descargas o pregunta dónde guardar, según preferencias del usuario.
-          const folder=null;
+          let folder=null;
+          // La selección de carpeta debe ejecutarse directamente en el clic (gesto de usuario).
+          if(typeof window.showDirectoryPicker==='function'){
+            try{folder=await window.showDirectoryPicker({mode:'readwrite',id:'hidrandina-respaldos'});}
+            catch(e){if(e.name==='AbortError'){status.textContent='Se canceló la selección de carpeta.';return;}status.textContent='No fue posible elegir carpeta; se utilizará Descargas.';}
+          }
           button.disabled=true;cancel.hidden=false;hdBackupAbortado_=false;
           document.getElementById('hdBackupResultados').textContent='';
           document.getElementById('hdBackupAviso').hidden=true;
@@ -3479,7 +3481,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
               await hdBGuardar_(blob,'Respaldo_HIDRANDINA_'+stamp+'.zip',folder);
             }
             hdBackupProgreso_(100,'Preparación completada');
-            const successText='Respaldo preparado y descarga enviada al navegador. Comprueba Descargas o la carpeta que seleccionaste en Chrome.';
+            const successText=folder?'Copia de seguridad completada y guardada en la carpeta seleccionada.':'Copia de seguridad preparada. La descarga se ha enviado al navegador: comprueba la carpeta Descargas.';
             status.textContent=successText;
             hdBackupAviso_('✓ '+successText);
             document.getElementById('hdBackupResultados').textContent=log.join(' · ');
