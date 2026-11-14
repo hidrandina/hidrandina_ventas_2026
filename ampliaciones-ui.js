@@ -152,7 +152,7 @@ function docGroup(kind){
 function compactNumberInput(fieldName,value,editable){return `<input data-k="${safe(fieldName)}" type="text" value="${safe(value)}" ${editable?'':'disabled'} autocomplete="off">`;}
 function inlineUpload(fieldName,editable){
  if(!editable)return '<span class="hd-ampl-empty">Adjuntos en sección inferior</span>';
- return `<label class="hd-ampl-inline-attachment"><span>Archivos (opcionales)</span><input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="${safe(fieldName)}" aria-label="Adjuntar archivos a ${safe(fieldName)}"><small>PDF o imágenes, hasta 10 MB por archivo. Se subirán al guardar.</small></label>`;
+ return `<label class="hd-ampl-inline-attachment"><span>Archivos (opcionales)</span><input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="${safe(fieldName)}" aria-label="Adjuntar archivos a ${safe(fieldName)}"><small>PDF o imágenes, hasta 10 MB por archivo. Se subirán al guardar.</small><span class="hd-ampl-local-actions" data-preview-files></span></label>`;
 }
 function docs(kind,editable){
  const g=docGroup(kind),container=g?$(g.id):null;if(!g||!container)return;
@@ -221,26 +221,154 @@ async function save(){
   formAlert((savedOnServer?'El expediente pudo guardarse; verifica la lista antes de reintentar. ':'No se pudo guardar. ')+msg);
  }finally{saving=false;if(button){button.disabled=false;button.textContent='Guardar';}}
 }
-function renderAttachments(){let box=$('amplExistingAttachments'),a=sheet(curso).adjuntos.filter(x=>x.expedienteId===registro.id);box.innerHTML='<h4>Archivos adjuntos</h4>'+a.map(x=>`<div class="hd-ampl-attach"><span title="${safe(x.nombre)}">${safe(x.nombre)} (${safe(x.campo)})</span><button onclick="Ampliaciones.download('${safe(x.id)}')">Ver/descargar</button>${registro.editable?`<button onclick="Ampliaciones.removeFile('${safe(x.id)}')">Eliminar</button>`:''}</div>`).join('')+(registro.editable?`<label>Vincular nuevo archivo a campo <select id="amplAttachmentField">${sheet(curso).headers.filter(h=>/^nro(solicitud|resoluc)|^memo/i.test(key(h))).map(x=>`<option>${safe(x)}</option>`).join('')}</select></label><input type="file" id="amplUploadInput" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.gif"><button onclick="Ampliaciones.upload()">Subir adjuntos</button>`:'');}
+function renderAttachments(){let box=$('amplExistingAttachments'),a=sheet(curso).adjuntos.filter(x=>x.expedienteId===registro.id);box.innerHTML='<h4>Archivos adjuntos</h4>'+a.map(x=>`<div class="hd-ampl-attach"><span title="${safe(x.nombre)}">${safe(x.nombre)} (${safe(x.campo)})</span><button type="button" onclick="Ampliaciones.previewSaved('${safe(x.id)}')">Vista previa</button><button type="button" onclick="Ampliaciones.download('${safe(x.id)}')">Descargar</button>${registro.editable?`<button onclick="Ampliaciones.removeFile('${safe(x.id)}')">Eliminar</button>`:''}</div>`).join('')+(registro.editable?`<label>Vincular nuevo archivo a campo <select id="amplAttachmentField">${sheet(curso).headers.filter(h=>/^nro(solicitud|resoluc)|^memo/i.test(key(h))).map(x=>`<option>${safe(x)}</option>`).join('')}</select></label><input type="file" id="amplUploadInput" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.gif"><div id="amplExtraPreviews" class="hd-ampl-local-actions"></div><button onclick="Ampliaciones.upload()">Subir adjuntos</button>`:'');}
 async function upload(){if(!registro?.id)return;let input=$('amplUploadInput'),campo=$('amplAttachmentField').value;if(!input?.files?.length)return;try{for(let file of input.files){if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);let b64=await fileToBase64(file);await api('amplUpload',{modulo:curso,expedienteId:registro.id,campo,nombre:file.name,base64:b64});}await refresh(curso);registro.row=sheet(curso).registros.find(r=>id(r)===registro.id);renderAttachments();update('Archivos subidos correctamente.');}catch(e){update('Error al subir archivo: '+e.message)}}
 function fileToBase64(file){return new Promise((resolve,reject)=>{let r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=()=>reject(Error('No se pudo leer archivo'));r.readAsDataURL(file)});}
 async function download(aid){try{let parts=[],r;for(let i=0;;i++){r=await api('amplPreview',{adjuntoId:aid,parte:i});let bin=atob(r.base64),ar=new Uint8Array(bin.length);for(let j=0;j<bin.length;j++)ar[j]=bin.charCodeAt(j);parts.push(ar);if(i+1>=r.total)break;}let blob=new Blob(parts,{type:r.mime}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=r.nombre;a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}catch(e){update('No se pudo recuperar el adjunto: '+e.message)}}
 async function removeFile(aid){if(!confirm('¿Enviar este archivo a papelera de Google Drive?'))return;try{await api('amplDeleteAdj',{adjuntoId:aid,confirmar:'SI'});await refresh(curso);renderAttachments()}catch(e){update(e.message)}}
 async function removeExp(){let mod=curso,row=sheet(mod).registros.find(r=>id(r)===NAV[mod].selected);if(!row)return update('Selecciona un expediente.');if(!confirm('¿Eliminar expediente Ítem '+get(row,sheet(mod).headers,'Item')+' y enviar sus archivos a papelera?'))return;try{await api('amplDelete',{modulo:mod,expedienteId:id(row),confirmar:'ELIMINAR'});NAV[mod].selected='';await refresh(mod);}catch(e){update(e.message)}}
+
+// REV13: Vista previa local y de Drive sin modificar ni subir archivos.
+let previewObjectUrl=null, previewGeneration=0, previewPdf=null, previewPage=1;
+function previewModal(){return $('hdAmplPreviewModal');}
+function closePreview(){previewGeneration++;if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null;}previewPdf=null;let modal=previewModal();if(modal){modal.hidden=true;$('hdAmplPreviewBody').replaceChildren();}}
+function localPreview(file){if(!file)return;previewBlob(file,file.name,file.type);}
+async function previewSaved(aid){
+ const t=++previewGeneration;openPreview('Cargando archivo…');
+ try{
+  const parts=[];let info=null;
+  for(let i=0;i<100;i++){
+   const p=await api('amplPreview',{adjuntoId:aid,parte:i});if(t!==previewGeneration)return;
+   if(!p||!p.base64)throw Error('Respuesta incompleta de Google Drive.');
+   info=p;const b=atob(p.base64),a=new Uint8Array(b.length);for(let j=0;j<b.length;j++)a[j]=b.charCodeAt(j);parts.push(a);
+   if(i+1>=Number(p.total||1))break;
+  }
+  if(t!==previewGeneration)return;
+  await previewBlob(new Blob(parts,{type:info.mime||'application/octet-stream'}),info.nombre||'Archivo',info.mime||'',t);
+ }catch(e){if(t===previewGeneration)$('hdAmplPreviewBody').textContent='No se pudo visualizar: '+(e.message||e);}
+}
+function openPreview(name){const m=previewModal();if(!m)return;m.hidden=false;$('hdAmplPreviewTitle').textContent=name;$('hdAmplPreviewBody').textContent='Preparando vista previa…';$('hdAmplPreviewDownload').hidden=true;}
+async function previewBlob(blob,name,mime,generation){
+ if(generation===undefined)generation=++previewGeneration;
+ else if(generation!==previewGeneration)return;
+ openPreview(name);
+ if(previewObjectUrl){URL.revokeObjectURL(previewObjectUrl);previewObjectUrl=null;}
+ const url=URL.createObjectURL(blob);previewObjectUrl=url;
+ const body=$('hdAmplPreviewBody');body.replaceChildren();
+ const dl=$('hdAmplPreviewDownload');dl.hidden=false;dl.href=url;dl.download=name;
+ const typ=(mime||blob.type||'').toLowerCase(),ext=String(name).split('.').pop().toLowerCase();
+ if(typ.startsWith('image/')||['jpg','jpeg','png','gif','webp','bmp'].includes(ext)){
+  const img=document.createElement('img');img.alt='Vista previa: '+name;img.src=url;img.className='hd-ampl-preview-image';body.appendChild(img);return;
+ }
+ if(typ.includes('pdf')||ext==='pdf'){
+  if(!window.pdfjsLib){body.textContent='No se cargó el visor PDF. Usa Descargar.';return;}
+  try{
+   const data=new Uint8Array(await blob.arrayBuffer());if(generation!==previewGeneration)return;
+   previewPdf=await pdfjsLib.getDocument({data}).promise;previewPage=1;
+   const controls=document.createElement('div');controls.className='hd-ampl-pdf-controls';
+   controls.innerHTML='<button type="button" id="hdAmplPrevPage">Anterior</button><span id="hdAmplPdfCount"></span><button type="button" id="hdAmplNextPage">Siguiente</button>';
+   const holder=document.createElement('div');holder.id='hdAmplPdfCanvasHolder';holder.className='hd-ampl-pdf-page';
+   body.append(controls,holder);
+   controls.querySelector('#hdAmplPrevPage').onclick=()=>drawPreviewPdfPage(previewPage-1,generation);
+   controls.querySelector('#hdAmplNextPage').onclick=()=>drawPreviewPdfPage(previewPage+1,generation);
+   await drawPreviewPdfPage(1,generation);
+  }catch(e){if(generation===previewGeneration)body.textContent='No se pudo renderizar PDF: '+e.message;}
+  return;
+ }
+ if(ext==='docx' && window.mammoth){
+  try{let result=await mammoth.convertToHtml({arrayBuffer:await blob.arrayBuffer()});if(generation!==previewGeneration)return;
+   const content=document.createElement('div');content.className='hd-ampl-word-preview';
+   // No introducir HTML de archivos como código ejecutable.
+   content.innerHTML=window.DOMPurify?DOMPurify.sanitize(result.value):safe(result.value);body.appendChild(content);
+  }catch(e){body.textContent='No se pudo mostrar el documento Word: '+e.message;}return;
+ }
+ body.textContent='Este formato no tiene visualización integrada. Usa Descargar para abrirlo con una aplicación compatible.';
+}
+async function drawPreviewPdfPage(n,generation){
+ if(!previewPdf||n<1||n>previewPdf.numPages||generation!==previewGeneration)return;
+ previewPage=n;const count=$('hdAmplPdfCount');if(count)count.textContent='Página '+n+' / '+previewPdf.numPages;
+ const prev=$('hdAmplPrevPage'),next=$('hdAmplNextPage');if(prev)prev.disabled=n===1;if(next)next.disabled=n===previewPdf.numPages;
+ const holder=$('hdAmplPdfCanvasHolder');if(!holder)return;holder.textContent='Cargando página…';
+ const page=await previewPdf.getPage(n);if(generation!==previewGeneration||previewPage!==n)return;
+ const targetWidth=Math.max(270,Math.min(830,holder.clientWidth||650));const raw=page.getViewport({scale:1});const scale=Math.min(2,targetWidth/raw.width);
+ const vp=page.getViewport({scale});const canvas=document.createElement('canvas');canvas.width=Math.floor(vp.width);canvas.height=Math.floor(vp.height);
+ await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+ if(generation!==previewGeneration||previewPage!==n)return;holder.replaceChildren(canvas);
+}
+function renderPendingFilePreviews(input){
+ const parent=input.closest('.hd-ampl-inline-attachment');const target=parent?.querySelector('[data-preview-files]')||(input.id==='amplUploadInput'?$('amplExtraPreviews'):null);
+ if(!target)return;target.replaceChildren();
+ [...input.files].forEach((file,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='hd-ampl-file-preview-btn';b.textContent='👁 Vista previa: '+file.name;
+  b.onclick=()=>localPreview(file);target.appendChild(b);
+ });
+}
+document.addEventListener('change',e=>{if(e.target.matches('input[data-ampl-upload],#amplUploadInput'))renderPendingFilePreviews(e.target);});
+// REV13 OCR: funciones ausentes en REV12, que bloqueaban todas las búsquedas.
+function ocrMessage(message){const e=$('amplOCRStatus');if(e)e.textContent=message;}
+let tesseractLoading=null;
+function tesseractReady(){
+ if(window.Tesseract?.createWorker)return Promise.resolve(window.Tesseract);
+ if(tesseractLoading)return tesseractLoading;
+ tesseractLoading=new Promise((resolve,reject)=>{
+  const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+  script.onload=()=>window.Tesseract?.createWorker?resolve(window.Tesseract):reject(Error('El motor OCR no se inició.'));
+  script.onerror=()=>reject(Error('No se pudo descargar el motor OCR. Comprueba internet.'));
+  document.head.appendChild(script);
+ }).catch(e=>{tesseractLoading=null;throw e;});return tesseractLoading;
+}
+function candidates(text,confidence=100){
+ const result=[],known=new Set();
+ const add=(type,value)=>{value=String(value||'').trim().replace(/^[#:\s-]+|[\s.;,]+$/g,'');if(value.length<3||value.length>130)return;
+  const id=type+':'+key(value);if(known.has(id))return;known.add(id);result.push({type,value,uncertain:Number(confidence)<78});};
+ const lines=String(text||'').replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean);
+ for(const line of lines){
+  let m=line.match(/(?:solicitud|solicito|sol\.?\s*n[°ºo.]*)\s*(?:(?:n[°ºo.]*)\s*)?[:#-]?\s*([A-Z0-9][A-Z0-9\/-]{3,50})/i);
+  if(m)add('sol',m[1]);
+  m=line.match(/(?:resoluci[oó]n|res\.?\s*n[°ºo.]*)\s*(?:n[°ºo.]*)?[:#-]?\s*([A-Z0-9][A-Z0-9\/-]{3,50})/i);
+  if(m)add('res',m[1]);
+  m=line.match(/(?:solicitante|interesado|administrado|nombre\s+del\s+solicitante|raz[oó]n\s+social)\s*[:\-]\s*(.{4,90})/i);
+  if(m)add('nombre',m[1]);
+  m=line.match(/(?:sector|localidad|caser[ií]o|centro\s+poblado|direcci[oó]n)\s*[:\-]\s*(.{4,90})/i);
+  if(m)add('sector',m[1]);
+ }
+ // Respaldo para documentos con números separados de sus etiquetas.
+ if(!result.length){for(const line of lines){
+  const m=line.match(/\b(?:\d[\d\s\/-]{5,28}\d)\b/);
+  if(m){add('sol',m[0]);if(result.length>=10)break;}
+ }}
+ return result;
+}
+function ocrAddManual(){const value=$('amplOCRManualText')?.value.trim();if(!value)return ocrMessage('Escribe un número, nombre o lugar.');
+ const type=$('amplOCRManualType')?.value||'sol';ocrCandidates.push({type,value,uncertain:false});renderCandidates();$('amplOCRManualText').value='';ocrMessage('Dato añadido; puedes corregirlo y buscarlo.');}
 async function recognize(){let f=$('amplOCRFile').files?.[0];if(!f)return ocrMessage('Selecciona una imagen o PDF.');if(!navigator.onLine)return ocrMessage('Se necesita conexión a internet.');ocrFile=f;ocrCanceled=false;ocrCandidates=[];let run=$('amplOCRRun');run.disabled=true;try{
  let T=await tesseractReady(),worker=await T.createWorker('spa',1,{logger:m=>{if(m.status==='recognizing text')ocrMessage('Reconociendo texto: '+Math.round((m.progress||0)*100)+'%')}});recognizer=worker;
- if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){let doc=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;for(let n=1;n<=doc.numPages&&!ocrCanceled;n++){let p=await doc.getPage(n),viewport=p.getViewport({scale:1.45});let canvas=document.createElement('canvas');canvas.width=viewport.width;canvas.height=viewport.height;await p.render({canvasContext:canvas.getContext('2d'),viewport}).promise;let out=await worker.recognize(canvas);ocrCandidates.push(...candidates(out.data.text,out.data.confidence||0));canvas.width=canvas.height=0;ocrMessage('Página '+n+' de '+doc.numPages+' — '+Math.round(n/doc.numPages*100)+'%');}}
+ if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){
+  if(!window.pdfjsLib)throw Error('No se pudo cargar el lector PDF.');
+  let doc=await pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;
+  for(let n=1;n<=doc.numPages&&!ocrCanceled;n++){
+   let p=await doc.getPage(n),txt='';
+   try{const content=await p.getTextContent();txt=content.items.map(x=>x.str||'').join(' ');}catch(_){}
+   if(txt.trim().length>30)ocrCandidates.push(...candidates(txt,99));
+   else{
+    let viewport=p.getViewport({scale:1.55});let canvas=document.createElement('canvas');canvas.width=viewport.width;canvas.height=viewport.height;
+    await p.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+    let out=await worker.recognize(canvas);ocrCandidates.push(...candidates(out.data.text,out.data.confidence||0));canvas.width=canvas.height=0;
+   }
+   ocrMessage('Página '+n+' de '+doc.numPages+' — '+Math.round(n/doc.numPages*100)+'%');
+  }
+ }
  else{let out=await worker.recognize(f);ocrCandidates.push(...candidates(out.data.text,out.data.confidence||0));}
  ocrCandidates=[...new Map(ocrCandidates.map(c=>[c.type+'-'+key(c.value),c])).values()];renderCandidates();if(ocrCanceled)ocrMessage('OCR cancelado; se muestran candidatos parciales.');else ocrMessage('Reconocimiento terminado; revisa y selecciona los datos.');}
- catch(e){ocrMessage('OCR no disponible: '+e.message);}finally{if(recognizer){await recognizer.terminate().catch(()=>{});recognizer=null;}ocrFile=null;$('amplOCRFile').value='';run.disabled=false;}}
+ catch(e){ocrMessage('OCR no disponible: '+e.message);}finally{if(recognizer){await recognizer.terminate().catch(()=>{});recognizer=null;}ocrFile=null;run.disabled=false;}}
 function ocrCancel(){ocrCanceled=true;ocrMessage('Cancelando reconocimiento...');}
 function renderCandidates(){let list=$('amplCandidates');list.innerHTML=ocrCandidates.map((c,i)=>`<div class="hd-ampl-candidate"><label><input type="checkbox" data-ocr="${i}" checked><select data-type="${i}"><option value="sol" ${c.type==='sol'?'selected':''}>Solicitud</option><option value="res" ${c.type==='res'?'selected':''}>Resolución</option><option value="nombre" ${c.type==='nombre'?'selected':''}>Solicitante</option><option value="sector" ${c.type==='sector'?'selected':''}>Pueblo/sector</option></select></label><input data-value="${i}" value="${safe(c.value)}"><small>${c.uncertain?'Revisar reconocimiento':'Dato reconocido'}</small></div>`).join('');}
 function selectedCandidates(){return ocrCandidates.map((c,i)=>{let checkbox=document.querySelector(`[data-ocr="${i}"]`);return checkbox?.checked?{type:document.querySelector(`[data-type="${i}"]`).value,value:document.querySelector(`[data-value="${i}"]`).value.trim()}:null;}).filter(c=>c&&c.value);}
 function sim(a,b){a=key(a);b=key(b);if(!a||!b)return 0;if(a===b)return 1;if(a.includes(b)||b.includes(a))return .86;let dist=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=dist[0];dist[0]=i;for(let j=1;j<=b.length;j++){let tmp=dist[j];dist[j]=Math.min(dist[j]+1,dist[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=tmp;}}return 1-dist[b.length]/Math.max(a.length,b.length);}
 function match(row,mod,c){let h=sheet(mod).headers,vals=[];if(c.type==='sol'){for(let i=1;i<=MODS[mod].sol;i++){let k=field(h,'NroSolicitud',i);if(k)vals.push(...values(row[k]));}return vals.some(v=>v===canonical(c.value))?1:0;}
  if(c.type==='res'){if(mod==='UIA')return 0;for(let i=1;i<=2;i++){let k=field(h,'NroResolución',i);if(k)vals.push(...values(row[k]));}return vals.some(v=>v===canonical(c.value))?1:0;}
- let s=c.type==='sector'?get(row,h,'NombreSector','Direccion'):get(row,h,'Solicitante','Nombre');return sim(s,c.value);}
-async function searchOCR(){let candidates=selectedCandidates();if(!candidates.length)return ocrMessage('Selecciona al menos un dato.');try{await Promise.all(['OM5','UIA'].filter(m=>!STORE[m]).map(m=>refresh(m)));let container=$('amplOCRResults');let html='';for(let mod of ['OM5','UIA']){let items=sheet(mod).registros.map(r=>{let matched=candidates.map(c=>({c,score:match(r,mod,c)})).filter(x=>x.score>=.70);return {r,matched,score:Math.max(0,...matched.map(x=>x.score))};}).filter(x=>x.matched.length).sort((a,b)=>b.score-a.score);html+=`<h3>${mod} (${items.length})</h3>`+items.map(x=>`<div class="hd-ampl-result"><b>Ítem ${safe(get(x.r,sheet(mod).headers,'Item','Ítem'))}</b><p>${safe(get(x.r,sheet(mod).headers,'Solicitante','Nombre'))}</p><small>${x.matched.map(z=>safe(z.c.value)+' ('+(z.score===1?'exacta':'aproximada')+')').join(', ')}</small><div><button onclick="Ampliaciones.ocrOpen('${mod}','${safe(id(x.r))}')">Abrir ficha</button><button onclick="Ampliaciones.ocrLocate('${mod}','${safe(id(x.r))}')">Localizar en lista</button></div></div>`).join('');}container.innerHTML=html;ocrMessage('Búsqueda realizada.');}catch(e){ocrMessage('Error: '+e.message)}}
+ let s=c.type==='sector'?[get(row,h,'NombreSector','Direccion'),get(row,h,'Departamento'),get(row,h,'Provincia'),get(row,h,'Distrito')].join(' '):get(row,h,'Solicitante','Nombre');return Math.max(sim(s,c.value),...s.split(/[,;]+/).map(v=>sim(v,c.value)));}
+async function searchOCR(){let candidates=selectedCandidates();if(!candidates.length)return ocrMessage('Selecciona al menos un dato.');try{await Promise.all(['OM5','UIA'].filter(m=>!STORE[m]).map(async m=>{let d=await api('amplRead',{modulo:m});if(!d||!Array.isArray(d.registros))throw Error('No se pudieron consultar los registros de '+m);STORE[m]=d;}));let container=$('amplOCRResults');let html='';for(let mod of ['OM5','UIA']){let items=sheet(mod).registros.map(r=>{let matched=candidates.map(c=>({c,score:match(r,mod,c)})).filter(x=>x.score>=.70);return {r,matched,score:Math.max(0,...matched.map(x=>x.score))};}).filter(x=>x.matched.length).sort((a,b)=>b.score-a.score);html+=`<h3>${mod} (${items.length})</h3>`+(items.length?'':'<p>No se encontraron coincidencias.</p>')+items.map(x=>`<div class="hd-ampl-result"><b>Ítem ${safe(get(x.r,sheet(mod).headers,'Item','Ítem'))}</b><p>${safe(get(x.r,sheet(mod).headers,'Solicitante','Nombre'))}</p><small>${x.matched.map(z=>safe(z.c.value)+' ('+(z.score===1?'exacta':'aproximada')+')').join(', ')}</small><div><button onclick="Ampliaciones.ocrOpen('${mod}','${safe(id(x.r))}')">Abrir ficha</button><button onclick="Ampliaciones.ocrLocate('${mod}','${safe(id(x.r))}')">Localizar en lista</button></div></div>`).join('');}container.innerHTML=html;ocrMessage('Búsqueda realizada en OM5 y UIA.');}catch(e){ocrMessage('Error: '+e.message)}}
 function ocrOpen(mod,rid){curso=mod;let sec=$('tab-'+mod.toLowerCase());window.switchTab(mod.toLowerCase());NAV[mod].selected=rid;open(rid,0,false);}
 function ocrLocate(mod,rid){window.switchTab(mod.toLowerCase());curso=mod;NAV[mod].filter='';NAV[mod].page=Math.floor(sheet(mod).registros.findIndex(r=>id(r)===rid)/30);NAV[mod].selected=rid;render(mod);}
 // Corrección de arranque: no referenciar funciones inexistentes.
@@ -248,8 +376,8 @@ function ocrLocate(mod,rid){window.switchTab(mod.toLowerCase());curso=mod;NAV[mo
 window.Ampliaciones={
   getData:mod=>STORE[mod],
   enter,refresh,select,page,search,open,close,save,
-  addDoc,deleteDocField,upload,download,removeFile,removeExp,
-  recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,
+  addDoc,deleteDocField,upload,download,previewSaved,localPreview,closePreview,removeFile,removeExp,
+  recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,ocrAddManual,
   // Estas tres funciones no existen en REV12. No bloquear el arranque.
   excel:()=>update('La exportación de ampliaciones no está disponible en esta revisión.'),
   summary:()=>update('El reporte de ampliaciones no está disponible en esta revisión.'),
