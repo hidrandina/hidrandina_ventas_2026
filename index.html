@@ -2,6 +2,7 @@
 <html lang="es" class="h-full bg-slate-100">
 <head>
     <meta charset="UTF-8">
+    <meta name="hd-revision" content="REV20-EXCEL-20261114">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#081a47">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1712,6 +1713,100 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             renderCharts();
         }
 
+
+        /* REV20 | Exportación Excel institucional para TODOS los módulos.
+           Se aplica formato OOXML con JSZip: SheetJS Community no escribe estilos.
+           No altera reportes en pantalla, bases, filtros, ni módulos OM5/UIA. */
+        function hdExcelUsuario_(){
+          const u=(typeof currentUser!=='undefined'&&currentUser)||{};
+          return [u.nombre,u.usuario].filter(Boolean).join(' / ')||'Usuario no identificado';
+        }
+        function hdExcelFecha_(){
+          return new Intl.DateTimeFormat('es-PE',{
+            timeZone:'America/Lima',day:'2-digit',month:'2-digit',year:'numeric',
+            hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
+          }).format(new Date())+' (hora de Perú)';
+        }
+        function hdExcelAnchos_(headers,filas){
+          return headers.map((h,j)=>{
+            const name=String(h||'');
+            let min=16,max=44;
+            if(/observ|asunto|direccion|direcci|sector|nombre|solicitante|memo/i.test(name)){min=25;max=52;}
+            else if(/fecha/i.test(name)){min=19;max=24;}
+            else if(/solicitud|resoluc|documento|numero|nro|ítem|item|uuee/i.test(name)){min=18;max=34;}
+            const vals=filas.slice(0,300).map(r=>String(r[j]??'').split('\n').reduce((a,x)=>Math.max(a,x.length),0));
+            return Math.max(min,Math.min(max,Math.max(name.length+3,...vals.map(v=>Math.min(v+3,max)))));
+          });
+        }
+        function hdExcelAlto_(row,widths){
+          let lines=1;
+          row.forEach((v,j)=>{
+            const text=String(v??'');
+            const width=Math.max(8,widths[j]-3);
+            const lineCount=text.split('\n').reduce((s,line)=>s+Math.max(1,Math.ceil(line.length/width)),0);
+            lines=Math.max(lines,lineCount);
+          });
+          return Math.min(180,Math.max(27,lines*16+10));
+        }
+        function hdExcelStylesXml_(){
+          const ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+          const f=(bold,color,size)=>`<font><sz val="${size}"/><name val="Tahoma"/><family val="2"/>${bold?'<b/>':''}<color rgb="FF${color}"/></font>`;
+          const border='<border><left style="thin"><color rgb="FFCBD5E1"/></left><right style="thin"><color rgb="FFCBD5E1"/></right><top style="thin"><color rgb="FFCBD5E1"/></top><bottom style="thin"><color rgb="FFCBD5E1"/></bottom><diagonal/></border>';
+          const xf=(font,fill,bord,wrap,hor)=>`<xf numFmtId="0" fontId="${font}" fillId="${fill}" borderId="${bord}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${hor}" vertical="center" wrapText="${wrap?'1':'0'}"/></xf>`;
+          return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+           +`<styleSheet xmlns="${ns}"><numFmts count="0"/><fonts count="3">`
+           +f(false,'142B56',11)+f(true,'FFFFFF',11)+f(true,'0D3474',11)
+           +'</fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF103C80"/><bgColor indexed="64"/></patternFill></fill></fills>'
+           +'<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'+border+'</borders>'
+           +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+           +'<cellXfs count="5">'+xf(0,0,0,false,'left')+xf(2,0,0,false,'left')+xf(0,0,0,false,'left')+xf(1,2,1,true,'center')+xf(0,0,1,true,'left')+'</cellXfs>'
+           +'<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+        }
+        async function hdExcelDescargar_(titulo,modulo,headers,filas,nombreArchivo){
+          if(!window.XLSX||!window.JSZip)throw Error('No se cargaron las bibliotecas necesarias para generar Excel con formato.');
+          if(!headers.length)throw Error('El reporte no tiene columnas.');
+          const widths=hdExcelAnchos_(headers,filas);
+          const matriz=[
+            ['HIDRANDINA S.A. — '+titulo],
+            ['Fecha y hora de generación: '+hdExcelFecha_()],
+            ['Usuario: '+hdExcelUsuario_()],
+            ['Módulo: '+modulo+'   |   Registros: '+filas.length],
+            [],
+            headers,
+            ...filas
+          ];
+          const ws=XLSX.utils.aoa_to_sheet(matriz);
+          const endCol=XLSX.utils.encode_col(headers.length-1);
+          ws['!merges']=[1,2,3,4].map(n=>({s:{r:n-1,c:0},e:{r:n-1,c:headers.length-1}}));
+          ws['!cols']=widths.map(w=>({wch:w}));
+          ws['!rows']=[{hpt:34},{hpt:24},{hpt:24},{hpt:24},{hpt:10},{hpt:40},...filas.map(r=>({hpt:hdExcelAlto_(r,widths)}))];
+          ws['!autofilter']={ref:'A6:'+endCol+(filas.length+6)};
+          const book=XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(book,ws,'Reporte');
+          const raw=XLSX.write(book,{bookType:'xlsx',type:'array',compression:true});
+          const zip=await JSZip.loadAsync(raw);
+          if(!zip.file('xl/styles.xml')||!zip.file('xl/worksheets/sheet1.xml'))throw Error('No se pudo preparar el formato del libro Excel.');
+          zip.file('xl/styles.xml',hdExcelStylesXml_());
+          let sheet=await zip.file('xl/worksheets/sheet1.xml').async('string');
+          sheet=sheet.replace(/<c\b([^>]*?)>/g,(tag,attributes)=>{
+            const ref=/\br="([A-Z]+)(\d+)"/.exec(attributes);
+            if(!ref)return tag;
+            const row=+ref[2],style=row===1?1:row<=4?2:row===6?3:row>=7?4:0;
+            return '<c'+attributes.replace(/\s+s="[^"]*"/g,'')+' s="'+style+'">';
+          });
+          const views='<sheetViews><sheetView workbookViewId="0" showGridLines="0">'
+          +'<pane ySplit="6" topLeftCell="A7" activePane="bottomLeft" state="frozen"/>'
+          +'<selection pane="bottomLeft" activeCell="A7" sqref="A7"/>'
+          +'</sheetView></sheetViews>';
+          if(/<sheetViews[\s>]/.test(sheet))sheet=sheet.replace(/<sheetViews\b[^>]*>[\s\S]*?<\/sheetViews>/,views);
+          else sheet=sheet.replace(/(<sheetData\b)/,views+'$1');
+          zip.file('xl/worksheets/sheet1.xml',sheet);
+          const file=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:5},mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+          const url=URL.createObjectURL(file);
+          const a=document.createElement('a');a.href=url;a.download=(nombreArchivo||'Reporte_Hidrandina.xlsx').replace(/[\\/:*?"<>|]/g,'_');
+          document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+        }
+
         function exportarExcel() {
             const docs = obtenerDocumentosFiltradosActuales();
             if (!docs || docs.length === 0) { alert("No hay registros para exportar."); return; }
@@ -1735,10 +1830,10 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                 };
             });
 
-            const worksheet = XLSX.utils.json_to_sheet(datosFormateados);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Documentos Hidrandina");
-            XLSX.writeFile(workbook, "Control_Documentos_Hidrandina.xlsx");
+            const headers=Object.keys(datosFormateados[0]);
+            const filas=datosFormateados.map(r=>headers.map(h=>r[h]??''));
+            hdExcelDescargar_('Control de documentos','Gestión de Documentos',headers,filas,'Control_Documentos_Hidrandina.xlsx')
+              .catch(e=>alert('No se pudo generar el Excel: '+e.message));
         }
 
         function enviarListaCorreo() {
@@ -3053,15 +3148,14 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         }
         async function hdReporteExcel(){
           await hdReporteVista();if(!hdUltimoReporte)return;
-          if(!window.XLSX)return alert('No se pudo cargar la librería de Excel.');
           const r=hdUltimoReporte,titulo=document.getElementById('hdRepTitulo').value.trim()||'Reporte de expedientes';
-          const matriz=[r.headers,...r.rows.map(x=>r.headers.map(k=>{const v=x[k];return v instanceof Date?v.toISOString().slice(0,10):v??'';}))];
-          const ws=XLSX.utils.aoa_to_sheet(matriz);
-          ws['!cols']=hdReportWidths_(r.headers).map(px=>({wch:Math.round(px/8)}));
-          ws['!rows']=[{hpt:36},...r.rows.map(row=>({hpt:Math.min(140,Math.max(30,18*Math.max(...r.headers.map(k=>Math.min(7,String(row[k]??'').split('\n').length)))))}))];
-          ws['!autofilter']={ref:'A1:'+XLSX.utils.encode_col(r.headers.length-1)+(r.rows.length+1)};
-          const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,ws,'Detalle');
-          XLSX.writeFile(book,(titulo+' - '+r.modulo).replace(/[\/:*?"<>|]/g,'_')+'.xlsx');
+          const filas=r.rows.map(x=>r.headers.map(k=>{const v=x[k];return v instanceof Date?v.toISOString().slice(0,10):v??'';}));
+          try{
+            await hdExcelDescargar_(titulo,r.modulo,r.headers,filas,(titulo+' - '+r.modulo+'.xlsx'));
+            document.getElementById('hdReporteEstado').textContent='Excel generado con formato institucional: '+filas.length+' registros. Fecha, hora y usuario incluidos.';
+          }catch(e){
+            document.getElementById('hdReporteEstado').textContent='Error al exportar Excel: '+e.message;
+          }
         }
         async function hdCrearCopia(){const b=document.getElementById('hdBackupBtn'),s=document.getElementById('hdBackupEstado'),out=document.getElementById('hdBackupResultados');b.disabled=true;s.textContent='Generando copias con los permisos de tu cuenta...';out.innerHTML='';try{const r=await postGateway({action:'amplBackup'},110000);out.innerHTML='<h3>Copias generadas en Google Drive</h3>'+r.archivos.map(f=>`<p><a href="${hdEsc_(f.url)}" target="_blank" rel="noopener">${hdEsc_(f.nombre)}</a></p>`).join('')+'<p>Abre cada copia para descargarla en Excel. La descarga requiere permisos de Google Drive.</p>';s.textContent='Se crearon las copias. Comprueba que puedes abrir ambas.';}catch(err){s.textContent='No se pudo completar la copia: '+err.message;}finally{b.disabled=false;}}
         // Menú lateral ejecutivo: conserva switchTab y permisos validados por el backend.
