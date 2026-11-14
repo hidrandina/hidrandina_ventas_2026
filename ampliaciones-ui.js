@@ -64,7 +64,7 @@ const api=async(action,data={})=>{let res=await window.postGateway({action,...da
 function sheet(mod){return STORE[mod]||{headers:[],registros:[],adjuntos:[],catalogos:{}};}
 function section(){return $('tab-'+curso.toLowerCase());}
 function format(v){if(v===null||v===undefined)return '';if(typeof v==='object')return '';return String(v);}
-function fieldsByStage(mod,stage){let hs=sheet(mod).headers;if(mod==='UIA')return hs.filter(h=>!h.startsWith('__'));return hs.slice(ETAPAS[stage][1],ETAPAS[stage][2]).filter(h=>!h.startsWith('__'));}
+function fieldsByStage(mod,stage){let hs=sheet(mod).headers;if(mod==='UIA')return hs.filter(h=>!h.startsWith('__')&&key(h)!=='tipo');return hs.slice(ETAPAS[stage][1],ETAPAS[stage][2]).filter(h=>!h.startsWith('__'));}
 function rolesReady(){return typeof currentUser !== 'undefined' && !!currentUser && view();}
 function activeAmplModule(){const parent=$('amplWorkspace')?.parentElement?.id;return parent==='tab-uia'?'UIA':parent==='tab-om5'?'OM5':null;}
 async function enter(mod){
@@ -93,7 +93,7 @@ async function refresh(mod){
 function numDocs(row,mod){let h=sheet(mod).headers,n=MODS[mod].sol;let s=[];for(let i=1;i<=n;i++){let x=field(h,'NroSolicitud',i),f=field(h,'FechaSolicitud',i);if(x&&row[x])s.push(String(row[x])+(f&&row[f]?' · '+format(row[f]):''));}return s.join('\n');}
 function numRes(row,mod){let h=sheet(mod).headers,n=MODS[mod].res;let s=[];for(let i=1;i<=n;i++){let x=field(h,'NroResolución',i),f=field(h,'FechaResolucion',i);if(x&&row[x])s.push(String(row[x])+(f&&row[f]?' · '+format(row[f]):''));}return s.join('\n');}
 function estadoColor(value){let v=key(value);return !v?'#8c96a6':/terminado|conforme|atendido/.test(v)?'#1e67d2':/proceso/.test(v)?'#e59624':/pendiente|observado/.test(v)?'#d64545':'#8c96a6';}
-function filt(row,mod){let n=NAV[mod],h=sheet(mod).headers,q=key(n.filter);if(q){let val=n.col==='todos'?h.map(k=>format(row[k])).join(' '):n.col==='sol'?numDocs(row,mod):n.col==='res'?numRes(row,mod):format(row[head(h,n.col)]);if(!key(val).includes(q))return false;}
+function filt(row,mod){let n=NAV[mod],h=sheet(mod).headers,q=key(n.filter);if(q){let val=n.col==='todos'?h.filter(k=>mod!=='UIA'||key(k)!=='tipo').map(k=>format(row[k])).join(' '):n.col==='sol'?numDocs(row,mod):n.col==='res'?numRes(row,mod):format(row[head(h,n.col)]);if(!key(val).includes(q))return false;}
  if(n.start||n.end){let dates=h.filter(x=>/^fecha(solicitud|resoluc)/i.test(key(x))).map(k=>format(row[k]).slice(0,10)).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v));if(!dates.some(d=>(!n.start||d>=n.start)&&(!n.end||d<=n.end)))return false;}
  return true;}
 function visible(mod){return sheet(mod).registros.filter(r=>filt(r,mod));}
@@ -126,9 +126,9 @@ function om5ReportRows(data){const hs=data.headers||[];return (data.registros||[
 window.HDReporteOM5={headers:OM5_REPORT_HEADERS,convert:om5ReportRows};
 
 
-/* REV18 — Exclusivamente UIA: 27 campos originales se presentan como 19 columnas del
+/* REV19 — Exclusivamente UIA: se omite el campo duplicado Tipo de los 27 campos originales; 18 columnas del
    archivo Reporte_UIA. No altera la base, el modelo aprobado de OM5 ni sus 40 columnas. */
-const UIA_REPORT_HEADERS = ["Item", "Nombre", "Direcciòn", "NroSolicitudes", "Fechasolicitudes", "Departamento", "Provincia", "Distrito", "SED Referencia", "N° Clientes", "MemorandosGC", "Tipo de OM", "Nro OM", "Tipo", "FechaEjecutadoUMD", "Estado Actual", "Clentes Captados", "Estado Captación Clientes", "Observación Captación Clientes"];
+const UIA_REPORT_HEADERS = ["Item", "Nombre", "Direcciòn", "NroSolicitudes", "Fechasolicitudes", "Departamento", "Provincia", "Distrito", "SED Referencia", "N° Clientes", "MemorandosGC", "Tipo de OM", "Nro OM", "FechaEjecutadoUMD", "Estado Actual", "Clentes Captados", "Estado Captación Clientes", "Observación Captación Clientes"];
 const UIA_REPORT_GROUPS = {
  'NroSolicitudes':['NroSolicitud1','NroSolicitud2','NroSolicitud3'],
  'Fechasolicitudes':['Fechasolicitud1','Fechasolicitud2','Fechasolicitud3'],
@@ -154,6 +154,7 @@ function uiaReportColumn(row,header,hs){
    const col=head(hs,f);return col?format(row[col]):'';
   }).filter(v=>String(v).trim()).join('\n');
  }
+ if(key(header)==='tipo')return ''; // Campo duplicado UIA excluido del reporte.
  const col=head(hs,header);return col?(/fecha/i.test(header)?om5ReportDate('Fecha',format(row[col])):format(row[col])):'';
 }
 function uiaReportRows(data){
@@ -180,7 +181,7 @@ function render(mod){
     '<td class="hd-report-actions"><button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td></tr>';
   }).join('')||'<tr><td colspan="42">No se encontraron expedientes</td></tr>';
  }else{
-  // UIA: 19 campos EXACTAMENTE en el orden de Reporte_UIA, más Elegir y Acción.
+  // UIA: 18 campos sin la columna duplicada Tipo; Elegir y Acción se conservan.
   const columns=UIA_REPORT_HEADERS,report=uiaReportRows({headers:h,registros:sub});
   theader.innerHTML='<tr><th class="hd-choose">Elegir</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'<th>Acción</th></tr>';
   body.innerHTML=report.map((r,i)=>{
@@ -188,7 +189,7 @@ function render(mod){
    return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td class="hd-choose"><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' aria-label="Seleccionar ítem '+safe(r['Item'])+'" onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td>'+
     columns.map(k=>'<td title="'+safe(r[k]).replace(/\n/g,' / ')+'" class="'+(UIA_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(r[k])+'</td>').join('')+
     '<td class="hd-report-actions"><button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td></tr>';
-  }).join('')||'<tr><td colspan="21">No se encontraron expedientes UIA</td></tr>';
+  }).join('')||'<tr><td colspan="20">No se encontraron expedientes UIA</td></tr>';
  }
  $('amplCount').textContent=source.length+' expedientes; página '+(n.page+1)+' de '+Math.max(1,Math.ceil(source.length/30));
  $('amplPrev').disabled=n.page===0;$('amplNext').disabled=(n.page+1)*30>=source.length;
@@ -297,7 +298,7 @@ function addDoc(kind){
 }
 async function deleteDocField(campo){if(!registro?.id||!registro.editable)return;if(!confirm('¿Eliminar '+campo+' y enviar a la papelera TODOS sus adjuntos?'))return;try{let r=await api('amplDeleteDocument',{modulo:curso,expedienteId:registro.id,campo,confirmar:'ELIMINAR_DOCUMENTO'});let rid=registro.id;await refresh(curso);open(rid,registro.stage,true);update('Documento eliminado; '+r.adjuntos+' adjunto(s) enviados a papelera.');}catch(e){update(e.message)}}
 function close(){if(saving){formAlert('El guardado todavía está en curso. No cierres el formulario.','info');return;}$('amplModal').hidden=true;registro=null;}
-function collect(){let result={};$('amplFormBody').querySelectorAll('[data-k]').forEach(e=>{if(e.closest('[data-doc]')?.hidden)return;result[e.getAttribute('data-k')]=e.value.trim();});return result;}
+function collect(){let result={};$('amplFormBody').querySelectorAll('[data-k]').forEach(e=>{if(e.closest('[data-doc]')?.hidden)return;const fieldName=e.getAttribute('data-k');if(registro?.mod==='UIA'&&key(fieldName)==='tipo')return;result[fieldName]=e.value.trim();});return result;}
 async function save(){
  if(saving)return;
  if(!registro?.editable){formAlert('No hay un expediente editable abierto.');return;}
