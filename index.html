@@ -338,6 +338,24 @@ html, body { max-width:100%; }
 #amplFormBody .hd-ampl-doc-cell.hd-ampl-date{min-width:155px}
 @media(max-width:767px){#tab-om5 .hd-ampl-grid,#tab-reportes .hd-report-scroll{max-height:68vh}#tab-om5 .hd-ampl-grid th,#tab-om5 .hd-ampl-grid td{padding:9px 10px;font-size:11px}#tab-om5 .hd-ampl-grid .hd-report-multiline{width:190px;min-width:190px}}
 
+
+/* REV18 UIA únicamente: 19 columnas con alineación, lectura horizontal y vertical. */
+#tab-uia .hd-ampl-grid{overflow:auto;max-height:67vh;overscroll-behavior:contain;border:1px solid #c9d9ef;border-radius:13px;background:#fff}
+#tab-uia .hd-ampl-grid table{table-layout:fixed;width:max-content;min-width:100%;border-collapse:separate;border-spacing:0}
+#tab-uia .hd-ampl-grid th,#tab-uia .hd-ampl-grid td{min-width:155px;width:178px;max-width:260px;box-sizing:border-box;vertical-align:top;white-space:pre-line;overflow-wrap:anywhere;line-height:1.5;padding:11px 13px;font-size:12px;border-bottom:1px solid #dce7f5}
+#tab-uia .hd-ampl-grid th{position:sticky;top:0;z-index:3;background:#0b3479;color:#fff;font-weight:800;white-space:normal;min-height:48px}
+#tab-uia .hd-ampl-grid td.hd-choose,#tab-uia .hd-ampl-grid th.hd-choose{min-width:66px;width:66px;max-width:66px;text-align:center;position:sticky;left:0;z-index:2;background:#f8fbff}
+#tab-uia .hd-ampl-grid th.hd-choose{z-index:5;background:#0b3479}
+#tab-uia .hd-ampl-grid td:nth-child(2),#tab-uia .hd-ampl-grid th:nth-child(2){min-width:80px;width:80px;max-width:80px;position:sticky;left:66px;z-index:2;background:#f5f9ff}
+#tab-uia .hd-ampl-grid th:nth-child(2){z-index:5;background:#0b3479}
+#tab-uia .hd-ampl-grid tbody tr{height:auto;min-height:58px}
+#tab-uia .hd-ampl-grid tbody tr:nth-child(even) td{background:#f5f9ff}
+#tab-uia .hd-ampl-grid tbody tr:nth-child(even) td:first-child,#tab-uia .hd-ampl-grid tbody tr:nth-child(even) td:nth-child(2){background:#edf5ff}
+#tab-uia .hd-ampl-grid .hd-report-multiline{min-width:200px;width:210px;max-width:235px}
+#tab-uia .hd-ampl-grid .hd-report-actions{min-width:125px;width:135px;max-width:145px}
+#tab-uia .hd-report-actions button{display:block;width:100%;padding:7px 9px;margin:0 0 5px;border:1px solid #acc5eb;border-radius:8px;background:#fff;color:#124da0;font-weight:700}
+@media(max-width:767px){#tab-uia .hd-ampl-grid{max-height:68vh}#tab-uia .hd-ampl-grid th,#tab-uia .hd-ampl-grid td{padding:9px 10px;font-size:11px}#tab-uia .hd-ampl-grid .hd-report-multiline{width:190px;min-width:190px}}
+
 </style>
 
 <style id="hdExecutiveStyles">
@@ -3007,11 +3025,15 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             if(!window.HDReporteOM5)throw Error('No se cargó el formato de 40 columnas de OM5. Actualiza ampliaciones-ui.js.');
             return {headers:HDReporteOM5.headers,registros:HDReporteOM5.convert(d)};
           }
+          if(mod==='UIA'){
+            if(!window.HDReporteUIA)throw Error('No se cargó el formato de 19 columnas de UIA. Actualiza ampliaciones-ui.js.');
+            return {headers:HDReporteUIA.headers,registros:HDReporteUIA.convert(d)};
+          }
           return d;
         }
         function hdReportWidths_(headers){return headers.map(h=>{
-          if(['Solcitudes','Fechas','Resoluciones','Fechas Resoluciones','ObsExpedientes','Memorandos Expedientes','ObsInspecciones','MemoObsInspGC'].includes(h))return 195;
-          if(['NombreSector','ObservacionesObras','ObsCaptacionClientes','Solicitante','Direccion'].includes(h))return 230;
+          if(['NroSolicitudes','Fechasolicitudes','MemorandosGC','Solcitudes','Fechas','Resoluciones','Fechas Resoluciones','ObsExpedientes','Memorandos Expedientes','ObsInspecciones','MemoObsInspGC'].includes(h))return 195;
+          if(['NombreSector','ObservacionesObras','ObsCaptacionClientes','Solicitante','Direccion','Direcciòn','Nombre','Observación Captación Clientes'].includes(h))return 230;
           if(h.toLowerCase().includes('fecha'))return 145;
           return Math.min(210,Math.max(130,h.length*8+38));
         });}
@@ -3024,7 +3046,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             const rows=d.registros.filter(r=>!q||d.headers.some(k=>String(r[k]??'').toLowerCase().includes(q)));
             const mod=document.getElementById('hdRepModulo').value;
             hdUltimoReporte={rows,headers:d.headers,modulo:mod};
-            status.textContent=rows.length+' registros. '+(mod==='OM5'?'Se muestran los 40 campos de Reporte_OM5. ':'')+'La exportación incluirá todas las filas filtradas.';
+            status.textContent=rows.length+' registros. '+(mod==='OM5'?'Se muestran los 40 campos de Reporte_OM5. ':mod==='UIA'?'Se muestran los 19 campos de Reporte_UIA. ':'')+'La exportación incluirá todas las filas filtradas.';
             const widths=hdReportWidths_(d.headers);
             out.innerHTML='<div class="hd-report-scroll" tabindex="0" aria-label="Tabla completa de '+hdEsc_(mod)+'"><table class="hd-report-full"><colgroup>'+widths.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup><thead><tr>'+d.headers.map(k=>'<th>'+hdEsc_(k)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+d.headers.map(k=>'<td>'+hdEsc_(r[k] instanceof Date?r[k].toLocaleDateString('es-PE'):r[k]).replace(/\n/g,'<br>')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
           }catch(err){hdUltimoReporte=null;status.textContent='Error: '+err.message;out.innerHTML='';}
@@ -3107,7 +3129,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             if (tabId === 'ejecutivo') hdRenderExecutive();
             if (['om5','uia'].includes(tabId)) {const work=document.getElementById('amplWorkspace');const target=document.getElementById('tab-'+tabId);if(work&&target&&!target.contains(work)){target.appendChild(work);work.querySelector('h2').textContent=tabId==='om5'?'AMPLIACIONES DE REDES OM5':'AMPLIACIONES UIA';const sel=work.querySelector('#amplField');sel.innerHTML=tabId==='om5'?'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="res">Número de resolución</option><option value="Solicitante">Solicitante</option><option value="NombreSector">Sector</option>':'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="Nombre">Nombre</option><option value="Direccion">Dirección</option>';sel.value='todos';const s=work.querySelector('#amplSearch');s.value='';work.querySelector('#amplStart').value='';work.querySelector('#amplEnd').value='';}}
             if (tabId === 'om5') om5Entrar();
-            if (tabId === 'uia') Ampliaciones.enter('UIA');
+            if (tabId === 'uia') {const ttl=document.querySelector('#tab-uia #amplWorkspace h2');if(ttl)ttl.textContent='AMPLIACIONES UIA';Ampliaciones.enter('UIA');}
             if (tabId === 'dashboard') renderStatsAndCharts();
             if (tabId === 'catalogos' || tabId === 'personal') renderCatalogsManagement();
             if (tabId === 'dash-ampl') hdMostrarDashboardAmpl();
@@ -3289,7 +3311,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV17-20261114"></script>
+<script src="./ampliaciones-ui.js?v=REV18-UIA-20261114"></script>
     <script>
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
