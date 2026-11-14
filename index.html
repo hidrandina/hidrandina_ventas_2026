@@ -357,6 +357,16 @@ html, body { max-width:100%; }
 #tab-uia .hd-report-actions button{display:block;width:100%;padding:7px 9px;margin:0 0 5px;border:1px solid #acc5eb;border-radius:8px;background:#fff;color:#124da0;font-weight:700}
 @media(max-width:767px){#tab-uia .hd-ampl-grid{max-height:68vh}#tab-uia .hd-ampl-grid th,#tab-uia .hd-ampl-grid td{padding:9px 10px;font-size:11px}#tab-uia .hd-ampl-grid .hd-report-multiline{width:190px;min-width:190px}}
 
+
+/* REV28: Búsqueda inteligente aislada; no altera la consulta de OM5/UIA. */
+.hd-smart-search{max-width:100%!important}.hd-smart-search>h2{font-size:clamp(21px,2vw,28px);font-weight:800;color:#103471;margin:0 0 8px}
+.hd-smart-help{color:#526784;margin-bottom:18px}.hd-smart-searchpanel{background:white;border:1px solid #d1ddf0;border-radius:17px;padding:20px;box-shadow:0 5px 18px #183f7620;max-width:950px}
+.hd-smart-searchpanel>label{display:block;font-weight:750;color:#143963;margin:13px 0 7px}.hd-smart-searchpanel input[type=search],.hd-smart-searchpanel select{width:100%;padding:12px 14px;min-height:48px;border:1px solid #b4c8e9;border-radius:11px;background:#fff;font-size:15px;box-sizing:border-box}
+.hd-smart-radios{display:flex;gap:14px;flex-wrap:wrap}.hd-smart-radios label{display:flex;align-items:center;gap:7px;border:1px solid #c1d3ed;border-radius:11px;padding:12px 15px;font-weight:700;cursor:pointer}.hd-smart-radios input{width:auto!important;accent-color:#145ac3}
+.hd-smart-buttons{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}.hd-smart-search button{border:1px solid #b8ccec;border-radius:10px;padding:11px 17px;background:white;color:#13458c;font-weight:750}.hd-smart-search .hd-smart-primary,.hd-smart-search .hd-smart-photo-actions button:first-child{background:#1258c4;color:white;border-color:#1258c4}.hd-smart-search button:disabled{opacity:.5;cursor:wait}
+#hdSmartStatus{color:#315780;min-height:24px;margin:12px 0}#hdSmartStatus[data-error="true"]{color:#a21c28}.hd-smart-results{margin-top:20px;max-width:1100px}.hd-smart-results>h3{font-weight:800;font-size:19px;margin-bottom:12px}.hd-smart-result{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:white;border:1px solid #cfdff4;border-radius:14px;padding:15px;margin:9px 0;box-shadow:0 4px 12px #13418b14}.hd-smart-result p{margin:5px 0;color:#345473}.hd-smart-result small{color:#60728c}.hd-smart-result button{white-space:nowrap}
+.hd-smart-mobile-photo{display:none}.hd-smart-photo-btn{display:block;text-align:center;background:#1156bc;color:white!important;font-weight:800;padding:16px;border-radius:12px;position:relative}.hd-smart-photo-btn input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}.hd-smart-mobile-photo p{color:#526784;font-size:13px;margin:8px 0}#hdSmartCanvas{width:100%;height:auto;display:block;border:1px solid #a9c5e9;border-radius:9px;touch-action:none;cursor:crosshair}#hdSmartCropWrap[hidden]{display:none!important}.hd-smart-photo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+@media(max-width:767px){.hd-smart-mobile-photo{display:block}.hd-smart-searchpanel{padding:13px}.hd-smart-radios{flex-direction:column;gap:8px}.hd-smart-radios label{width:100%}.hd-smart-buttons button{flex:1}.hd-smart-result{align-items:flex-start}}
 </style>
 
 <style id="hdExecutiveStyles">
@@ -713,15 +723,32 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         <!-- NUEVA INTERFAZ OM5 / UIA — aislada de Gestión de Documentos -->
         <section id="tab-om5" class="hidden hd-ampl-section"></section>
         <section id="tab-uia" class="hidden hd-ampl-section"></section>
-        <section id="tab-ocr" class="hidden hd-ampl-section">
-          <h2>Buscar expedientes por fotografía o PDF</h2>
-          <p>La fotografía y el PDF se reconocen localmente; no se cargan como adjuntos.</p>
-          <div class="hd-ampl-controls"><label>Fotografía / PDF <input type="file" id="amplOCRFile" accept="image/*,.pdf"></label><label>Tomar fotografía <input type="file" accept="image/*" capture="environment" onchange="document.getElementById('amplOCRFile').files=this.files;Ampliaciones.showOCRImage();"></label>
-          <button onclick="Ampliaciones.recognize()" id="amplOCRRun">Reconocer documento</button>
-          <button onclick="Ampliaciones.ocrCancel()">Cancelar</button></div>
-          <div id="amplOCRCropPanel" hidden class="hd-ocr-crop-panel"><strong>Fotografía seleccionada</strong><p>Si el número no se reconoce correctamente, desliza el dedo o el mouse para marcar únicamente el número y pulsa «Reconocer documento».</p><canvas id="amplOCRCropCanvas" aria-label="Seleccionar región de la fotografía"></canvas><button type="button" onclick="Ampliaciones.resetCrop()">Usar imagen completa</button></div><p id="amplOCRStatus" role="status"></p><h3>Datos reconocidos: selecciona y corrige</h3><p class="hd-ampl-muted">Los números sin etiqueta se buscan en solicitudes y resoluciones. Comprueba las cifras con la vista previa: el reconocimiento puede equivocarse.</p>
-          <div class="hd-ampl-ocr-manual"><label>Buscar también por texto <input id="amplOCRManualText" type="text" placeholder="Número, nombre, sector o localidad"></label><label>Tipo <select id="amplOCRManualType"><option value="numero">Número (solicitud o resolución)</option><option value="sol">Solicitud</option><option value="res">Resolución</option><option value="nombre">Nombre / solicitante</option><option value="sector">Sector / localidad</option></select></label><button type="button" onclick="Ampliaciones.ocrAddManual()">+ Añadir dato</button></div><button type="button" onclick="Ampliaciones.localPreview(document.getElementById('amplOCRFile').files[0])">Abrir visor grande</button><div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
-          <div id="amplOCRResults"></div>
+        <section id="tab-ocr" class="hidden hd-ampl-section hd-smart-search">
+          <h2><i class="fa-solid fa-magnifying-glass"></i> Búsqueda inteligente de expedientes</h2>
+          <p class="hd-smart-help">Consulta expedientes de OM5 o UIA por sus campos de búsqueda. Los resultados se abren en modo de solo lectura.</p>
+          <div class="hd-smart-grid">
+            <div class="hd-smart-searchpanel">
+              <div class="hd-smart-mobile-photo">
+                <label class="hd-smart-photo-btn"><i class="fa-solid fa-camera"></i> Tomar fotografía<input type="file" id="hdSmartPhoto" accept="image/*" capture="environment"></label>
+                <p>Selecciona con el dedo el área que deseas reconocer y pulsa «Leer zona seleccionada».</p>
+                <div id="hdSmartCropWrap" hidden><canvas id="hdSmartCanvas" aria-label="Fotografía: marca el área del texto con el dedo"></canvas>
+                  <div class="hd-smart-photo-actions"><button type="button" id="hdSmartRead">Leer zona seleccionada</button><button type="button" id="hdSmartReset">Seleccionar otra zona</button></div></div>
+                <p id="hdSmartOCRStatus" role="status" aria-live="polite"></p>
+              </div>
+              <label for="hdSmartQuery">Texto o número para buscar</label>
+              <input id="hdSmartQuery" type="search" autocomplete="off" placeholder="Ingresa el número de solicitud, nombre o sector">
+              <label>Base de datos</label>
+              <div class="hd-smart-radios" role="radiogroup" aria-label="Base de datos">
+                <label><input type="radio" name="hdSmartBase" value="OM5" checked> Ampliaciones OM5</label>
+                <label><input type="radio" name="hdSmartBase" value="UIA"> Ampliaciones UIA</label>
+              </div>
+              <label for="hdSmartField">Buscar por</label>
+              <select id="hdSmartField"><option value="todos">Todos</option><option value="sol">N.º de solicitud</option><option value="nombre">Solicitante</option><option value="sector">Nombre del sector</option></select>
+              <div class="hd-smart-buttons"><button type="button" id="hdSmartSearchButton" class="hd-smart-primary"><i class="fa-solid fa-search"></i> Buscar</button><button type="button" id="hdSmartClear">Limpiar</button></div>
+              <p id="hdSmartStatus" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+          <div id="hdSmartResults" class="hd-smart-results" aria-live="polite"></div>
         </section>
         <!-- Funciones transversales de la plataforma -->
         <section id="tab-dash-ampl" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Dashboard de Ampliaciones OM5 y UIA</h2><p id="hdDashEstado" role="status"></p><div id="hdDashContenido" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div><div id="hdDashGraficos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
@@ -3764,6 +3791,146 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
  </div>
 </div>
 <script src="./ampliaciones-ui.js?v=REV19-UIA-SIN-TIPO-20261114"></script>
+<script>
+
+/* REV28: búsqueda autónoma; el módulo de ampliaciones y sus datos no se modifican. */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const clean=x=>String(x??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().replace(/\s+/g,' ');
+const digits=x=>String(x??'').replace(/\D/g,'').replace(/^0+/,'')||'0';
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const key=x=>clean(x).replace(/[^a-z0-9]/g,'');
+let resultRows=[], queryId=0, currentFile=null,image=null,selection=null,origin=null,ocrWorker=null,fromSearch=false;
+let cached={OM5:null,UIA:null};
+const fieldOptions={OM5:[['todos','Todos'],['sol','N.º de solicitud'],['nombre','Solicitante'],['sector','Nombre del sector']],UIA:[['todos','Todos'],['sol','N.º de solicitud'],['nombre','Nombre']]};
+function base(){return document.querySelector('input[name="hdSmartBase"]:checked')?.value||'OM5';}
+function status(msg,error=false){const el=$('hdSmartStatus');if(el){el.textContent=msg;el.dataset.error=String(error);}}
+function opts(){const sel=$('hdSmartField');sel.innerHTML=fieldOptions[base()].map(([value,label])=>'<option value="'+value+'">'+label+'</option>').join('');sel.value='todos';resultRows=[];$('hdSmartResults').replaceChildren();status('');}
+function normalizedHeader(h){return key(h);}
+function column(data,...aliases){const hs=data.headers||[];return hs.find(h=>aliases.some(a=>normalizedHeader(h)===key(a)))||'';}
+function value(row,data,...aliases){const c=column(data,...aliases);return c?String(row[c]??''):'';}
+function hasMatch(row,data,type,term){
+ if(type==='sol'){
+  const needle=digits(term);if(!/^\d+$/.test(term.replace(/[\s.\-/]/g,''))||needle==='0')return null;
+  for(let i=1;i<=(base()==='OM5'?6:3);i++){
+   const raw=value(row,data,'NroSolicitud'+i);
+   // Celdas históricas pueden contener varios números separados.
+   const tokens=raw.split(/[\s,;|\n]+/).map(x=>digits(x)).filter(x=>x!=='0');
+   if(tokens.includes(needle))return 'Solicitud '+i;
+  }
+  return null;
+ }
+ const c=type==='nombre'?(base()==='OM5'?'Solicitante':'Nombre'):'NombreSector';
+ const raw=value(row,data,c);return raw&&clean(raw).includes(clean(term))?c:null;
+}
+async function load(mod){
+ const existing=window.Ampliaciones?.getData?.(mod);
+ if(existing&&Array.isArray(existing.registros))return existing;
+ if(cached[mod])return cached[mod];
+ const data=await window.postGateway({action:'amplRead',modulo:mod},110000);
+ if(!data||!Array.isArray(data.registros))throw new Error('El servidor no entregó expedientes válidos de '+mod+'.');
+ cached[mod]=data;return data;
+}
+async function search(){
+ const term=$('hdSmartQuery').value.trim(),mod=base(),field=$('hdSmartField').value;
+ if(!term){status('Ingresa un texto o número antes de buscar.',true);$('hdSmartQuery').focus();return;}
+ const btn=$('hdSmartSearchButton');btn.disabled=true;status('Consultando la base de datos '+mod+'…');$('hdSmartResults').replaceChildren();const thisQuery=++queryId;
+ try{
+  const data=await load(mod);if(thisQuery!==queryId)return;
+  const allowed=field==='todos'?(mod==='OM5'?['sol','nombre','sector']:['sol','nombre']):[field];
+  resultRows=data.registros.map((row,i)=>({row,i,matched:allowed.map(t=>hasMatch(row,data,t,term)).filter(Boolean)})).filter(x=>x.matched.length);
+  const box=$('hdSmartResults');box.innerHTML='<h3>'+resultRows.length+' '+(resultRows.length===1?'expediente encontrado':'expedientes encontrados')+' en '+mod+'</h3>';
+  if(!resultRows.length)box.innerHTML+='<p>No se encontraron coincidencias para «'+esc(term)+'» en los campos seleccionados.</p>';
+  resultRows.forEach((x,idx)=>{
+   const row=x.row,number=value(row,data,'Ítem','Item')||String(idx+1),name=value(row,data,mod==='OM5'?'Solicitante':'Nombre'),place=value(row,data,mod==='OM5'?'NombreSector':'Direccion','Dirección');
+   const div=document.createElement('div');div.className='hd-smart-result';
+   div.innerHTML='<div><strong>Ítem '+esc(number)+' — '+esc(name||'Sin nombre')+'</strong><p>'+esc(place)+'</p><small>Coincidencia en: '+esc(x.matched.join(', '))+'</small></div><button type="button">Consultar expediente</button>';
+   div.querySelector('button').addEventListener('click',()=>openResult(idx,mod));box.appendChild(div);
+  });
+  status('Búsqueda terminada. Puedes consultar cada coincidencia sin modificar los registros.');
+ }catch(e){status('No se pudo completar la búsqueda: '+(e.message||e),true);}finally{btn.disabled=false;}
+}
+async function openResult(i,mod){
+ const selected=resultRows[i];if(!selected)return;
+ const rid=selected.row.__HD_ID;
+ if(!rid){status('El expediente no tiene identificador interno disponible.',true);return;}
+ try{
+  status('Abriendo consulta del expediente…');
+  window.switchTab(mod.toLowerCase());
+  await window.Ampliaciones.enter(mod);
+  if(!window.Ampliaciones.getData(mod)?.registros?.some(r=>String(r.__HD_ID)===String(rid)))throw Error('El expediente ya no está disponible en la consulta.');
+  window.Ampliaciones.open(String(rid),0,false);
+  addStageNavigator(mod,String(rid),0);
+  fromSearch=true;
+  status('Puedes cerrar la ficha para volver a los resultados.');
+ }catch(e){fromSearch=false;window.switchTab('ocr');status('No se pudo abrir la consulta: '+(e.message||e),true);}
+}
+function addStageNavigator(mod,rid,active){
+ let bar=$('hdSmartStageNavigator');
+ if(!bar){bar=document.createElement('div');bar.id='hdSmartStageNavigator';bar.style.cssText='display:flex;gap:7px;flex-wrap:wrap;margin:12px 0;border-bottom:1px solid #d8e3f5;padding-bottom:10px';$('amplFormBody')?.parentElement?.insertBefore(bar,$('amplFormBody'));}
+ if(mod!=='OM5'){bar.hidden=true;return;}
+ bar.hidden=false;
+ const names=['Registro','Revisión de expediente','Inspección de campo','Montaje','Gestión de clientes'];
+ bar.replaceChildren();names.forEach((name,i)=>{const btn=document.createElement('button');btn.type='button';btn.textContent=name;btn.style.cssText=i===active?'background:#1358ba;color:#fff;border-color:#1358ba':'';btn.addEventListener('click',()=>{window.Ampliaciones.open(rid,i,false);addStageNavigator(mod,rid,i);});bar.appendChild(btn);});
+}
+function hookClose(){
+ const amp=window.Ampliaciones;if(!amp||amp.__hdSmartCloseHook)return;
+ const original=amp.close;
+ amp.close=function(...args){const was=fromSearch;const ret=original.apply(this,args);if(was&&$('amplModal')?.hidden){fromSearch=false;const nav=$('hdSmartStageNavigator');if(nav)nav.remove();window.switchTab('ocr');}return ret;};
+ amp.__hdSmartCloseHook=true;
+}
+function draw(){const c=$('hdSmartCanvas');if(!c||!image)return;const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(image,0,0,c.width,c.height);
+ if(selection){const x=selection.x*c.width,y=selection.y*c.height,w=selection.w*c.width,h=selection.h*c.height;ctx.fillStyle='rgba(22,104,215,.15)';ctx.fillRect(x,y,w,h);ctx.strokeStyle='#115bd3';ctx.lineWidth=3;ctx.strokeRect(x,y,w,h);}
+ else if(origin?.end){const p=origin.end,x=Math.min(p.x,origin.x)*c.width,y=Math.min(p.y,origin.y)*c.height,w=Math.abs(p.x-origin.x)*c.width,h=Math.abs(p.y-origin.y)*c.height;ctx.strokeStyle='#115bd3';ctx.lineWidth=3;ctx.strokeRect(x,y,w,h);}
+}
+function pointer(e){const r=$('hdSmartCanvas').getBoundingClientRect();return {x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};}
+async function photoChange(){
+ const f=$('hdSmartPhoto').files?.[0];currentFile=f||null;image=null;selection=null;origin=null;$('hdSmartCropWrap').hidden=true;
+ if(!f)return;
+ if(!f.type.startsWith('image/')){$('hdSmartOCRStatus').textContent='Solo se admiten fotografías.';return;}
+ try{
+  const url=URL.createObjectURL(f);const img=new Image();img.src=url;await img.decode();URL.revokeObjectURL(url);
+  image=img;const c=$('hdSmartCanvas'),scale=Math.min(1,1100/img.naturalWidth,1300/img.naturalHeight);c.width=Math.max(1,Math.round(img.naturalWidth*scale));c.height=Math.max(1,Math.round(img.naturalHeight*scale));draw();$('hdSmartCropWrap').hidden=false;
+  $('hdSmartOCRStatus').textContent='Marca con el dedo un rectángulo alrededor del número o texto.';
+ }catch(e){$('hdSmartOCRStatus').textContent='No se pudo abrir la fotografía: '+(e.message||e);}
+}
+async function readZone(){
+ if(!image)return;
+ const btn=$('hdSmartRead');btn.disabled=true;const st=$('hdSmartOCRStatus');
+ let worker=null;
+ try{
+  st.textContent=selection?'Leyendo el área seleccionada…':'Marca primero la zona del texto con el dedo.';
+  if(!selection)return;
+  if(!window.Tesseract?.createWorker){
+   await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';script.onload=resolve;script.onerror=()=>reject(Error('No se pudo cargar el motor de reconocimiento.'));document.head.append(script);});
+  }
+  const bounds=selection;const source=document.createElement('canvas');source.width=Math.max(1,Math.round(bounds.w*image.naturalWidth));source.height=Math.max(1,Math.round(bounds.h*image.naturalHeight));source.getContext('2d').drawImage(image,bounds.x*image.naturalWidth,bounds.y*image.naturalHeight,bounds.w*image.naturalWidth,bounds.h*image.naturalHeight,0,0,source.width,source.height);
+  worker=await window.Tesseract.createWorker('spa',1,{logger:p=>{if(p.status==='recognizing text')st.textContent='Reconociendo área: '+Math.round((p.progress||0)*100)+' %';}});
+  const result=await worker.recognize(source),raw=String(result.data?.text||'').trim();
+  // Una sola línea seleccionada; el OCR no crea ni selecciona candidatos ficticios.
+  const t=raw.split(/\n/).map(x=>x.trim()).filter(Boolean).join(' ');
+  if(!t){st.textContent='No se reconoció texto. Selecciona una zona más precisa o amplia.';return;}
+  $('hdSmartQuery').value=t;st.textContent='Texto reconocido: «'+t+'». Revísalo y corrígelo antes de pulsar Buscar.';
+  source.width=source.height=0;
+ }catch(e){st.textContent='No se pudo reconocer la fotografía: '+(e.message||e);}
+ finally{if(worker)await worker.terminate().catch(()=>{});btn.disabled=false;}
+}
+function init(){
+ const root=$('tab-ocr');if(!root||root.dataset.smartReady)return;root.dataset.smartReady='true';
+ opts();document.querySelectorAll('input[name="hdSmartBase"]').forEach(r=>r.addEventListener('change',()=>{queryId++;opts();}));
+ $('hdSmartSearchButton').addEventListener('click',search);$('hdSmartQuery').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();search();}});
+ $('hdSmartClear').addEventListener('click',()=>{$('hdSmartQuery').value='';$('hdSmartResults').replaceChildren();status('');$('hdSmartQuery').focus();});
+ $('hdSmartPhoto').addEventListener('change',photoChange);$('hdSmartRead').addEventListener('click',readZone);$('hdSmartReset').addEventListener('click',()=>{selection=null;origin=null;draw();});
+ const c=$('hdSmartCanvas');c.addEventListener('pointerdown',e=>{if(!image)return;c.setPointerCapture(e.pointerId);origin={...pointer(e),end:null};selection=null;draw();e.preventDefault();});
+ c.addEventListener('pointermove',e=>{if(!origin)return;origin.end=pointer(e);draw();e.preventDefault();});
+ c.addEventListener('pointerup',e=>{if(!origin)return;const p=pointer(e);const x=Math.min(origin.x,p.x),y=Math.min(origin.y,p.y),w=Math.abs(origin.x-p.x),h=Math.abs(origin.y-p.y);selection=w>.015&&h>.015?{x,y,w,h}:null;origin=null;draw();e.preventDefault();});
+ hookClose();
+}
+document.addEventListener('DOMContentLoaded',init);
+})();
+
+</script>
     <script>
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
