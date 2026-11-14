@@ -309,6 +309,35 @@ html, body { max-width:100%; }
 .hd-ocr-crop-panel p{font-size:13px;color:#536982;margin:6px 0 10px}
 #amplOCRCropCanvas{display:block;width:100%;height:auto;border:1px solid #c9d9ef;border-radius:8px;touch-action:none;cursor:crosshair}
 .hd-ocr-crop-panel button{margin-top:9px}
+
+/* REV17: 40-column OM5 tables, proportional widths and comfortable row heights */
+#tab-om5 .hd-ampl-grid{overflow:auto;max-height:67vh;overscroll-behavior:contain;border:1px solid #c9d9ef;border-radius:13px;background:#fff}
+#tab-om5 .hd-ampl-grid table{table-layout:fixed;width:max-content;min-width:100%;border-collapse:separate;border-spacing:0}
+#tab-om5 .hd-ampl-grid th,#tab-om5 .hd-ampl-grid td{min-width:155px;width:170px;max-width:250px;box-sizing:border-box;vertical-align:top;white-space:pre-line;overflow-wrap:anywhere;line-height:1.5;padding:11px 13px;font-size:12px;border-bottom:1px solid #dce7f5}
+#tab-om5 .hd-ampl-grid th{position:sticky;top:0;z-index:3;background:#0b3479;color:#fff;font-weight:800;white-space:normal;min-height:48px}
+#tab-om5 .hd-ampl-grid td.hd-choose,#tab-om5 .hd-ampl-grid th.hd-choose{min-width:66px;width:66px;max-width:66px;text-align:center;position:sticky;left:0;z-index:2;background:#f8fbff}
+#tab-om5 .hd-ampl-grid th.hd-choose{z-index:5;background:#0b3479}
+#tab-om5 .hd-ampl-grid td:nth-child(2),#tab-om5 .hd-ampl-grid th:nth-child(2){min-width:80px;width:80px;max-width:80px;position:sticky;left:66px;z-index:2;background:#f5f9ff}
+#tab-om5 .hd-ampl-grid th:nth-child(2){z-index:5;background:#0b3479}
+#tab-om5 .hd-ampl-grid tbody tr{height:auto;min-height:58px}
+#tab-om5 .hd-ampl-grid tbody tr:nth-child(even) td{background:#f5f9ff}
+#tab-om5 .hd-ampl-grid tbody tr:nth-child(even) td:first-child,#tab-om5 .hd-ampl-grid tbody tr:nth-child(even) td:nth-child(2){background:#edf5ff}
+#tab-om5 .hd-ampl-grid .hd-report-multiline{min-width:200px;width:210px;max-width:230px}
+#tab-om5 .hd-ampl-grid .hd-report-actions{min-width:122px;width:130px;max-width:140px}
+#tab-om5 .hd-report-actions button{display:block;width:100%;padding:7px 9px;margin:0 0 5px;border:1px solid #acc5eb;border-radius:8px;background:#fff;color:#124da0;font-weight:700}
+#hdReporteVista{overflow:visible!important;max-height:none!important}
+.hd-report-scroll{max-height:68vh;overflow:auto;overscroll-behavior:contain;border:1px solid #c9d9ef;border-radius:12px;background:#fff}
+.hd-report-full{border-collapse:separate;border-spacing:0;table-layout:fixed;width:max-content;min-width:100%}
+.hd-report-full th,.hd-report-full td{box-sizing:border-box;padding:11px 13px;border-bottom:1px solid #e0e8f6;vertical-align:top;text-align:left;line-height:1.5;white-space:normal;overflow-wrap:anywhere;font-size:12px;min-height:56px}
+.hd-report-full th{background:#0b3479;color:white;font-weight:800;position:sticky;top:0;z-index:2;min-height:44px}
+.hd-report-full tbody tr:nth-child(even){background:#f4f8ff}
+.hd-report-full td:first-child,.hd-report-full th:first-child{position:sticky;left:0;z-index:3;background:#f3f8ff;min-width:65px}
+.hd-report-full th:first-child{z-index:4;background:#0b3479}
+#tab-reportes .hd-ampl-controls{align-items:end;gap:12px}
+#amplFormBody .hd-ampl-doc-cell input:focus,#amplFormBody .hd-ampl-doc-cell textarea:focus{border-color:#1269d7;outline:2px solid #b6d5ff}
+#amplFormBody .hd-ampl-doc-cell.hd-ampl-date{min-width:155px}
+@media(max-width:767px){#tab-om5 .hd-ampl-grid,#tab-reportes .hd-report-scroll{max-height:68vh}#tab-om5 .hd-ampl-grid th,#tab-om5 .hd-ampl-grid td{padding:9px 10px;font-size:11px}#tab-om5 .hd-ampl-grid .hd-report-multiline{width:190px;min-width:190px}}
+
 </style>
 
 <style id="hdExecutiveStyles">
@@ -2967,10 +2996,51 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         function hdNro_(r,candidatos){for(const k of candidatos){const encontrado=Object.keys(r).find(x=>x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'')===k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''));if(encontrado)return r[encontrado]}return '';}
         let hdChartsAmpl=[];
         async function hdMostrarDashboardAmpl(){const e=document.getElementById('hdDashEstado'),out=document.getElementById('hdDashContenido'),charts=document.getElementById('hdDashGraficos');e.textContent='Consultando las bases de datos...';try{const [om5,uia]=await Promise.all([hdAsegurarAmpl_('OM5'),hdAsegurarAmpl_('UIA')]);let grupos={};let totalClientes=0;for(const r of om5.registros){let m=String(hdNro_(r,['Modalidad'])||'Sin modalidad');grupos[m]=(grupos[m]||0)+1;totalClientes+=Number(hdNro_(r,['ClientesCaptar'])||0)||0;}let pending=0,attended=0;for(const r of uia.registros){const v=String(hdNro_(r,['Estado Actual'])).toLowerCase().trim();if(v==='pendiente')pending++;if(v==='atendido')attended++;}out.innerHTML=`<article class="hd-ampl-card"><h3>OM5</h3><p><b>${om5.registros.length}</b> expedientes</p><p>${totalClientes} clientes a captar</p></article><article class="hd-ampl-card"><h3>UIA</h3><p><b>${uia.registros.length}</b> expedientes</p><p>${pending} pendientes · ${attended} atendidos · ${uia.registros.length-pending-attended} sin estado u otro</p></article>`;hdChartsAmpl.forEach(c=>c.destroy());hdChartsAmpl=[];charts.innerHTML='<div class="hd-ampl-card"><h3>OM5 por modalidad</h3><canvas id="hdChartOM5"></canvas></div><div class="hd-ampl-card"><h3>UIA por estado</h3><canvas id="hdChartUIA"></canvas></div>';if(window.Chart){hdChartsAmpl.push(new Chart(document.getElementById('hdChartOM5'),{type:'bar',data:{labels:Object.keys(grupos),datasets:[{label:'Ampliaciones',data:Object.values(grupos)}]},options:{responsive:true}}));hdChartsAmpl.push(new Chart(document.getElementById('hdChartUIA'),{type:'doughnut',data:{labels:['Pendiente','Atendido','Otro'],datasets:[{data:[pending,attended,uia.registros.length-pending-attended]}]},options:{responsive:true}}));}e.textContent='Datos obtenidos de OM5 y UIA.';}catch(err){e.textContent='No se pudo cargar el dashboard: '+err.message;out.innerHTML='';charts.innerHTML='';}}
+        async function hdDatosReporte_(){
+          const mod=document.getElementById('hdRepModulo').value;
+          if(mod==='Documentos'){
+            if(hdEsSoloOM5_(currentUser?.tipo))throw Error('Sin acceso a Documentos');
+            return {headers:['Numero_Documento','Origen_Tipo','Asunto','Fecha_Ingreso','Fecha_Vencimiento','Dias_Trancurridos','Dias_Exceso','Responsable','Estado','Observaciones'],registros:appData.Documentos};
+          }
+          const d=await hdAsegurarAmpl_(mod);
+          if(mod==='OM5'){
+            if(!window.HDReporteOM5)throw Error('No se cargó el formato de 40 columnas de OM5. Actualiza ampliaciones-ui.js.');
+            return {headers:HDReporteOM5.headers,registros:HDReporteOM5.convert(d)};
+          }
+          return d;
+        }
+        function hdReportWidths_(headers){return headers.map(h=>{
+          if(['Solcitudes','Fechas','Resoluciones','Fechas Resoluciones','ObsExpedientes','Memorandos Expedientes','ObsInspecciones','MemoObsInspGC'].includes(h))return 195;
+          if(['NombreSector','ObservacionesObras','ObsCaptacionClientes','Solicitante','Direccion'].includes(h))return 230;
+          if(h.toLowerCase().includes('fecha'))return 145;
+          return Math.min(210,Math.max(130,h.length*8+38));
+        });}
         let hdUltimoReporte=null;
-        async function hdDatosReporte_(){const mod=document.getElementById('hdRepModulo').value;if(mod==='Documentos'){if(hdEsSoloOM5_(currentUser?.tipo))throw Error('Sin acceso a Documentos');return {headers:['Numero_Documento','Origen_Tipo','Asunto','Fecha_Ingreso','Fecha_Vencimiento','Dias_Trancurridos','Dias_Exceso','Responsable','Estado','Observaciones'],registros:appData.Documentos};}return await hdAsegurarAmpl_(mod);}
-        async function hdReporteVista(){const out=document.getElementById('hdReporteVista'),status=document.getElementById('hdReporteEstado');status.textContent='Preparando reporte...';try{const d=await hdDatosReporte_(),q=document.getElementById('hdRepFiltro').value.trim().toLowerCase();const rows=d.registros.filter(r=>!q||d.headers.some(k=>String(r[k]??'').toLowerCase().includes(q)));hdUltimoReporte={rows,headers:d.headers,modulo:document.getElementById('hdRepModulo').value};status.textContent=`${rows.length} registros. Se exportarán todos los campos y filas filtrados.`;out.innerHTML='<table class="hd-ampl-grid"><thead><tr>'+d.headers.map(k=>'<th>'+hdEsc_(k)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(0,100).map(r=>'<tr>'+d.headers.map(k=>'<td>'+hdEsc_(r[k] instanceof Date?r[k].toLocaleDateString('es-PE'):r[k])+'</td>').join('')+'</tr>').join('')+'</tbody></table>'+(rows.length>100?'<p>Vista previa de 100 filas; la exportación incluirá todas.</p>':'');}catch(err){hdUltimoReporte=null;status.textContent='Error: '+err.message;out.innerHTML='';}}
-        async function hdReporteExcel(){await hdReporteVista();if(!hdUltimoReporte)return;if(!window.XLSX)return alert('No se pudo cargar la librería de Excel.');const r=hdUltimoReporte,titulo=document.getElementById('hdRepTitulo').value.trim()||'Reporte de expedientes';const matr=[r.headers,...r.rows.map(x=>r.headers.map(k=>{let v=x[k];return v instanceof Date?v.toISOString().slice(0,10):v??'';}))];const ws=XLSX.utils.aoa_to_sheet(matr);ws['!cols']=r.headers.map((h,i)=>({wch:Math.min(45,Math.max(15,h.length+3))}));const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,ws,'Detalle');XLSX.writeFile(book,(titulo+' - '+r.modulo).replace(/[\/:*?"<>|]/g,'_')+'.xlsx');}
+        async function hdReporteVista(){
+          const out=document.getElementById('hdReporteVista'),status=document.getElementById('hdReporteEstado');
+          status.textContent='Preparando reporte...';
+          try{
+            const d=await hdDatosReporte_(),q=document.getElementById('hdRepFiltro').value.trim().toLowerCase();
+            const rows=d.registros.filter(r=>!q||d.headers.some(k=>String(r[k]??'').toLowerCase().includes(q)));
+            const mod=document.getElementById('hdRepModulo').value;
+            hdUltimoReporte={rows,headers:d.headers,modulo:mod};
+            status.textContent=rows.length+' registros. '+(mod==='OM5'?'Se muestran los 40 campos de Reporte_OM5. ':'')+'La exportación incluirá todas las filas filtradas.';
+            const widths=hdReportWidths_(d.headers);
+            out.innerHTML='<div class="hd-report-scroll" tabindex="0" aria-label="Tabla completa de '+hdEsc_(mod)+'"><table class="hd-report-full"><colgroup>'+widths.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup><thead><tr>'+d.headers.map(k=>'<th>'+hdEsc_(k)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+d.headers.map(k=>'<td>'+hdEsc_(r[k] instanceof Date?r[k].toLocaleDateString('es-PE'):r[k]).replace(/\n/g,'<br>')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+          }catch(err){hdUltimoReporte=null;status.textContent='Error: '+err.message;out.innerHTML='';}
+        }
+        async function hdReporteExcel(){
+          await hdReporteVista();if(!hdUltimoReporte)return;
+          if(!window.XLSX)return alert('No se pudo cargar la librería de Excel.');
+          const r=hdUltimoReporte,titulo=document.getElementById('hdRepTitulo').value.trim()||'Reporte de expedientes';
+          const matriz=[r.headers,...r.rows.map(x=>r.headers.map(k=>{const v=x[k];return v instanceof Date?v.toISOString().slice(0,10):v??'';}))];
+          const ws=XLSX.utils.aoa_to_sheet(matriz);
+          ws['!cols']=hdReportWidths_(r.headers).map(px=>({wch:Math.round(px/8)}));
+          ws['!rows']=[{hpt:36},...r.rows.map(row=>({hpt:Math.min(140,Math.max(30,18*Math.max(...r.headers.map(k=>Math.min(7,String(row[k]??'').split('\n').length)))))}))];
+          ws['!autofilter']={ref:'A1:'+XLSX.utils.encode_col(r.headers.length-1)+(r.rows.length+1)};
+          const book=XLSX.utils.book_new();XLSX.utils.book_append_sheet(book,ws,'Detalle');
+          XLSX.writeFile(book,(titulo+' - '+r.modulo).replace(/[\/:*?"<>|]/g,'_')+'.xlsx');
+        }
         async function hdCrearCopia(){const b=document.getElementById('hdBackupBtn'),s=document.getElementById('hdBackupEstado'),out=document.getElementById('hdBackupResultados');b.disabled=true;s.textContent='Generando copias con los permisos de tu cuenta...';out.innerHTML='';try{const r=await postGateway({action:'amplBackup'},110000);out.innerHTML='<h3>Copias generadas en Google Drive</h3>'+r.archivos.map(f=>`<p><a href="${hdEsc_(f.url)}" target="_blank" rel="noopener">${hdEsc_(f.nombre)}</a></p>`).join('')+'<p>Abre cada copia para descargarla en Excel. La descarga requiere permisos de Google Drive.</p>';s.textContent='Se crearon las copias. Comprueba que puedes abrir ambas.';}catch(err){s.textContent='No se pudo completar la copia: '+err.message;}finally{b.disabled=false;}}
         // Menú lateral ejecutivo: conserva switchTab y permisos validados por el backend.
         function hdToggleMenu(){const side=document.getElementById('hdExecutiveSidebar'),scrim=document.getElementById('hdMenuScrim');const open=!side.classList.contains('hd-menu-open');side.classList.toggle('hd-menu-open',open);scrim.classList.toggle('hd-scrim-active',open);document.getElementById('hdMenuToggle').setAttribute('aria-expanded',String(open));}
@@ -3219,7 +3289,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV16-20261114"></script>
+<script src="./ampliaciones-ui.js?v=REV17-20261114"></script>
     <script>
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
