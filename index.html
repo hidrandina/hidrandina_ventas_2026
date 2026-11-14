@@ -726,6 +726,17 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         <!-- Funciones transversales de la plataforma -->
         <section id="tab-dash-ampl" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Dashboard de Ampliaciones OM5 y UIA</h2><p id="hdDashEstado" role="status"></p><div id="hdDashContenido" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div><div id="hdDashGraficos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
         <section id="tab-reportes" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Reportes del sistema</h2><div class="hd-ampl-controls"><label>Módulo <select id="hdRepModulo"><option value="Documentos">Gestión de Documentos</option><option value="OM5">Ampliaciones OM5</option><option value="UIA">Ampliaciones UIA</option></select></label><label>Título del reporte <input id="hdRepTitulo" value="Reporte de expedientes"></label><label>Buscar <input id="hdRepFiltro" placeholder="Filtrar registros"></label><button onclick="hdReporteVista()">Consultar</button><button onclick="hdReporteExcel()">Descargar Excel</button></div><p id="hdReporteEstado" role="status"></p><div id="hdReporteVista" style="max-height:65vh;overflow:auto"></div></section>
+<style>
+.hd-backup-progress{margin:14px 0 10px;padding:15px;border-radius:13px;background:#f0f6ff;border:1px solid #c0d7fa;max-width:100%}
+.hd-backup-progress[hidden],.hd-backup-notice[hidden]{display:none!important}
+.hd-backup-progress-top{display:flex;justify-content:space-between;gap:14px;align-items:center;color:#123a7d;margin-bottom:10px;font-size:14px;flex-wrap:wrap}
+.hd-backup-track{height:20px;border-radius:999px;background:#dce7f7;overflow:hidden;border:1px solid #b6cbed}
+.hd-backup-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#1366d5,#12a2c8);transition:width .18s ease}
+.hd-backup-progress small{display:block;color:#536987;font-size:12px;margin-top:8px}
+.hd-backup-notice{margin-top:12px;border:1px solid #b9d6bf;border-radius:12px;padding:13px 15px;background:#f1fbf3;color:#17612e;font-weight:700}
+.hd-backup-notice.hd-backup-error{background:#fff1f1;border-color:#e6b2b2;color:#9a1c24}
+@media(max-width:600px){.hd-backup-progress{padding:11px}.hd-backup-progress-top{font-size:12px}}
+</style>
         <section id="tab-copias" class="hidden hd-ampl-section">
  <h2 class="text-xl font-bold">Copias de seguridad de las bases de datos</h2>
  <p class="hd-bk-help">Descarga una copia en tu equipo. No se crearán archivos adicionales en Google Drive. En PC podrás elegir la carpeta cuando Chrome lo permita.</p>
@@ -749,7 +760,13 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
   </fieldset>
  </div>
  <div class="hd-bk-actions"><button type="button" id="hdBackupBtn" onclick="hdCrearCopia()">Preparar y descargar respaldo</button><button type="button" id="hdBCancelar" onclick="hdBAbortar_()" hidden>Cancelar descarga</button></div>
+ <div id="hdBackupProgreso" class="hd-backup-progress" hidden role="group" aria-label="Progreso del respaldo">
+   <div class="hd-backup-progress-top"><strong id="hdBackupProgresoEtapa">Preparando respaldo…</strong><strong id="hdBackupPorcentaje">0 %</strong></div>
+   <div id="hdBackupBarraFondo" class="hd-backup-track" role="progressbar" aria-label="Porcentaje de avance estimado del respaldo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="hdBackupBarra" class="hd-backup-fill"></div></div>
+   <small>Avance estimado por etapas y archivos completados. El tiempo puede variar según el tamaño de los adjuntos.</small>
+ </div>
  <p id="hdBackupEstado" role="status" aria-live="polite"></p><div id="hdBackupResultados"></div>
+ <div id="hdBackupAviso" class="hd-backup-notice" role="alert" hidden></div>
 </section>
         <section id="tab-personal" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Administración general de Personal y usuarios</h2><p>Usuarios y roles transversales. Se conserva la hoja Personal de la base documental.</p><div id="hdPersonalPanel" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
         <!-- TAB 1: DOCUMENTOS -->
@@ -3190,6 +3207,20 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
            La base original JAMÁS se escribe. La exportación fuente siempre trae el libro
            completo (OM5+UIA están en el mismo Google Sheets) para evitar alterar el original. */
         let hdBackupAbortado_ = false;
+        function hdBackupProgreso_(percent,etapa){
+          const el=document.getElementById('hdBackupProgreso');if(!el)return;
+          el.hidden=false;
+          const p=Math.max(0,Math.min(100,Math.round(Number(percent)||0)));
+          document.getElementById('hdBackupBarra').style.width=p+'%';
+          document.getElementById('hdBackupPorcentaje').textContent=p+' %';
+          const progress=document.getElementById('hdBackupBarraFondo');progress.setAttribute('aria-valuenow',String(p));
+          if(etapa)document.getElementById('hdBackupProgresoEtapa').textContent=etapa;
+        }
+        function hdBackupAviso_(texto,error=false){
+          const el=document.getElementById('hdBackupAviso');if(!el)return;
+          el.hidden=false;el.classList.toggle('hd-backup-error',!!error);el.textContent=texto;
+        }
+
         function hdBackupPermisos_(){
           const docsAllowed=!hdEsSoloOM5_(currentUser?.tipo);
           const amplAllowed=hdAccesoAmpliaciones_();
@@ -3285,7 +3316,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           return zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:5},mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
         }
         function hdBBase64Bytes_(b64){const b=atob(b64),arr=new Uint8Array(b.length);for(let i=0;i<b.length;i++)arr[i]=b.charCodeAt(i);return arr;}
-        async function hdBOriginal_(mod,status){
+        async function hdBOriginal_(mod,status,onPart){
           const blocks=[];let count=null;
           for(let part=0;count===null||part<count;part++){
             if(hdBackupAbortado_)throw Error('Descarga cancelada.');
@@ -3294,10 +3325,11 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             if(count===null)count=Number(r.total);
             if(!Number.isInteger(count)||count<1||count>100||part>=count||Number(r.parte)!==part)throw Error('Fragmentación incorrecta del archivo original.');
             blocks.push(hdBBase64Bytes_(r.base64));
+            if(onPart)onPart((part+1)/count);
           }
           return new Blob(blocks,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
         }
-        async function hdBAdjunto_(mod,item,status){
+        async function hdBAdjunto_(mod,item,status,onPart){
           const id=String(item.id||item.ID||item[0]||'');if(!id)throw Error('Adjunto sin ID.');
           const parts=[];let total=null;
           for(let i=0;total===null||i<total;i++){
@@ -3308,6 +3340,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             if(total===null)total=Number(mod==='Documentos'?r.totalPartes:r.total);
             if(!Number.isInteger(total)||total<1||total>120)throw Error('Cantidad de fragmentos inválida.');
             parts.push(hdBBase64Bytes_(r.base64));
+            if(onPart)onPart((i+1)/total);
           }
           return new Blob(parts,{type:'application/octet-stream'});
         }
@@ -3333,9 +3366,16 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             catch(e){if(e.name==='AbortError'){status.textContent='Se canceló la selección de carpeta.';return;}status.textContent='No fue posible elegir carpeta; se utilizará Descargas.';}
           }
           button.disabled=true;cancel.hidden=false;hdBackupAbortado_=false;
+          document.getElementById('hdBackupResultados').textContent='';
+          document.getElementById('hdBackupAviso').hidden=true;
+          hdBackupProgreso_(0,'Iniciando copia de seguridad…');
           const zipNeeded=includeFiles||mods.length>1;const bundle=zipNeeded?new JSZip():null;
           const stamp=new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date()).replace(/[-: ]/g,'_');
           const log=[],added=new Set(),dataCache={};let bytes=0;
+          const baseTarget=includeFiles?55:(bundle?82:95);
+          let basesDone=0;
+          const totalBases=fmt==='google' ? new Set(mods.map(m=>m==='Documentos'?'Documentos':'Ampliaciones')).size : mods.length;
+          const baseProgress=(fraction,label)=>hdBackupProgreso_(baseTarget*(basesDone+fraction)/Math.max(1,totalBases),label);
           try{
             const seenWorkbook=new Set();
             for(const mod of mods){
@@ -3344,16 +3384,18 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
               if(fmt==='google'){
                 const book=mod==='Documentos'?'Documentos':'Ampliaciones';
                 if(seenWorkbook.has(book))continue;seenWorkbook.add(book);
-                blob=await hdBOriginal_(mod,status);
+                blob=await hdBOriginal_(mod,status,f=>baseProgress(f,'Descargando base original: '+mod+'…'));
                 name=book+'_Original_'+stamp+'.xlsx';
               }else{
                 status.textContent='Preparando el Excel profesional de '+mod+'...';
+                baseProgress(0.1,'Preparando Excel profesional: '+mod+'…');
                 let raw;
                 if(mod==='Documentos')raw=appData.Documentos||[];
                 else {const source=await hdAsegurarAmpl_(mod);dataCache[mod]=source;raw=source.registros||[];}
                 const filtered=hdBFiltrar_(mod,raw,desde,hasta);
                 const sheets=hdBSheets_(mod,filtered,dataCache[mod]);
                 blob=await hdBLibroProfesional_(mod,sheets);
+                baseProgress(0.9,'Generando libro de '+mod+'…');
                 name=mod+'_Profesional_'+stamp+'.xlsx';
                 dataCache[mod+'Selected']=filtered;
               }
@@ -3361,8 +3403,24 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
               bytes+=blob.size;
               if(bundle)bundle.file('Bases/'+name,blob);
               else await hdBGuardar_(blob,name,folder);
+              basesDone++;baseProgress(0,'Bases completadas: '+basesDone+'/'+totalBases);
             }
             if(includeFiles){
+              hdBackupProgreso_(baseTarget,'Calculando archivos adjuntos del respaldo…');
+              let totalAttachments=0,doneAttachments=0;
+              for(const m of mods){
+                const raw=m==='Documentos'?(appData.Documentos||[]):(dataCache[m]||await hdAsegurarAmpl_(m)).registros;
+                const selected=fmt==='profesional'?(dataCache[m+'Selected']||hdBFiltrar_(m,raw,desde,hasta)):raw;
+                if(m==='Documentos'){
+                  const numbers=new Set(selected.map(r=>String(hdNro_(r,['Numero_Documento'])).toLowerCase()));
+                  totalAttachments+=(appData.Adjuntos||[]).filter(a=>numbers.has(String(hdNro_(a,['Numero_Documento'])).toLowerCase())).length;
+                }else{
+                  const source=dataCache[m]||await hdAsegurarAmpl_(m);
+                  const ids=new Set(selected.map(r=>String(r.__HD_ID)));
+                  totalAttachments+=(source.adjuntos||[]).filter(a=>ids.has(String(a.expedienteId))).length;
+                }
+              }
+              const adjProgress=(fraction,label)=>hdBackupProgreso_(baseTarget+30*(doneAttachments+fraction)/Math.max(1,totalAttachments),label);
               // Para la copia fuente se incluyen todos los expedientes y archivos; filtro solo es de reportes profesionales.
               for(const mod of mods){
                 if(hdBackupAbortado_)throw Error('Descarga cancelada.');
@@ -3386,23 +3444,35 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                   const folderName='Adjuntos/'+mod+'/'+hdBNombreSeguro_(exp)+'/';
                   let path=folderName+name,n=1;
                   while(added.has(path)){path=folderName+(++n)+'_'+name;}added.add(path);
-                  const blob=await hdBAdjunto_(mod,item,status);bytes+=blob.size;
+                  const blob=await hdBAdjunto_(mod,item,status,f=>adjProgress(f,'Descargando adjuntos: '+(doneAttachments+1)+'/'+totalAttachments+'…'));bytes+=blob.size;
                   if(bytes>300*1024*1024)throw Error('El respaldo supera 300 MB; utiliza un rango de fechas menor para evitar agotar la memoria del dispositivo.');
-                  bundle.file(path,blob);seq++;
+                  bundle.file(path,blob);seq++;doneAttachments++;adjProgress(0,'Adjuntos completados: '+doneAttachments+'/'+totalAttachments);
                 }
                 log.push(mod+': '+seq+' adjuntos');
               }
+              hdBackupProgreso_(85,'Adjuntos incorporados al respaldo.');
             }
             if(bundle){
               status.textContent='Comprimiendo el respaldo...';
+              hdBackupProgreso_(85,'Comprimiendo archivos para descarga…');
               const blob=await bundle.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}},p=>{
                 status.textContent='Comprimiendo respaldo: '+Math.round(p.percent)+' %';
+                hdBackupProgreso_(85+12*p.percent/100,'Comprimiendo ZIP: '+Math.round(p.percent)+' % de la compresión');
               });
+              hdBackupProgreso_(98,'Guardando o iniciando la descarga del ZIP…');
               await hdBGuardar_(blob,'Respaldo_HIDRANDINA_'+stamp+'.zip',folder);
             }
-            status.textContent='Respaldo preparado y entregado al navegador. Comprueba el archivo en la carpeta elegida o en Descargas.';
+            hdBackupProgreso_(100,'Preparación completada');
+            const successText=folder?'Copia de seguridad completada y guardada en la carpeta seleccionada.':'Copia de seguridad preparada. La descarga se ha enviado al navegador: comprueba la carpeta Descargas.';
+            status.textContent=successText;
+            hdBackupAviso_('✓ '+successText);
             document.getElementById('hdBackupResultados').textContent=log.join(' · ');
-          }catch(e){status.textContent='No se pudo completar el respaldo: '+(e.message||e);}
+          }catch(e){
+            const msg=(e.message||String(e));
+            status.textContent='No se pudo completar el respaldo: '+msg;
+            hdBackupAviso_('No se completó el respaldo: '+msg,true);
+            document.getElementById('hdBackupProgresoEtapa').textContent=hdBackupAbortado_?'Cancelado':'Error en la preparación';
+          }
           finally{button.disabled=false;cancel.hidden=true;}
         }
         // Menú lateral ejecutivo: conserva switchTab y permisos validados por el backend.
