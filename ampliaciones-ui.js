@@ -304,7 +304,7 @@ function renderPendingFilePreviews(input){
  });
 }
 document.addEventListener('change',e=>{if(e.target.matches('input[data-ampl-upload],#amplUploadInput'))renderPendingFilePreviews(e.target);});
-// REV13 OCR: funciones ausentes en REV12, que bloqueaban todas las búsquedas.
+// REV14 OCR: funciones ausentes en REV12, que bloqueaban todas las búsquedas.
 function ocrMessage(message){const e=$('amplOCRStatus');if(e)e.textContent=message;}
 let tesseractLoading=null;
 function tesseractReady(){
@@ -317,27 +317,88 @@ function tesseractReady(){
   document.head.appendChild(script);
  }).catch(e=>{tesseractLoading=null;throw e;});return tesseractLoading;
 }
-function candidates(text,confidence=100){
+// REV14: priorizar cifras útiles y su contexto, sin inventar el tipo de documento.
+function numericTokens(source){
+ const raw=String(source||'');let found=[];
+ // Captura números de documentos, incluidos ceros iniciales y separadores usuales.
+ const regex=/(?:^|[^\d])([0-9OolI|SBZ]{5,18}(?:[\s./-][0-9OolI|SBZ]{1,8}){0,2})(?=$|[^\d])/g;
+ for(const m of raw.matchAll(regex)){
+  const original=m[1].trim(),compact=original.replace(/[\s./-]/g,'');
+  let fixed=compact.replace(/[Oo]/g,'0').replace(/[Il|]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2');
+  if(!/^\d{5,14}$/.test(fixed))continue;
+  // El OCR de tablas genera a menudo cadenas repetidas, que no deben ocupar la búsqueda.
+  if(/^(\d)\1{4,}$/.test(fixed)||/(\d{2})\1{4,}/.test(fixed))continue;
+  found.push({value:fixed,raw:original,converted:fixed!==compact});
+ }
+ return found;
+}
+function candidates(text,confidence=100,mode='general'){
  const result=[],known=new Set();
- const add=(type,value)=>{value=String(value||'').trim().replace(/^[#:\s-]+|[\s.;,]+$/g,'');if(value.length<3||value.length>130)return;
-  const id=type+':'+key(value);if(known.has(id))return;known.add(id);result.push({type,value,uncertain:Number(confidence)<78});};
+ const add=(type,value,priority=0,uncertain=false)=>{
+  value=String(value||'').trim().replace(/^[#:\s-]+|[\s.;,]+$/g,'');
+  if(value.length<3||value.length>130)return;
+  const identity=type+':'+(type==='nombre'||type==='sector'?key(value):canonical(value));
+  if(known.has(identity))return;known.add(identity);
+  result.push({type,value,priority,uncertain:uncertain||Number(confidence)<80});
+ };
  const lines=String(text||'').replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean);
  for(const line of lines){
-  let m=line.match(/(?:solicitud|solicito|sol\.?\s*n[°ºo.]*)\s*(?:(?:n[°ºo.]*)\s*)?[:#-]?\s*([A-Z0-9][A-Z0-9\/-]{3,50})/i);
-  if(m)add('sol',m[1]);
-  m=line.match(/(?:resoluci[oó]n|res\.?\s*n[°ºo.]*)\s*(?:n[°ºo.]*)?[:#-]?\s*([A-Z0-9][A-Z0-9\/-]{3,50})/i);
-  if(m)add('res',m[1]);
-  m=line.match(/(?:solicitante|interesado|administrado|nombre\s+del\s+solicitante|raz[oó]n\s+social)\s*[:\-]\s*(.{4,90})/i);
-  if(m)add('nombre',m[1]);
-  m=line.match(/(?:sector|localidad|caser[ií]o|centro\s+poblado|direcci[oó]n)\s*[:\-]\s*(.{4,90})/i);
-  if(m)add('sector',m[1]);
+  const sol=/solicitud|solicito|solicitudes|\bsol\.?\b/i.test(line);
+  const res=/resoluci[oó]n|resoluciones|\bres\.?\b/i.test(line);
+  const genericNumbers=numericTokens(line);
+  // Solo asignar etiqueta cuando esté realmente escrita junto al número.
+  for(const t of genericNumbers){
+   let type='numero',priority=1;
+   if(sol&&!res){type='sol';priority=3;}
+   else if(res&&!sol){type='res';priority=3;}
+   add(type,t.value,priority,t.converted||Number(confidence)<80);
+  }
+  if(mode==='general'){
+   let m=line.match(/(?:solicitante|interesado|administrado|nombre\s+del\s+solicitante|raz[oó]n\s+social)\s*[:\-]\s*(.{4,90})/i);
+   if(m)add('nombre',m[1],2);
+   m=line.match(/(?:sector|localidad|caser[ií]o|centro\s+poblado|direcci[oó]n)\s*[:\-]\s*(.{4,90})/i);
+   if(m)add('sector',m[1],2);
+  }
  }
- // Respaldo para documentos con números separados de sus etiquetas.
- if(!result.length){for(const line of lines){
-  const m=line.match(/\b(?:\d[\d\s\/-]{5,28}\d)\b/);
-  if(m){add('sol',m[0]);if(result.length>=10)break;}
- }}
- return result;
+ return result.sort((a,b)=>b.priority-a.priority);
+}
+function mergeCandidates(items){
+ const map=new Map();for(const c of items){
+  const token=['sol','res','numero'].includes(c.type)?canonical(c.value):key(c.value);
+  if(!token)continue;
+  const k=c.type+':'+token,previous=map.get(k);
+  if(!previous || c.priority>previous.priority || (previous.uncertain&&!c.uncertain))map.set(k,c);
+ }
+ // Si el mismo número tiene etiqueta explícita, no duplicarlo como genérico.
+ const explicit=new Set([...map.values()].filter(c=>c.type==='sol'||c.type==='res').map(c=>canonical(c.value)));
+ return [...map.values()].filter(c=>c.type!=='numero'||!explicit.has(canonical(c.value))).sort((a,b)=>(b.priority||0)-(a.priority||0)).slice(0,16);
+}
+async function numericSecondPass(worker,file){
+ // Segunda lectura independiente: ayuda con cifras impresas en una foto de Excel.
+ // Conserva la primera lectura y permite corregir manualmente; no fuerza coincidencias.
+ let canvas=null;
+ try{
+  canvas=document.createElement('canvas');let source=file;
+  if(file instanceof File || file instanceof Blob){
+   const bitmap=await createImageBitmap(file);source=bitmap;
+  }
+  const w=source.width||source.naturalWidth,h=source.height||source.naturalHeight;
+  if(!w||!h)return [];
+  const scale=Math.min(2.4,Math.max(1.15,1800/Math.max(w,h)));
+  canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0,canvas.width,canvas.height);
+  if(typeof source.close==='function')source.close();
+  const data=ctx.getImageData(0,0,canvas.width,canvas.height);
+  for(let i=0;i<data.data.length;i+=4){
+   const g=.299*data.data[i]+.587*data.data[i+1]+.114*data.data[i+2];
+   const v=g<155?0:g>215?255:Math.round((g-155)*255/60);
+   data.data[i]=data.data[i+1]=data.data[i+2]=v;
+  }
+  ctx.putImageData(data,0,0);
+  await worker.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:'0123456789',preserve_interword_spaces:'1'});
+  const result=await worker.recognize(canvas);
+  return candidates(result.data.text,result.data.confidence||0,'numbers');
+ }catch(_){return [];}finally{if(canvas){canvas.width=canvas.height=0;}try{await worker.setParameters({tessedit_pageseg_mode:'3',tessedit_char_whitelist:''});}catch(_){}}
 }
 function ocrAddManual(){const value=$('amplOCRManualText')?.value.trim();if(!value)return ocrMessage('Escribe un número, nombre o lugar.');
  const type=$('amplOCRManualType')?.value||'sol';ocrCandidates.push({type,value,uncertain:false});renderCandidates();$('amplOCRManualText').value='';ocrMessage('Dato añadido; puedes corregirlo y buscarlo.');}
@@ -358,17 +419,30 @@ async function recognize(){let f=$('amplOCRFile').files?.[0];if(!f)return ocrMes
    ocrMessage('Página '+n+' de '+doc.numPages+' — '+Math.round(n/doc.numPages*100)+'%');
   }
  }
- else{let out=await worker.recognize(f);ocrCandidates.push(...candidates(out.data.text,out.data.confidence||0));}
- ocrCandidates=[...new Map(ocrCandidates.map(c=>[c.type+'-'+key(c.value),c])).values()];renderCandidates();if(ocrCanceled)ocrMessage('OCR cancelado; se muestran candidatos parciales.');else ocrMessage('Reconocimiento terminado; revisa y selecciona los datos.');}
+ else{let out=await worker.recognize(f);ocrCandidates.push(...candidates(out.data.text,out.data.confidence||0));if(!ocrCanceled){ocrMessage('Comprobando números con una segunda lectura…');ocrCandidates.push(...await numericSecondPass(worker,f));}}
+ ocrCandidates=mergeCandidates(ocrCandidates);renderCandidates();if(ocrCanceled)ocrMessage('OCR cancelado; se muestran candidatos parciales.');else ocrMessage('Reconocimiento terminado. Corrige o desmarca los números dudosos antes de buscar. Si ves 9314040, debe buscarse exactamente en solicitudes y resoluciones.');}
  catch(e){ocrMessage('OCR no disponible: '+e.message);}finally{if(recognizer){await recognizer.terminate().catch(()=>{});recognizer=null;}ocrFile=null;run.disabled=false;}}
 function ocrCancel(){ocrCanceled=true;ocrMessage('Cancelando reconocimiento...');}
-function renderCandidates(){let list=$('amplCandidates');list.innerHTML=ocrCandidates.map((c,i)=>`<div class="hd-ampl-candidate"><label><input type="checkbox" data-ocr="${i}" checked><select data-type="${i}"><option value="sol" ${c.type==='sol'?'selected':''}>Solicitud</option><option value="res" ${c.type==='res'?'selected':''}>Resolución</option><option value="nombre" ${c.type==='nombre'?'selected':''}>Solicitante</option><option value="sector" ${c.type==='sector'?'selected':''}>Pueblo/sector</option></select></label><input data-value="${i}" value="${safe(c.value)}"><small>${c.uncertain?'Revisar reconocimiento':'Dato reconocido'}</small></div>`).join('');}
+function renderCandidates(){let list=$('amplCandidates');list.innerHTML=ocrCandidates.map((c,i)=>`<div class="hd-ampl-candidate"><label><input type="checkbox" data-ocr="${i}" checked><select data-type="${i}"><option value="numero" ${c.type==='numero'?'selected':''}>Número (solicitud o resolución)</option><option value="sol" ${c.type==='sol'?'selected':''}>Solicitud</option><option value="res" ${c.type==='res'?'selected':''}>Resolución</option><option value="nombre" ${c.type==='nombre'?'selected':''}>Solicitante</option><option value="sector" ${c.type==='sector'?'selected':''}>Pueblo/sector</option></select></label><input data-value="${i}" value="${safe(c.value)}"><small>${c.uncertain?'Revisar reconocimiento':'Dato reconocido'}</small></div>`).join('');}
 function selectedCandidates(){return ocrCandidates.map((c,i)=>{let checkbox=document.querySelector(`[data-ocr="${i}"]`);return checkbox?.checked?{type:document.querySelector(`[data-type="${i}"]`).value,value:document.querySelector(`[data-value="${i}"]`).value.trim()}:null;}).filter(c=>c&&c.value);}
 function sim(a,b){a=key(a);b=key(b);if(!a||!b)return 0;if(a===b)return 1;if(a.includes(b)||b.includes(a))return .86;let dist=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=dist[0];dist[0]=i;for(let j=1;j<=b.length;j++){let tmp=dist[j];dist[j]=Math.min(dist[j]+1,dist[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=tmp;}}return 1-dist[b.length]/Math.max(a.length,b.length);}
-function match(row,mod,c){let h=sheet(mod).headers,vals=[];if(c.type==='sol'){for(let i=1;i<=MODS[mod].sol;i++){let k=field(h,'NroSolicitud',i);if(k)vals.push(...values(row[k]));}return vals.some(v=>v===canonical(c.value))?1:0;}
- if(c.type==='res'){if(mod==='UIA')return 0;for(let i=1;i<=2;i++){let k=field(h,'NroResolución',i);if(k)vals.push(...values(row[k]));}return vals.some(v=>v===canonical(c.value))?1:0;}
- let s=c.type==='sector'?[get(row,h,'NombreSector','Direccion'),get(row,h,'Departamento'),get(row,h,'Provincia'),get(row,h,'Distrito')].join(' '):get(row,h,'Solicitante','Nombre');return Math.max(sim(s,c.value),...s.split(/[,;]+/).map(v=>sim(v,c.value)));}
-async function searchOCR(){let candidates=selectedCandidates();if(!candidates.length)return ocrMessage('Selecciona al menos un dato.');try{await Promise.all(['OM5','UIA'].filter(m=>!STORE[m]).map(async m=>{let d=await api('amplRead',{modulo:m});if(!d||!Array.isArray(d.registros))throw Error('No se pudieron consultar los registros de '+m);STORE[m]=d;}));let container=$('amplOCRResults');let html='';for(let mod of ['OM5','UIA']){let items=sheet(mod).registros.map(r=>{let matched=candidates.map(c=>({c,score:match(r,mod,c)})).filter(x=>x.score>=.70);return {r,matched,score:Math.max(0,...matched.map(x=>x.score))};}).filter(x=>x.matched.length).sort((a,b)=>b.score-a.score);html+=`<h3>${mod} (${items.length})</h3>`+(items.length?'':'<p>No se encontraron coincidencias.</p>')+items.map(x=>`<div class="hd-ampl-result"><b>Ítem ${safe(get(x.r,sheet(mod).headers,'Item','Ítem'))}</b><p>${safe(get(x.r,sheet(mod).headers,'Solicitante','Nombre'))}</p><small>${x.matched.map(z=>safe(z.c.value)+' ('+(z.score===1?'exacta':'aproximada')+')').join(', ')}</small><div><button onclick="Ampliaciones.ocrOpen('${mod}','${safe(id(x.r))}')">Abrir ficha</button><button onclick="Ampliaciones.ocrLocate('${mod}','${safe(id(x.r))}')">Localizar en lista</button></div></div>`).join('');}container.innerHTML=html;ocrMessage('Búsqueda realizada en OM5 y UIA.');}catch(e){ocrMessage('Error: '+e.message)}}
+function matchDetail(row,mod,c){
+ const h=sheet(mod).headers;
+ if(['numero','sol','res'].includes(c.type)){
+  const needle=canonical(c.value);if(!needle)return {score:0,where:''};
+  const pools=[];
+  if(c.type==='numero'||c.type==='sol')pools.push(['NroSolicitud',MODS[mod].sol,'Solicitud']);
+  if((c.type==='numero'||c.type==='res')&&mod==='OM5')pools.push(['NroResolución',2,'Resolución']);
+  for(const [prefix,limit,label] of pools)for(let i=1;i<=limit;i++){
+   const col=field(h,prefix,i);if(col&&values(row[col]).includes(needle))return {score:1,where:label+' '+i};
+  }
+  return {score:0,where:''};
+ }
+ const s=c.type==='sector'?[get(row,h,'NombreSector','Direccion'),get(row,h,'Departamento'),get(row,h,'Provincia'),get(row,h,'Distrito')].join(' '):get(row,h,'Solicitante','Nombre');
+ return {score:Math.max(sim(s,c.value),...s.split(/[,;]+/).map(v=>sim(v,c.value))),where:c.type==='sector'?'Sector / localidad':'Nombre'};
+}
+function match(row,mod,c){return matchDetail(row,mod,c).score;}
+async function searchOCR(){let candidates=selectedCandidates();if(!candidates.length)return ocrMessage('Selecciona al menos un dato.');try{await Promise.all(['OM5','UIA'].filter(m=>!STORE[m]).map(async m=>{let d=await api('amplRead',{modulo:m});if(!d||!Array.isArray(d.registros))throw Error('No se pudieron consultar los registros de '+m);STORE[m]=d;}));let container=$('amplOCRResults');let html='';for(let mod of ['OM5','UIA']){let items=sheet(mod).registros.map(r=>{let matched=candidates.map(c=>({c,...matchDetail(r,mod,c)})).filter(x=>x.score>=.70);return {r,matched,score:Math.max(0,...matched.map(x=>x.score))};}).filter(x=>x.matched.length).sort((a,b)=>b.score-a.score);html+=`<h3>${mod} (${items.length})</h3>`+(items.length?'':'<p>No se encontraron coincidencias.</p>')+items.map(x=>`<div class="hd-ampl-result"><b>Ítem ${safe(get(x.r,sheet(mod).headers,'Item','Ítem'))}</b><p>${safe(get(x.r,sheet(mod).headers,'Solicitante','Nombre'))}</p><small>${x.matched.map(z=>safe(z.c.value)+' — '+safe(z.where)+' ('+(z.score===1?'exacta':'aproximada')+')').join(', ')}</small><div><button onclick="Ampliaciones.ocrOpen('${mod}','${safe(id(x.r))}')">Abrir ficha</button><button onclick="Ampliaciones.ocrLocate('${mod}','${safe(id(x.r))}')">Localizar en lista</button></div></div>`).join('');}container.innerHTML=html;ocrMessage('Búsqueda realizada en OM5 y UIA.');}catch(e){ocrMessage('Error: '+e.message)}}
 function ocrOpen(mod,rid){curso=mod;let sec=$('tab-'+mod.toLowerCase());window.switchTab(mod.toLowerCase());NAV[mod].selected=rid;open(rid,0,false);}
 function ocrLocate(mod,rid){window.switchTab(mod.toLowerCase());curso=mod;NAV[mod].filter='';NAV[mod].page=Math.floor(sheet(mod).registros.findIndex(r=>id(r)===rid)/30);NAV[mod].selected=rid;render(mod);}
 // Corrección de arranque: no referenciar funciones inexistentes.
