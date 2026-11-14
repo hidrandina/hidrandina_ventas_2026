@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV12 — Guardar + validaciones claras + catálogo UUEE. Backend sin cambios. */
+/* HIDRANDINA_VENTAS REV12 RECUPERACIÓN — Guardar + validaciones claras + catálogo UUEE. Backend sin cambios. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -243,6 +243,17 @@ function match(row,mod,c){let h=sheet(mod).headers,vals=[];if(c.type==='sol'){fo
 async function searchOCR(){let candidates=selectedCandidates();if(!candidates.length)return ocrMessage('Selecciona al menos un dato.');try{await Promise.all(['OM5','UIA'].filter(m=>!STORE[m]).map(m=>refresh(m)));let container=$('amplOCRResults');let html='';for(let mod of ['OM5','UIA']){let items=sheet(mod).registros.map(r=>{let matched=candidates.map(c=>({c,score:match(r,mod,c)})).filter(x=>x.score>=.70);return {r,matched,score:Math.max(0,...matched.map(x=>x.score))};}).filter(x=>x.matched.length).sort((a,b)=>b.score-a.score);html+=`<h3>${mod} (${items.length})</h3>`+items.map(x=>`<div class="hd-ampl-result"><b>Ítem ${safe(get(x.r,sheet(mod).headers,'Item','Ítem'))}</b><p>${safe(get(x.r,sheet(mod).headers,'Solicitante','Nombre'))}</p><small>${x.matched.map(z=>safe(z.c.value)+' ('+(z.score===1?'exacta':'aproximada')+')').join(', ')}</small><div><button onclick="Ampliaciones.ocrOpen('${mod}','${safe(id(x.r))}')">Abrir ficha</button><button onclick="Ampliaciones.ocrLocate('${mod}','${safe(id(x.r))}')">Localizar en lista</button></div></div>`).join('');}container.innerHTML=html;ocrMessage('Búsqueda realizada.');}catch(e){ocrMessage('Error: '+e.message)}}
 function ocrOpen(mod,rid){curso=mod;let sec=$('tab-'+mod.toLowerCase());window.switchTab(mod.toLowerCase());NAV[mod].selected=rid;open(rid,0,false);}
 function ocrLocate(mod,rid){window.switchTab(mod.toLowerCase());curso=mod;NAV[mod].filter='';NAV[mod].page=Math.floor(sheet(mod).registros.findIndex(r=>id(r)===rid)/30);NAV[mod].selected=rid;render(mod);}
-window.Ampliaciones={getData:mod=>STORE[mod],enter,refresh,select,page,search,open,close,save,addDoc,deleteDocField,summary,upload,download,removeFile,removeExp,excel,share,recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,reset:()=>{STORE.OM5=null;STORE.UIA=null;ocrCandidates=[];ocrFile=null;ocrCanceled=true;}};
-window.amplModuleReady=init;
+// Corrección de arranque: no referenciar funciones inexistentes.
+// Mantener intactas las funciones disponibles de OM5, UIA, guardado y adjuntos.
+window.Ampliaciones={
+  getData:mod=>STORE[mod],
+  enter,refresh,select,page,search,open,close,save,
+  addDoc,deleteDocField,upload,download,removeFile,removeExp,
+  recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,
+  // Estas tres funciones no existen en REV12. No bloquear el arranque.
+  excel:()=>update('La exportación de ampliaciones no está disponible en esta revisión.'),
+  summary:()=>update('El reporte de ampliaciones no está disponible en esta revisión.'),
+  share:()=>update('El envío por WhatsApp de ampliaciones no está disponible en esta revisión.'),
+  reset:()=>{STORE.OM5=null;STORE.UIA=null;ocrCandidates=[];ocrFile=null;ocrCanceled=true;}
+};
 })();
