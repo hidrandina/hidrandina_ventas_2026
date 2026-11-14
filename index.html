@@ -302,6 +302,13 @@ html, body { max-width:100%; }
 .hd-ampl-local-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}.hd-ampl-file-preview-btn{border:1px solid #a8c8ef;background:#eff6ff;color:#114992;border-radius:8px;padding:6px 9px;font-size:12px}
 .hd-ampl-ocr-manual{display:flex;gap:10px;flex-wrap:wrap;padding:12px;background:#f0f6ff;border-radius:12px;margin:10px 0}.hd-ampl-ocr-manual label{display:flex;flex-direction:column;gap:4px}.hd-ampl-ocr-manual input,.hd-ampl-ocr-manual select{border:1px solid #bdd1ec;padding:8px;border-radius:8px}
 @media(max-width:640px){.hd-ampl-preview-panel{max-height:98dvh}.hd-ampl-preview-body{padding:6px}.hd-ampl-ocr-manual>*{width:100%}.hd-ampl-preview-header{padding:8px}}
+
+/* REV16 OCR: visualización inmediata y selección táctil */
+#amplOCRCropPanel[hidden]{display:none!important}
+.hd-ocr-crop-panel{background:#fff;border:1px solid #bed5f7;border-radius:15px;padding:12px;margin:12px 0;max-width:720px}
+.hd-ocr-crop-panel p{font-size:13px;color:#536982;margin:6px 0 10px}
+#amplOCRCropCanvas{display:block;width:100%;height:auto;border:1px solid #c9d9ef;border-radius:8px;touch-action:none;cursor:crosshair}
+.hd-ocr-crop-panel button{margin-top:9px}
 </style>
 
 <style id="hdExecutiveStyles">
@@ -661,11 +668,11 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         <section id="tab-ocr" class="hidden hd-ampl-section">
           <h2>Buscar expedientes por fotografía o PDF</h2>
           <p>La fotografía y el PDF se reconocen localmente; no se cargan como adjuntos.</p>
-          <div class="hd-ampl-controls"><label>Fotografía / PDF <input type="file" id="amplOCRFile" accept="image/*,.pdf"></label><label>Tomar fotografía <input type="file" accept="image/*" capture="environment" onchange="document.getElementById('amplOCRFile').files=this.files;"></label>
+          <div class="hd-ampl-controls"><label>Fotografía / PDF <input type="file" id="amplOCRFile" accept="image/*,.pdf"></label><label>Tomar fotografía <input type="file" accept="image/*" capture="environment" onchange="document.getElementById('amplOCRFile').files=this.files;Ampliaciones.showOCRImage();"></label>
           <button onclick="Ampliaciones.recognize()" id="amplOCRRun">Reconocer documento</button>
           <button onclick="Ampliaciones.ocrCancel()">Cancelar</button></div>
-          <p id="amplOCRStatus" role="status"></p><h3>Datos reconocidos: selecciona y corrige</h3><p class="hd-ampl-muted">Los números sin etiqueta se buscan en solicitudes y resoluciones. Comprueba las cifras con la vista previa: el reconocimiento puede equivocarse.</p>
-          <div class="hd-ampl-ocr-manual"><label>Buscar también por texto <input id="amplOCRManualText" type="text" placeholder="Número, nombre, sector o localidad"></label><label>Tipo <select id="amplOCRManualType"><option value="numero">Número (solicitud o resolución)</option><option value="sol">Solicitud</option><option value="res">Resolución</option><option value="nombre">Nombre / solicitante</option><option value="sector">Sector / localidad</option></select></label><button type="button" onclick="Ampliaciones.ocrAddManual()">+ Añadir dato</button></div><button type="button" onclick="Ampliaciones.localPreview(document.getElementById('amplOCRFile').files[0])">Vista previa del archivo seleccionado</button><div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
+          <div id="amplOCRCropPanel" hidden class="hd-ocr-crop-panel"><strong>Fotografía seleccionada</strong><p>Si el número no se reconoce correctamente, desliza el dedo o el mouse para marcar únicamente el número y pulsa «Reconocer documento».</p><canvas id="amplOCRCropCanvas" aria-label="Seleccionar región de la fotografía"></canvas><button type="button" onclick="Ampliaciones.resetCrop()">Usar imagen completa</button></div><p id="amplOCRStatus" role="status"></p><h3>Datos reconocidos: selecciona y corrige</h3><p class="hd-ampl-muted">Los números sin etiqueta se buscan en solicitudes y resoluciones. Comprueba las cifras con la vista previa: el reconocimiento puede equivocarse.</p>
+          <div class="hd-ampl-ocr-manual"><label>Buscar también por texto <input id="amplOCRManualText" type="text" placeholder="Número, nombre, sector o localidad"></label><label>Tipo <select id="amplOCRManualType"><option value="numero">Número (solicitud o resolución)</option><option value="sol">Solicitud</option><option value="res">Resolución</option><option value="nombre">Nombre / solicitante</option><option value="sector">Sector / localidad</option></select></label><button type="button" onclick="Ampliaciones.ocrAddManual()">+ Añadir dato</button></div><button type="button" onclick="Ampliaciones.localPreview(document.getElementById('amplOCRFile').files[0])">Abrir visor grande</button><div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
           <div id="amplOCRResults"></div>
         </section>
         <!-- Funciones transversales de la plataforma -->
@@ -3212,7 +3219,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV15-20261114"></script>
+<script src="./ampliaciones-ui.js?v=REV16-20261114"></script>
     <script>
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
