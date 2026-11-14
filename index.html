@@ -286,6 +286,22 @@ html, body { max-width:100%; }
 .hd-ampl-form-status:not([hidden]){display:block;padding:12px 15px;margin:12px 0;border-radius:10px;border:1px solid #e3a49f;background:#fff1ef;color:#8d211b;font-weight:700;white-space:pre-line}
 .hd-ampl-form-status[data-type=info]:not([hidden]){background:#eef5ff;border-color:#8fb5f5;color:#124b89}
 #amplSave:disabled{opacity:.65;cursor:wait}
+
+/* REV13: visor para PC y celular */
+#hdAmplPreviewModal:not([hidden]){position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:10px;background:#07152bd9}
+#hdAmplPreviewModal[hidden]{display:none!important}
+.hd-ampl-preview-panel{display:flex;flex-direction:column;background:#fff;border-radius:16px;width:min(960px,100%);max-height:96dvh;overflow:hidden;box-shadow:0 20px 90px #0006}
+.hd-ampl-preview-header,.hd-ampl-preview-footer{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:12px 15px;background:#eff5ff;color:#193c78}
+.hd-ampl-preview-header strong{overflow-wrap:anywhere;min-width:0}.hd-ampl-preview-header button{flex-shrink:0;border:1px solid #bed1ee;border-radius:8px;padding:8px;background:#fff}
+.hd-ampl-preview-body{overflow:auto;min-height:160px;padding:12px;text-align:center;background:#f8faff}
+.hd-ampl-preview-image{max-width:100%;max-height:72dvh;object-fit:contain;margin:auto}
+.hd-ampl-pdf-controls{display:flex;gap:12px;justify-content:center;align-items:center;margin-bottom:10px}
+.hd-ampl-pdf-controls button{background:#1358c9;color:white;border-radius:8px;padding:8px 12px}.hd-ampl-pdf-controls button:disabled{opacity:.35}
+.hd-ampl-pdf-page canvas{max-width:100%;height:auto;margin:auto;background:white;box-shadow:0 2px 12px #0002}
+.hd-ampl-word-preview{text-align:left;line-height:1.6;overflow-wrap:anywhere}.hd-ampl-preview-footer a{color:#114bb3;font-weight:bold;text-decoration:underline}
+.hd-ampl-local-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}.hd-ampl-file-preview-btn{border:1px solid #a8c8ef;background:#eff6ff;color:#114992;border-radius:8px;padding:6px 9px;font-size:12px}
+.hd-ampl-ocr-manual{display:flex;gap:10px;flex-wrap:wrap;padding:12px;background:#f0f6ff;border-radius:12px;margin:10px 0}.hd-ampl-ocr-manual label{display:flex;flex-direction:column;gap:4px}.hd-ampl-ocr-manual input,.hd-ampl-ocr-manual select{border:1px solid #bdd1ec;padding:8px;border-radius:8px}
+@media(max-width:640px){.hd-ampl-preview-panel{max-height:98dvh}.hd-ampl-preview-body{padding:6px}.hd-ampl-ocr-manual>*{width:100%}.hd-ampl-preview-header{padding:8px}}
 </style>
 
 <style id="hdExecutiveStyles">
@@ -649,7 +665,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           <button onclick="Ampliaciones.recognize()" id="amplOCRRun">Reconocer documento</button>
           <button onclick="Ampliaciones.ocrCancel()">Cancelar</button></div>
           <p id="amplOCRStatus" role="status"></p><h3>Datos reconocidos: selecciona y corrige</h3>
-          <div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
+          <div class="hd-ampl-ocr-manual"><label>Buscar también por texto <input id="amplOCRManualText" type="text" placeholder="Número, nombre, sector o localidad"></label><label>Tipo <select id="amplOCRManualType"><option value="sol">Solicitud</option><option value="res">Resolución</option><option value="nombre">Nombre / solicitante</option><option value="sector">Sector / localidad</option></select></label><button type="button" onclick="Ampliaciones.ocrAddManual()">+ Añadir dato</button></div><button type="button" onclick="Ampliaciones.localPreview(document.getElementById('amplOCRFile').files[0])">Vista previa del archivo seleccionado</button><div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
           <div id="amplOCRResults"></div>
         </section>
         <!-- Funciones transversales de la plataforma -->
@@ -3187,7 +3203,16 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         }finally{btn.disabled=false;btn.textContent='Ingresar';}
       };
     </script>
-    <script src="./ampliaciones-ui.js?v=REV12-20261113"></script>
+    
+<!-- REV13: visor independiente de adjuntos OM5/UIA (no altera Gestión de Documentos) -->
+<div id="hdAmplPreviewModal" hidden role="dialog" aria-modal="true" aria-label="Vista previa de archivos">
+ <div class="hd-ampl-preview-panel">
+  <div class="hd-ampl-preview-header"><strong id="hdAmplPreviewTitle">Vista previa</strong><button type="button" onclick="Ampliaciones.closePreview()" aria-label="Cerrar vista previa">✕ Cerrar</button></div>
+  <div id="hdAmplPreviewBody" class="hd-ampl-preview-body"></div>
+  <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
+ </div>
+</div>
+<script src="./ampliaciones-ui.js?v=REV13-20261114"></script>
     <script>
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
