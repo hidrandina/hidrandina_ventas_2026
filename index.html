@@ -664,8 +664,8 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           <div class="hd-ampl-controls"><label>Fotografía / PDF <input type="file" id="amplOCRFile" accept="image/*,.pdf"></label><label>Tomar fotografía <input type="file" accept="image/*" capture="environment" onchange="document.getElementById('amplOCRFile').files=this.files;"></label>
           <button onclick="Ampliaciones.recognize()" id="amplOCRRun">Reconocer documento</button>
           <button onclick="Ampliaciones.ocrCancel()">Cancelar</button></div>
-          <p id="amplOCRStatus" role="status"></p><h3>Datos reconocidos: selecciona y corrige</h3>
-          <div class="hd-ampl-ocr-manual"><label>Buscar también por texto <input id="amplOCRManualText" type="text" placeholder="Número, nombre, sector o localidad"></label><label>Tipo <select id="amplOCRManualType"><option value="sol">Solicitud</option><option value="res">Resolución</option><option value="nombre">Nombre / solicitante</option><option value="sector">Sector / localidad</option></select></label><button type="button" onclick="Ampliaciones.ocrAddManual()">+ Añadir dato</button></div><button type="button" onclick="Ampliaciones.localPreview(document.getElementById('amplOCRFile').files[0])">Vista previa del archivo seleccionado</button><div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
+          <p id="amplOCRStatus" role="status"></p><h3>Datos reconocidos: selecciona y corrige</h3><p class="hd-ampl-muted">Los números sin etiqueta se buscan en solicitudes y resoluciones. Comprueba las cifras con la vista previa: el reconocimiento puede equivocarse.</p>
+          <div class="hd-ampl-ocr-manual"><label>Buscar también por texto <input id="amplOCRManualText" type="text" placeholder="Número, nombre, sector o localidad"></label><label>Tipo <select id="amplOCRManualType"><option value="numero">Número (solicitud o resolución)</option><option value="sol">Solicitud</option><option value="res">Resolución</option><option value="nombre">Nombre / solicitante</option><option value="sector">Sector / localidad</option></select></label><button type="button" onclick="Ampliaciones.ocrAddManual()">+ Añadir dato</button></div><button type="button" onclick="Ampliaciones.localPreview(document.getElementById('amplOCRFile').files[0])">Vista previa del archivo seleccionado</button><div id="amplCandidates"></div><button onclick="Ampliaciones.searchOCR()">Buscar seleccionados en OM5 y UIA</button>
           <div id="amplOCRResults"></div>
         </section>
         <!-- Funciones transversales de la plataforma -->
@@ -3212,7 +3212,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV13-20261114"></script>
+<script src="./ampliaciones-ui.js?v=REV14-20261114"></script>
     <script>
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
