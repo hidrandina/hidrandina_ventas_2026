@@ -726,7 +726,31 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         <!-- Funciones transversales de la plataforma -->
         <section id="tab-dash-ampl" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Dashboard de Ampliaciones OM5 y UIA</h2><p id="hdDashEstado" role="status"></p><div id="hdDashContenido" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div><div id="hdDashGraficos" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
         <section id="tab-reportes" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Reportes del sistema</h2><div class="hd-ampl-controls"><label>Módulo <select id="hdRepModulo"><option value="Documentos">Gestión de Documentos</option><option value="OM5">Ampliaciones OM5</option><option value="UIA">Ampliaciones UIA</option></select></label><label>Título del reporte <input id="hdRepTitulo" value="Reporte de expedientes"></label><label>Buscar <input id="hdRepFiltro" placeholder="Filtrar registros"></label><button onclick="hdReporteVista()">Consultar</button><button onclick="hdReporteExcel()">Descargar Excel</button></div><p id="hdReporteEstado" role="status"></p><div id="hdReporteVista" style="max-height:65vh;overflow:auto"></div></section>
-        <section id="tab-copias" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Copias de seguridad de las bases de datos</h2><p>Genera una copia de las dos bases en Google Drive. Las descargas a Excel requieren una sesión de Google con acceso autorizado a las bases.</p><button id="hdBackupBtn" onclick="hdCrearCopia()">Generar copias ahora</button><p id="hdBackupEstado" role="status"></p><div id="hdBackupResultados"></div></section>
+        <section id="tab-copias" class="hidden hd-ampl-section">
+ <h2 class="text-xl font-bold">Copias de seguridad de las bases de datos</h2>
+ <p class="hd-bk-help">Descarga una copia en tu equipo. No se crearán archivos adicionales en Google Drive. En PC podrás elegir la carpeta cuando Chrome lo permita.</p>
+ <div class="hd-bk-grid">
+  <fieldset><legend>1. Formato del respaldo</legend>
+   <label><input type="radio" name="hdBFormato" value="google" onchange="hdBackupFormato_()" checked> Copia original del archivo Google Sheets (descargada como .xlsx)</label>
+   <label><input type="radio" name="hdBFormato" value="profesional" onchange="hdBackupFormato_()"> Excel profesional consolidado</label>
+  </fieldset>
+  <fieldset><legend>2. Bases de datos</legend>
+   <label><input type="checkbox" id="hdBDocumentos" checked> Copia de seguridad Documentos</label>
+   <label><input type="checkbox" id="hdBOM5" checked> Copia de seguridad Ampliaciones OM5</label>
+   <label><input type="checkbox" id="hdBUIA" checked> Copia de seguridad Ampliaciones UIA</label>
+  </fieldset>
+  <fieldset><legend>3. Fechas del reporte</legend>
+   <div class="hd-bk-dates"><label>Desde <input id="hdBDesde" type="date" onchange="hdBackupFormato_()"></label><label>Hasta <input id="hdBHasta" type="date" onchange="hdBackupFormato_()"></label></div>
+   <p id="hdBFechaAviso" class="hd-bk-hint">Sin fechas: se incluyen todos los registros.</p>
+  </fieldset>
+  <fieldset><legend>4. Archivos adjuntos</legend>
+   <label><input id="hdBAdjuntos" type="checkbox"> Incluir los archivos adjuntos en un ZIP, organizados por módulo y expediente</label>
+   <small>Esta descarga puede tardar y ocupar bastante memoria, especialmente en celulares. El respaldo original conserva todas las hojas de cada libro.</small>
+  </fieldset>
+ </div>
+ <div class="hd-bk-actions"><button type="button" id="hdBackupBtn" onclick="hdCrearCopia()">Preparar y descargar respaldo</button><button type="button" id="hdBCancelar" onclick="hdBAbortar_()" hidden>Cancelar descarga</button></div>
+ <p id="hdBackupEstado" role="status" aria-live="polite"></p><div id="hdBackupResultados"></div>
+</section>
         <section id="tab-personal" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Administración general de Personal y usuarios</h2><p>Usuarios y roles transversales. Se conserva la hoja Personal de la base documental.</p><div id="hdPersonalPanel" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
         <!-- TAB 1: DOCUMENTOS -->
         <section id="tab-documentos" class="space-y-6">
@@ -1714,7 +1738,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         }
 
 
-        /* REV21 | Exportación Excel institucional para TODOS los módulos.
+        /* REV22 | Exportación Excel institucional para TODOS los módulos.
            Se aplica formato OOXML con JSZip: SheetJS Community no escribe estilos.
            No altera reportes en pantalla, bases, filtros, ni módulos OM5/UIA. */
         function hdExcelUsuario_(){
@@ -1766,7 +1790,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           if(!window.XLSX||!window.JSZip)throw Error('No se cargaron las bibliotecas necesarias para generar Excel con formato.');
           if(!headers.length)throw Error('El reporte no tiene columnas.');
           const widths=hdExcelAnchos_(headers,filas);
-          // REV21: datos del reporte arriba; metadatos únicamente al pie.
+          // REV22: datos del reporte arriba; metadatos únicamente al pie.
           const metadataStart=filas.length+5; // filas Excel: título=1, vacío=2, encabezado=3, registros desde 4
           const matriz=[
             ['HIDRANDINA S.A. — '+titulo],
@@ -3162,7 +3186,225 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             document.getElementById('hdReporteEstado').textContent='Error al exportar Excel: '+e.message;
           }
         }
-        async function hdCrearCopia(){const b=document.getElementById('hdBackupBtn'),s=document.getElementById('hdBackupEstado'),out=document.getElementById('hdBackupResultados');b.disabled=true;s.textContent='Generando copias con los permisos de tu cuenta...';out.innerHTML='';try{const r=await postGateway({action:'amplBackup'},110000);out.innerHTML='<h3>Copias generadas en Google Drive</h3>'+r.archivos.map(f=>`<p><a href="${hdEsc_(f.url)}" target="_blank" rel="noopener">${hdEsc_(f.nombre)}</a></p>`).join('')+'<p>Abre cada copia para descargarla en Excel. La descarga requiere permisos de Google Drive.</p>';s.textContent='Se crearon las copias. Comprueba que puedes abrir ambas.';}catch(err){s.textContent='No se pudo completar la copia: '+err.message;}finally{b.disabled=false;}}
+        /* REV22 - Copias locales (Google Sheets fuente / Excel profesional / adjuntos).
+           La base original JAMÁS se escribe. La exportación fuente siempre trae el libro
+           completo (OM5+UIA están en el mismo Google Sheets) para evitar alterar el original. */
+        let hdBackupAbortado_ = false;
+        function hdBackupPermisos_(){
+          const docsAllowed=!hdEsSoloOM5_(currentUser?.tipo);
+          const amplAllowed=hdAccesoAmpliaciones_();
+          const d=document.getElementById('hdBDocumentos');if(d){d.disabled=!docsAllowed;if(!docsAllowed)d.checked=false;}
+          for(const id of ['hdBOM5','hdBUIA']){const e=document.getElementById(id);if(e){e.disabled=!amplAllowed;if(!amplAllowed)e.checked=false;}}
+          const sourceAllowed=['Administrador','Administrador Total','Administrador documentos','Administrador OM5'].includes(currentUser?.tipo);
+          const original=document.querySelector('input[name="hdBFormato"][value="google"]');
+          if(original){original.disabled=!sourceAllowed;
+            if(!sourceAllowed&&original.checked){document.querySelector('input[name="hdBFormato"][value="profesional"]').checked=true;}}
+          hdBackupFormato_();
+        }
+        function hdBAbortar_(){hdBackupAbortado_=true;document.getElementById('hdBackupEstado').textContent='Cancelación solicitada. Se detendrá al terminar el fragmento actual.';}
+        function hdBackupFormato_(){
+          const fmt=document.querySelector('input[name="hdBFormato"]:checked')?.value||'google';
+          const a=document.getElementById('hdBDesde').value,b=document.getElementById('hdBHasta').value;
+          const e=document.getElementById('hdBFechaAviso');
+          e.textContent=fmt==='google'?'La copia original siempre incluye todas las hojas y fechas; el filtro NO se aplica a este formato.':
+          !a&&!b?'Sin fechas: se incluirán todos los registros.':
+          a&&b?'Se incluirán los registros que tengan una fecha dentro del rango indicado (ambos días incluidos).':
+          a?'Se incluirán los registros con fecha desde el día seleccionado.':'Se incluirán los registros con fecha hasta el día seleccionado.';
+        }
+        function hdBFechaISO_(v){
+          if(v instanceof Date&&!isNaN(v))return [v.getFullYear(),String(v.getMonth()+1).padStart(2,'0'),String(v.getDate()).padStart(2,'0')].join('-');
+          const s=String(v??'').trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+          if(m)return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+          m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);return m?m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'):'';
+        }
+        function hdBFiltrar_(mod,data,desde,hasta){
+          if(!desde&&!hasta)return data;
+          return data.filter(row=>{
+            const campos=mod==='Documentos'?['Fecha_Ingreso']:Object.keys(row).filter(k=>/^fecha/i.test(k.toLowerCase()));
+            const fechas=campos.map(k=>hdBFechaISO_(row[k])).filter(Boolean);
+            return fechas.some(d=>(!desde||d>=desde)&&(!hasta||d<=hasta));
+          });
+        }
+        function hdBNombreSeguro_(s){return String(s||'Sin_nombre').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').trim().slice(0,100)||'Sin_nombre';}
+        function hdBSheets_(mod,base,source){
+          if(mod==='OM5'){
+            if(!window.HDReporteOM5)throw Error('Falta reporte OM5 en ampliaciones-ui.js.');
+            const rows=HDReporteOM5.convert({...source,registros:base});
+            const h=HDReporteOM5.headers.filter(k=>k!=='Modalidad'),groups=new Map();
+            rows.forEach(r=>{const m=String(r.Modalidad||'Sin modalidad').trim()||'Sin modalidad';if(!groups.has(m))groups.set(m,[]);groups.get(m).push(h.map(k=>r[k]??''));});
+            if(!groups.size)groups.set('Sin registros',[]);
+            return [...groups].map(([modalidad,filas])=>({nombre:modalidad,titulo:modalidad,headers:h,filas}));
+          }
+          if(mod==='UIA'){
+            if(!window.HDReporteUIA)throw Error('Falta reporte UIA en ampliaciones-ui.js.');
+            const h=HDReporteUIA.headers;
+            return [{nombre:'Ampliaciones UIA',titulo:'Copia de seguridad Ampliaciones UIA',headers:h,
+              filas:HDReporteUIA.convert({...source,registros:base}).map(r=>h.map(k=>r[k]??''))}];
+          }
+          const h=['Numero_Documento','Origen_Tipo','Asunto','Fecha_Ingreso','Fecha_Vencimiento','Dias_Trancurridos','Dias_Exceso','Responsable','Estado','Observaciones'];
+          return [{nombre:'Documentos',titulo:'Copia de seguridad Documentos',headers:h,
+            filas:base.map(r=>h.map(k=>hdNro_(r,[k])??''))}];
+        }
+        function hdBNombreHoja_(s,seen){
+          let n=String(s||'Hoja').replace(/[\\/?*\[\]:]/g,' ').replace(/^'+|'+$/g,'').trim().slice(0,31)||'Hoja';
+          let name=n,i=2;while(seen.has(name.toLowerCase())){const suffix=' '+i++;name=n.slice(0,31-suffix.length)+suffix;}seen.add(name.toLowerCase());return name;
+        }
+        async function hdBLibroProfesional_(mod,sheets){
+          if(!window.XLSX||!window.JSZip)throw Error('No se pudieron cargar SheetJS y JSZip.');
+          const book=XLSX.utils.book_new();const info=[];const seen=new Set();
+          sheets.forEach((sheet,i)=>{
+            const h=sheet.headers,rows=sheet.filas;
+            const matrix=[['HIDRANDINA S.A. — '+sheet.titulo],[],h,...rows,[],
+              ['Fecha y hora de generación: '+hdExcelFecha_()],['Usuario: '+hdExcelUsuario_()],
+              ['Módulo: '+mod+'   |   Registros: '+rows.length]];
+            const ws=XLSX.utils.aoa_to_sheet(matrix);const meta=rows.length+5;
+            ws['!merges']=[1,meta,meta+1,meta+2].map(r=>({s:{r:r-1,c:0},e:{r:r-1,c:h.length-1}}));
+            const widths=hdExcelAnchos_(h,rows);
+            ws['!cols']=widths.map(w=>({wch:w}));
+            ws['!rows']=[{hpt:34},{hpt:10},{hpt:40},...rows.map(r=>({hpt:hdExcelAlto_(r,widths)})),{hpt:12},{hpt:25},{hpt:25},{hpt:25}];
+            const name=hdBNombreHoja_(sheet.nombre,seen);XLSX.utils.book_append_sheet(book,ws,name);
+            info.push({count:rows.length,meta});
+          });
+          const raw=XLSX.write(book,{bookType:'xlsx',type:'array',compression:true});
+          const zip=await JSZip.loadAsync(raw);
+          zip.file('xl/styles.xml',hdExcelStylesXml_());
+          for(let i=0;i<info.length;i++){
+            const path='xl/worksheets/sheet'+(i+1)+'.xml';let xml=await zip.file(path).async('string');
+            const {count,meta}=info[i];
+            xml=xml.replace(/<c\b([^>]*?)>/g,(tag,attrs)=>{
+              const ref=/\br="([A-Z]+)(\d+)"/.exec(attrs);if(!ref)return tag;
+              const row=+ref[2],style=row===1?1:row===3?3:row>=4&&row<=count+3?4:row>=meta?2:0;
+              return '<c'+attrs.replace(/\s+s="[^"]*"/g,'')+' s="'+style+'">';
+            });
+            const views='<sheetViews><sheetView workbookViewId="0" showGridLines="0" zoomScale="90" zoomScaleNormal="90"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A4" sqref="A4"/></sheetView></sheetViews>';
+            if(/<sheetViews[\s>]/.test(xml))xml=xml.replace(/<sheetViews\b[^>]*>[\s\S]*?<\/sheetViews>/,views);
+            else xml=xml.replace(/(<sheetData\b)/,views+'$1');
+            xml=xml.replace(/<autoFilter\b[^>]*\/>/g,'').replace(/<autoFilter\b[^>]*>[\s\S]*?<\/autoFilter>/g,'');
+            zip.file(path,xml);
+          }
+          return zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:5},mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        }
+        function hdBBase64Bytes_(b64){const b=atob(b64),arr=new Uint8Array(b.length);for(let i=0;i<b.length;i++)arr[i]=b.charCodeAt(i);return arr;}
+        async function hdBOriginal_(mod,status){
+          const blocks=[];let count=null;
+          for(let part=0;count===null||part<count;part++){
+            if(hdBackupAbortado_)throw Error('Descarga cancelada.');
+            status.textContent='Descargando copia original '+mod+': fragmento '+(part+1)+' de '+(count||'?')+'...';
+            const r=await postGateway({action:'amplBackupExport',modulo:mod,parte:String(part)},120000);
+            if(count===null)count=Number(r.total);
+            if(!Number.isInteger(count)||count<1||count>100||part>=count||Number(r.parte)!==part)throw Error('Fragmentación incorrecta del archivo original.');
+            blocks.push(hdBBase64Bytes_(r.base64));
+          }
+          return new Blob(blocks,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        }
+        async function hdBAdjunto_(mod,item,status){
+          const id=String(item.id||item.ID||item[0]||'');if(!id)throw Error('Adjunto sin ID.');
+          const parts=[];let total=null;
+          for(let i=0;total===null||i<total;i++){
+            if(hdBackupAbortado_)throw Error('Descarga cancelada.');
+            status.textContent='Adjunto '+String(item.nombre||item.Nombre_Archivo||'')+' · '+(i+1)+'/'+(total||'?');
+            const r=await postGateway(mod==='Documentos'?{action:'previewAdjunto',adjuntoId:id,parte:String(i)}:
+                {action:'amplPreview',adjuntoId:id,parte:String(i)},120000);
+            if(total===null)total=Number(mod==='Documentos'?r.totalPartes:r.total);
+            if(!Number.isInteger(total)||total<1||total>120)throw Error('Cantidad de fragmentos inválida.');
+            parts.push(hdBBase64Bytes_(r.base64));
+          }
+          return new Blob(parts,{type:'application/octet-stream'});
+        }
+        async function hdBGuardar_(blob,nombre,folder){
+          if(folder){const handle=await folder.getFileHandle(nombre,{create:true});const w=await handle.createWritable();try{await w.write(blob);}finally{await w.close();}}
+          else{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=nombre;
+            document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+        }
+        async function hdCrearCopia(){
+          const status=document.getElementById('hdBackupEstado'),button=document.getElementById('hdBackupBtn'),cancel=document.getElementById('hdBCancelar');
+          if(!hdPuedeRespaldar_()){status.textContent='Perfil sin autorización para respaldos.';return;}
+          hdBackupPermisos_();
+          const mods=[['Documentos','hdBDocumentos'],['OM5','hdBOM5'],['UIA','hdBUIA']].filter(x=>document.getElementById(x[1]).checked).map(x=>x[0]);
+          const fmt=document.querySelector('input[name="hdBFormato"]:checked')?.value||'google';
+          const desde=document.getElementById('hdBDesde').value,hasta=document.getElementById('hdBHasta').value,includeFiles=document.getElementById('hdBAdjuntos').checked;
+          if(!mods.length){status.textContent='Selecciona al menos una base de datos.';return;}
+          if(fmt==='profesional'&&desde&&hasta&&desde>hasta){status.textContent='La fecha inicial no puede ser posterior a la final.';return;}
+          if(mods.includes('Documentos')&&hdEsSoloOM5_(currentUser?.tipo)){status.textContent='Tu perfil no puede descargar la base Documentos.';return;}
+          let folder=null;
+          // La selección de carpeta debe ejecutarse directamente en el clic (gesto de usuario).
+          if(typeof window.showDirectoryPicker==='function'){
+            try{folder=await window.showDirectoryPicker({mode:'readwrite',id:'hidrandina-respaldos'});}
+            catch(e){if(e.name==='AbortError'){status.textContent='Se canceló la selección de carpeta.';return;}status.textContent='No fue posible elegir carpeta; se utilizará Descargas.';}
+          }
+          button.disabled=true;cancel.hidden=false;hdBackupAbortado_=false;
+          const zipNeeded=includeFiles||mods.length>1;const bundle=zipNeeded?new JSZip():null;
+          const stamp=new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(new Date()).replace(/[-: ]/g,'_');
+          const log=[],added=new Set(),dataCache={};let bytes=0;
+          try{
+            const seenWorkbook=new Set();
+            for(const mod of mods){
+              if(hdBackupAbortado_)throw Error('Descarga cancelada.');
+              let blob,name;
+              if(fmt==='google'){
+                const book=mod==='Documentos'?'Documentos':'Ampliaciones';
+                if(seenWorkbook.has(book))continue;seenWorkbook.add(book);
+                blob=await hdBOriginal_(mod,status);
+                name=book+'_Original_'+stamp+'.xlsx';
+              }else{
+                status.textContent='Preparando el Excel profesional de '+mod+'...';
+                let raw;
+                if(mod==='Documentos')raw=appData.Documentos||[];
+                else {const source=await hdAsegurarAmpl_(mod);dataCache[mod]=source;raw=source.registros||[];}
+                const filtered=hdBFiltrar_(mod,raw,desde,hasta);
+                const sheets=hdBSheets_(mod,filtered,dataCache[mod]);
+                blob=await hdBLibroProfesional_(mod,sheets);
+                name=mod+'_Profesional_'+stamp+'.xlsx';
+                dataCache[mod+'Selected']=filtered;
+              }
+              log.push(mod+': '+Math.round(blob.size/1024)+' KB');
+              bytes+=blob.size;
+              if(bundle)bundle.file('Bases/'+name,blob);
+              else await hdBGuardar_(blob,name,folder);
+            }
+            if(includeFiles){
+              // Para la copia fuente se incluyen todos los expedientes y archivos; filtro solo es de reportes profesionales.
+              for(const mod of mods){
+                if(hdBackupAbortado_)throw Error('Descarga cancelada.');
+                const raw=mod==='Documentos'?(appData.Documentos||[]):(dataCache[mod]||await hdAsegurarAmpl_(mod)).registros;
+                const selected=fmt==='profesional'?(dataCache[mod+'Selected']||hdBFiltrar_(mod,raw,desde,hasta)):raw;
+                let items=[];
+                if(mod==='Documentos'){
+                  const nums=new Set(selected.map(r=>String(hdNro_(r,['Numero_Documento'])).toLowerCase()));
+                  items=(appData.Adjuntos||[]).filter(a=>nums.has(String(hdNro_(a,['Numero_Documento'])).toLowerCase()));
+                }else{
+                  const data=dataCache[mod]||await hdAsegurarAmpl_(mod);
+                  const ids=new Set(selected.map(r=>String(r.__HD_ID)));
+                  items=(data.adjuntos||[]).filter(a=>ids.has(String(a.expedienteId)));
+                }
+                let seq=0;
+                for(const item of items){
+                  if(hdBackupAbortado_)throw Error('Descarga cancelada.');
+                  const original=String(mod==='Documentos'?hdNro_(item,['Nombre_Archivo']):(item.nombre||''))||'archivo';
+                  const exp=mod==='Documentos'?hdNro_(item,['Numero_Documento']):(item.expedienteId||'SinID');
+                  const name=hdBNombreSeguro_(original);
+                  const folderName='Adjuntos/'+mod+'/'+hdBNombreSeguro_(exp)+'/';
+                  let path=folderName+name,n=1;
+                  while(added.has(path)){path=folderName+(++n)+'_'+name;}added.add(path);
+                  const blob=await hdBAdjunto_(mod,item,status);bytes+=blob.size;
+                  if(bytes>300*1024*1024)throw Error('El respaldo supera 300 MB; utiliza un rango de fechas menor para evitar agotar la memoria del dispositivo.');
+                  bundle.file(path,blob);seq++;
+                }
+                log.push(mod+': '+seq+' adjuntos');
+              }
+            }
+            if(bundle){
+              status.textContent='Comprimiendo el respaldo...';
+              const blob=await bundle.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}},p=>{
+                status.textContent='Comprimiendo respaldo: '+Math.round(p.percent)+' %';
+              });
+              await hdBGuardar_(blob,'Respaldo_HIDRANDINA_'+stamp+'.zip',folder);
+            }
+            status.textContent='Respaldo preparado y entregado al navegador. Comprueba el archivo en la carpeta elegida o en Descargas.';
+            document.getElementById('hdBackupResultados').textContent=log.join(' · ');
+          }catch(e){status.textContent='No se pudo completar el respaldo: '+(e.message||e);}
+          finally{button.disabled=false;cancel.hidden=true;}
+        }
         // Menú lateral ejecutivo: conserva switchTab y permisos validados por el backend.
         function hdToggleMenu(){const side=document.getElementById('hdExecutiveSidebar'),scrim=document.getElementById('hdMenuScrim');const open=!side.classList.contains('hd-menu-open');side.classList.toggle('hd-menu-open',open);scrim.classList.toggle('hd-scrim-active',open);document.getElementById('hdMenuToggle').setAttribute('aria-expanded',String(open));}
         function hdCloseMenu(){document.getElementById('hdExecutiveSidebar')?.classList.remove('hd-menu-open');document.getElementById('hdMenuScrim')?.classList.remove('hd-scrim-active');document.getElementById('hdMenuToggle')?.setAttribute('aria-expanded','false');}
