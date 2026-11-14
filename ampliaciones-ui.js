@@ -66,8 +66,30 @@ function section(){return $('tab-'+curso.toLowerCase());}
 function format(v){if(v===null||v===undefined)return '';if(typeof v==='object')return '';return String(v);}
 function fieldsByStage(mod,stage){let hs=sheet(mod).headers;if(mod==='UIA')return hs.filter(h=>!h.startsWith('__'));return hs.slice(ETAPAS[stage][1],ETAPAS[stage][2]).filter(h=>!h.startsWith('__'));}
 function rolesReady(){return typeof currentUser !== 'undefined' && !!currentUser && view();}
-async function enter(mod){curso=mod;if(!rolesReady()){update('No tienes acceso a este módulo.');return;}if(!STORE[mod])await refresh(mod);else render(mod);}
-async function refresh(mod){curso=mod;update('Cargando '+mod+'...');try{STORE[mod]=await api('amplRead',{modulo:mod});render(mod);update(mod+': '+STORE[mod].registros.length+' expedientes disponibles.');}catch(e){update('No se pudo cargar '+mod+': '+e.message);}}
+function activeAmplModule(){const parent=$('amplWorkspace')?.parentElement?.id;return parent==='tab-uia'?'UIA':parent==='tab-om5'?'OM5':null;}
+async function enter(mod){
+ curso=mod;
+ if(!rolesReady()){update('No tienes acceso a este módulo.');return;}
+ if(!STORE[mod]){
+  // Evitar que se vea un listado OM5 mientras carga UIA, o viceversa.
+  if(activeAmplModule()===mod){$('amplTableHead').innerHTML='';$('amplTableBody').innerHTML='<tr><td>Consultando expedientes '+mod+'...</td></tr>';$('amplStages').innerHTML='';$('amplCount').textContent='';}
+  await refresh(mod);
+ }else if(activeAmplModule()===mod)render(mod);
+}
+
+async function refresh(mod){
+ if(activeAmplModule()===mod){curso=mod;update('Cargando '+mod+'...');}
+ try{
+  const data=await api('amplRead',{modulo:mod});
+  if(!data||!Array.isArray(data.registros))throw Error('Respuesta de '+mod+' sin registros válidos.');
+  STORE[mod]=data;
+  // Una consulta atrasada NO puede sobrescribir la vista del otro módulo.
+  if(activeAmplModule()!==mod)return;
+  curso=mod;render(mod);
+  update(mod+': '+data.registros.length+' expedientes disponibles.');
+ }catch(e){if(activeAmplModule()===mod)update('No se pudo cargar '+mod+': '+e.message);}
+}
+
 function numDocs(row,mod){let h=sheet(mod).headers,n=MODS[mod].sol;let s=[];for(let i=1;i<=n;i++){let x=field(h,'NroSolicitud',i),f=field(h,'FechaSolicitud',i);if(x&&row[x])s.push(String(row[x])+(f&&row[f]?' · '+format(row[f]):''));}return s.join('\n');}
 function numRes(row,mod){let h=sheet(mod).headers,n=MODS[mod].res;let s=[];for(let i=1;i<=n;i++){let x=field(h,'NroResolución',i),f=field(h,'FechaResolucion',i);if(x&&row[x])s.push(String(row[x])+(f&&row[f]?' · '+format(row[f]):''));}return s.join('\n');}
 function estadoColor(value){let v=key(value);return !v?'#8c96a6':/terminado|conforme|atendido/.test(v)?'#1e67d2':/proceso/.test(v)?'#e59624':/pendiente|observado/.test(v)?'#d64545':'#8c96a6';}
@@ -103,6 +125,48 @@ function om5ReportRows(data){const hs=data.headers||[];return (data.registros||[
 });}
 window.HDReporteOM5={headers:OM5_REPORT_HEADERS,convert:om5ReportRows};
 
+
+/* REV18 — Exclusivamente UIA: 27 campos originales se presentan como 19 columnas del
+   archivo Reporte_UIA. No altera la base, el modelo aprobado de OM5 ni sus 40 columnas. */
+const UIA_REPORT_HEADERS = ["Item", "Nombre", "Direcciòn", "NroSolicitudes", "Fechasolicitudes", "Departamento", "Provincia", "Distrito", "SED Referencia", "N° Clientes", "MemorandosGC", "Tipo de OM", "Nro OM", "Tipo", "FechaEjecutadoUMD", "Estado Actual", "Clentes Captados", "Estado Captación Clientes", "Observación Captación Clientes"];
+const UIA_REPORT_GROUPS = {
+ 'NroSolicitudes':['NroSolicitud1','NroSolicitud2','NroSolicitud3'],
+ 'Fechasolicitudes':['Fechasolicitud1','Fechasolicitud2','Fechasolicitud3'],
+ 'MemorandosGC':['MemorandoGC1','MemorandoGC2','MemorandoGC3','MemorandoGC4','MemorandoGC5']
+};
+function uiaReportColumn(row,header,hs){
+ if(header==='NroSolicitudes'||header==='Fechasolicitudes'){
+  const isDate=header==='Fechasolicitudes';
+  const numbers=UIA_REPORT_GROUPS.NroSolicitudes,dates=UIA_REPORT_GROUPS.Fechasolicitudes;
+  // Correspondencia por posición: una fecha nunca se desplaza a otra solicitud.
+  const positions=numbers.map((_,i)=>i).filter(i=>{
+   const n=head(hs,numbers[i]),d=head(hs,dates[i]);
+   return (n&&String(row[n]??'').trim())||(d&&String(row[d]??'').trim());
+  });
+  return positions.map(i=>{
+   const col=head(hs,isDate?dates[i]:numbers[i]);
+   const v=col?format(row[col]):'';
+   return isDate?om5ReportDate('Fecha',v):v;
+  }).join('\n');
+ }
+ if(header==='MemorandosGC'){
+  return UIA_REPORT_GROUPS.MemorandosGC.map(f=>{
+   const col=head(hs,f);return col?format(row[col]):'';
+  }).filter(v=>String(v).trim()).join('\n');
+ }
+ const col=head(hs,header);return col?(/fecha/i.test(header)?om5ReportDate('Fecha',format(row[col])):format(row[col])):'';
+}
+function uiaReportRows(data){
+ const hs=data.headers||[];
+ return (data.registros||[]).map(row=>{
+  const result={};
+  for(const header of UIA_REPORT_HEADERS)result[header]=uiaReportColumn(row,header,hs);
+  result.__HD_ID=row.__HD_ID||'';
+  return result;
+ });
+}
+window.HDReporteUIA={headers:UIA_REPORT_HEADERS,convert:uiaReportRows};
+
 function render(mod){
  curso=mod;
  const n=NAV[mod], source=visible(mod), sub=source.slice(n.page*30,(n.page+1)*30), h=sheet(mod).headers;
@@ -116,8 +180,15 @@ function render(mod){
     '<td class="hd-report-actions"><button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td></tr>';
   }).join('')||'<tr><td colspan="42">No se encontraron expedientes</td></tr>';
  }else{
-  theader.innerHTML='<tr><th>Elegir</th><th>Ítem</th><th>Nombre</th><th>Dirección</th><th>Solicitudes</th><th>Estado</th><th>Acción</th></tr>';
-  body.innerHTML=sub.map(row=>{const uid=id(row),chosen=n.selected===uid,status=get(row,h,'Estado Actual');return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td><td>'+safe(get(row,h,'Item','Ítem'))+'</td><td>'+safe(get(row,h,'Nombre'))+'</td><td>'+safe(get(row,h,'Direccion'))+'</td><td class="hd-report-multiline">'+safe(numDocs(row,mod))+'</td><td><span style="display:inline-block;border-radius:20px;padding:3px 8px;color:#fff;background:'+estadoColor(status)+'">'+safe(status||'Sin estado')+'</span></td><td><button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td></tr>';}).join('')||'<tr><td colspan="7">No se encontraron expedientes</td></tr>';
+  // UIA: 19 campos EXACTAMENTE en el orden de Reporte_UIA, más Elegir y Acción.
+  const columns=UIA_REPORT_HEADERS,report=uiaReportRows({headers:h,registros:sub});
+  theader.innerHTML='<tr><th class="hd-choose">Elegir</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'<th>Acción</th></tr>';
+  body.innerHTML=report.map((r,i)=>{
+   const original=sub[i],uid=id(original),chosen=n.selected===uid;
+   return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td class="hd-choose"><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' aria-label="Seleccionar ítem '+safe(r['Item'])+'" onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td>'+
+    columns.map(k=>'<td title="'+safe(r[k]).replace(/\n/g,' / ')+'" class="'+(UIA_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(r[k])+'</td>').join('')+
+    '<td class="hd-report-actions"><button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td></tr>';
+  }).join('')||'<tr><td colspan="21">No se encontraron expedientes UIA</td></tr>';
  }
  $('amplCount').textContent=source.length+' expedientes; página '+(n.page+1)+' de '+Math.max(1,Math.ceil(source.length/30));
  $('amplPrev').disabled=n.page===0;$('amplNext').disabled=(n.page+1)*30>=source.length;
