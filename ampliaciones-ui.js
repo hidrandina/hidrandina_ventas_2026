@@ -304,7 +304,7 @@ function renderPendingFilePreviews(input){
  });
 }
 document.addEventListener('change',e=>{if(e.target.matches('input[data-ampl-upload],#amplUploadInput'))renderPendingFilePreviews(e.target);});
-// REV14 OCR: funciones ausentes en REV12, que bloqueaban todas las búsquedas.
+// REV15 OCR: funciones ausentes en REV12, que bloqueaban todas las búsquedas.
 function ocrMessage(message){const e=$('amplOCRStatus');if(e)e.textContent=message;}
 let tesseractLoading=null;
 function tesseractReady(){
@@ -320,15 +320,15 @@ function tesseractReady(){
 // REV14: priorizar cifras útiles y su contexto, sin inventar el tipo de documento.
 function numericTokens(source){
  const raw=String(source||'');let found=[];
- // Captura números de documentos, incluidos ceros iniciales y separadores usuales.
- const regex=/(?:^|[^\d])([0-9OolI|SBZ]{5,18}(?:[\s./-][0-9OolI|SBZ]{1,8}){0,2})(?=$|[^\d])/g;
+ // Capturar números aislados, sin convertir bloques de caracteres ilegibles en expedientes.
+ const regex=/(?:^|[^\dA-Za-z])([0-9OolI|SBZ]{5,13})(?=$|[^\dA-Za-z])/g;
  for(const m of raw.matchAll(regex)){
-  const original=m[1].trim(),compact=original.replace(/[\s./-]/g,'');
-  let fixed=compact.replace(/[Oo]/g,'0').replace(/[Il|]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2');
-  if(!/^\d{5,14}$/.test(fixed))continue;
-  // El OCR de tablas genera a menudo cadenas repetidas, que no deben ocupar la búsqueda.
-  if(/^(\d)\1{4,}$/.test(fixed)||/(\d{2})\1{4,}/.test(fixed))continue;
-  found.push({value:fixed,raw:original,converted:fixed!==compact});
+  const original=m[1],fixed=original.replace(/[Oo]/g,'0').replace(/[Il|]/g,'1').replace(/S/g,'5').replace(/B/g,'8').replace(/Z/g,'2');
+  if(!/^\d{5,12}$/.test(fixed))continue;
+  // Una cadena formada casi únicamente por «1» es un artefacto habitual en fotos de pantallas.
+  const repetitions=Math.max(...'0123456789'.split('').map(d=>fixed.split(d).length-1));
+  if(repetitions/fixed.length>.72 || /^(\d)\1{4,}$/.test(fixed))continue;
+  found.push({value:fixed,raw:original,converted:fixed!==original});
  }
  return found;
 }
@@ -337,21 +337,17 @@ function candidates(text,confidence=100,mode='general'){
  const add=(type,value,priority=0,uncertain=false)=>{
   value=String(value||'').trim().replace(/^[#:\s-]+|[\s.;,]+$/g,'');
   if(value.length<3||value.length>130)return;
-  const identity=type+':'+(type==='nombre'||type==='sector'?key(value):canonical(value));
+  const identity=type+':'+(['nombre','sector'].includes(type)?key(value):canonical(value));
   if(known.has(identity))return;known.add(identity);
-  result.push({type,value,priority,uncertain:uncertain||Number(confidence)<80});
+  result.push({type,value,priority,confidence:Number(confidence)||0,uncertain:uncertain||Number(confidence)<80});
  };
- const lines=String(text||'').replace(/\r/g,'').split('\n').map(s=>s.trim()).filter(Boolean);
+ const lines=String(text||'').replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
  for(const line of lines){
   const sol=/solicitud|solicito|solicitudes|\bsol\.?\b/i.test(line);
   const res=/resoluci[oó]n|resoluciones|\bres\.?\b/i.test(line);
-  const genericNumbers=numericTokens(line);
-  // Solo asignar etiqueta cuando esté realmente escrita junto al número.
-  for(const t of genericNumbers){
-   let type='numero',priority=1;
-   if(sol&&!res){type='sol';priority=3;}
-   else if(res&&!sol){type='res';priority=3;}
-   add(type,t.value,priority,t.converted||Number(confidence)<80);
+  for(const t of numericTokens(line)){
+   const type=sol&&!res?'sol':res&&!sol?'res':'numero';
+   add(type,t.value,type==='numero'?1:3,t.converted||Number(confidence)<80);
   }
   if(mode==='general'){
    let m=line.match(/(?:solicitante|interesado|administrado|nombre\s+del\s+solicitante|raz[oó]n\s+social)\s*[:\-]\s*(.{4,90})/i);
@@ -360,48 +356,65 @@ function candidates(text,confidence=100,mode='general'){
    if(m)add('sector',m[1],2);
   }
  }
- return result.sort((a,b)=>b.priority-a.priority);
+ return result;
 }
 function mergeCandidates(items){
- const map=new Map();for(const c of items){
-  const token=['sol','res','numero'].includes(c.type)?canonical(c.value):key(c.value);
+ const map=new Map();
+ for(const x of items){
+  const token=['sol','res','numero'].includes(x.type)?canonical(x.value):key(x.value);
   if(!token)continue;
-  const k=c.type+':'+token,previous=map.get(k);
-  if(!previous || c.priority>previous.priority || (previous.uncertain&&!c.uncertain))map.set(k,c);
+  const k=x.type+':'+token,prev=map.get(k);
+  if(!prev){map.set(k,{...x,checks:1});continue;}
+  prev.checks++;
+  if((x.confidence||0)>(prev.confidence||0))prev.confidence=x.confidence;
+  if((x.priority||0)>(prev.priority||0))prev.priority=x.priority;
+  prev.uncertain=prev.uncertain&&x.uncertain;
  }
- // Si el mismo número tiene etiqueta explícita, no duplicarlo como genérico.
  const explicit=new Set([...map.values()].filter(c=>c.type==='sol'||c.type==='res').map(c=>canonical(c.value)));
- return [...map.values()].filter(c=>c.type!=='numero'||!explicit.has(canonical(c.value))).sort((a,b)=>(b.priority||0)-(a.priority||0)).slice(0,16);
+ const confidenceScore=c=>((c.confidence||0)/100)+(c.checks>=2?.40:0)+(c.priority>=3?.45:0)+(c.value.length>=6&&c.value.length<=10?.15:0);
+ const ranked=[...map.values()].filter(c=>c.type!=='numero'||!explicit.has(canonical(c.value)))
+   .sort((a,b)=>confidenceScore(b)-confidenceScore(a));
+ // Mostrar pocas alternativas numéricas: una lectura incorrecta nunca se considera coincidencia confirmada.
+ let numericCount=0;
+ return ranked.filter(c=>{if(['numero','sol','res'].includes(c.type)){numericCount++;return numericCount<=5;}return true;}).slice(0,10)
+   .map(c=>({...c,uncertain:c.uncertain||(c.checks<2&&c.priority<3)||(c.confidence||0)<68}));
 }
 async function numericSecondPass(worker,file){
- // Segunda lectura independiente: ayuda con cifras impresas en una foto de Excel.
- // Conserva la primera lectura y permite corregir manualmente; no fuerza coincidencias.
- let canvas=null;
+ // Leer franjas individuales de la foto para evitar que líneas de Excel se confundan con dígitos.
+ let base=null,bitmap=null;const collected=[];
  try{
-  canvas=document.createElement('canvas');let source=file;
-  if(file instanceof File || file instanceof Blob){
-   const bitmap=await createImageBitmap(file);source=bitmap;
+  bitmap=await createImageBitmap(file);
+  const iw=bitmap.width,ih=bitmap.height;
+  if(!iw||!ih)return [];
+  const scale=Math.min(2.3,Math.max(1,1600/Math.max(iw,ih)));
+  base=document.createElement('canvas');base.width=Math.round(iw*scale);base.height=Math.round(ih*scale);
+  const ctx=base.getContext('2d',{willReadFrequently:true});ctx.drawImage(bitmap,0,0,base.width,base.height);
+  // Cuatro bandas superpuestas: localiza cifras aunque no haya etiqueta «Solicitud».
+  const ranges=[[0,.36],[.22,.60],[.47,.84],[.69,1]];
+  await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'0123456789',preserve_interword_spaces:'1'});
+  for(const [start,end] of ranges){
+   if(ocrCanceled)break;
+   const top=Math.floor(base.height*start),height=Math.floor(base.height*(end-start));
+   const piece=document.createElement('canvas');piece.width=base.width;piece.height=height;
+   const c=piece.getContext('2d',{willReadFrequently:true});c.drawImage(base,0,top,base.width,height,0,0,base.width,height);
+   const pixels=c.getImageData(0,0,piece.width,piece.height);
+   for(let i=0;i<pixels.data.length;i+=4){
+    const gray=.299*pixels.data[i]+.587*pixels.data[i+1]+.114*pixels.data[i+2];
+    const v=gray<140?0:gray>215?255:Math.round((gray-140)*255/75);
+    pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=v;
+   }
+   c.putImageData(pixels,0,0);
+   const found=await worker.recognize(piece);
+   collected.push(...candidates(found.data.text,found.data.confidence||0,'numbers'));
+   piece.width=piece.height=0;
   }
-  const w=source.width||source.naturalWidth,h=source.height||source.naturalHeight;
-  if(!w||!h)return [];
-  const scale=Math.min(2.4,Math.max(1.15,1800/Math.max(w,h)));
-  canvas.width=Math.round(w*scale);canvas.height=Math.round(h*scale);
-  const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0,canvas.width,canvas.height);
-  if(typeof source.close==='function')source.close();
-  const data=ctx.getImageData(0,0,canvas.width,canvas.height);
-  for(let i=0;i<data.data.length;i+=4){
-   const g=.299*data.data[i]+.587*data.data[i+1]+.114*data.data[i+2];
-   const v=g<155?0:g>215?255:Math.round((g-155)*255/60);
-   data.data[i]=data.data[i+1]=data.data[i+2]=v;
-  }
-  ctx.putImageData(data,0,0);
-  await worker.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:'0123456789',preserve_interword_spaces:'1'});
-  const result=await worker.recognize(canvas);
-  return candidates(result.data.text,result.data.confidence||0,'numbers');
- }catch(_){return [];}finally{if(canvas){canvas.width=canvas.height=0;}try{await worker.setParameters({tessedit_pageseg_mode:'3',tessedit_char_whitelist:''});}catch(_){}}
+ }catch(_){/* OCR principal y entrada manual siguen disponibles */}
+ finally{if(bitmap)bitmap.close();if(base)base.width=base.height=0;
+  try{await worker.setParameters({tessedit_pageseg_mode:'3',tessedit_char_whitelist:''});}catch(_){}}
+ return collected;
 }
 function ocrAddManual(){const value=$('amplOCRManualText')?.value.trim();if(!value)return ocrMessage('Escribe un número, nombre o lugar.');
- const type=$('amplOCRManualType')?.value||'sol';ocrCandidates.push({type,value,uncertain:false});renderCandidates();$('amplOCRManualText').value='';ocrMessage('Dato añadido; puedes corregirlo y buscarlo.');}
+ const type=$('amplOCRManualType')?.value||'sol';ocrCandidates.push({type,value,uncertain:false,confidence:100,checks:3,priority:4});renderCandidates();$('amplOCRManualText').value='';ocrMessage('Dato añadido; puedes corregirlo y buscarlo.');}
 async function recognize(){let f=$('amplOCRFile').files?.[0];if(!f)return ocrMessage('Selecciona una imagen o PDF.');if(!navigator.onLine)return ocrMessage('Se necesita conexión a internet.');ocrFile=f;ocrCanceled=false;ocrCandidates=[];let run=$('amplOCRRun');run.disabled=true;try{
  let T=await tesseractReady(),worker=await T.createWorker('spa',1,{logger:m=>{if(m.status==='recognizing text')ocrMessage('Reconociendo texto: '+Math.round((m.progress||0)*100)+'%')}});recognizer=worker;
  if(f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')){
@@ -420,10 +433,10 @@ async function recognize(){let f=$('amplOCRFile').files?.[0];if(!f)return ocrMes
   }
  }
  else{let out=await worker.recognize(f);ocrCandidates.push(...candidates(out.data.text,out.data.confidence||0));if(!ocrCanceled){ocrMessage('Comprobando números con una segunda lectura…');ocrCandidates.push(...await numericSecondPass(worker,f));}}
- ocrCandidates=mergeCandidates(ocrCandidates);renderCandidates();if(ocrCanceled)ocrMessage('OCR cancelado; se muestran candidatos parciales.');else ocrMessage('Reconocimiento terminado. Corrige o desmarca los números dudosos antes de buscar. Si ves 9314040, debe buscarse exactamente en solicitudes y resoluciones.');}
+ ocrCandidates=mergeCandidates(ocrCandidates);renderCandidates();if(ocrCanceled)ocrMessage('OCR cancelado; se muestran candidatos parciales.');else ocrMessage('Reconocimiento terminado. Verifica los números con la fotografía. Los resultados dudosos no se seleccionan automáticamente. Si no aparece el número correcto, utiliza «+ Añadir dato».');}
  catch(e){ocrMessage('OCR no disponible: '+e.message);}finally{if(recognizer){await recognizer.terminate().catch(()=>{});recognizer=null;}ocrFile=null;run.disabled=false;}}
 function ocrCancel(){ocrCanceled=true;ocrMessage('Cancelando reconocimiento...');}
-function renderCandidates(){let list=$('amplCandidates');list.innerHTML=ocrCandidates.map((c,i)=>`<div class="hd-ampl-candidate"><label><input type="checkbox" data-ocr="${i}" checked><select data-type="${i}"><option value="numero" ${c.type==='numero'?'selected':''}>Número (solicitud o resolución)</option><option value="sol" ${c.type==='sol'?'selected':''}>Solicitud</option><option value="res" ${c.type==='res'?'selected':''}>Resolución</option><option value="nombre" ${c.type==='nombre'?'selected':''}>Solicitante</option><option value="sector" ${c.type==='sector'?'selected':''}>Pueblo/sector</option></select></label><input data-value="${i}" value="${safe(c.value)}"><small>${c.uncertain?'Revisar reconocimiento':'Dato reconocido'}</small></div>`).join('');}
+function renderCandidates(){let list=$('amplCandidates');list.innerHTML=ocrCandidates.map((c,i)=>`<div class="hd-ampl-candidate"><label><input type="checkbox" data-ocr="${i}" ${c.uncertain?'':'checked'}><select data-type="${i}"><option value="numero" ${c.type==='numero'?'selected':''}>Número (solicitud o resolución)</option><option value="sol" ${c.type==='sol'?'selected':''}>Solicitud</option><option value="res" ${c.type==='res'?'selected':''}>Resolución</option><option value="nombre" ${c.type==='nombre'?'selected':''}>Solicitante</option><option value="sector" ${c.type==='sector'?'selected':''}>Pueblo/sector</option></select></label><input data-value="${i}" value="${safe(c.value)}"><small>${c.uncertain?'Lectura dudosa: comprueba o corrige antes de seleccionar':'Revisar con la imagen'}</small></div>`).join('');}
 function selectedCandidates(){return ocrCandidates.map((c,i)=>{let checkbox=document.querySelector(`[data-ocr="${i}"]`);return checkbox?.checked?{type:document.querySelector(`[data-type="${i}"]`).value,value:document.querySelector(`[data-value="${i}"]`).value.trim()}:null;}).filter(c=>c&&c.value);}
 function sim(a,b){a=key(a);b=key(b);if(!a||!b)return 0;if(a===b)return 1;if(a.includes(b)||b.includes(a))return .86;let dist=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let prev=dist[0];dist[0]=i;for(let j=1;j<=b.length;j++){let tmp=dist[j];dist[j]=Math.min(dist[j]+1,dist[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=tmp;}}return 1-dist[b.length]/Math.max(a.length,b.length);}
 function matchDetail(row,mod,c){
