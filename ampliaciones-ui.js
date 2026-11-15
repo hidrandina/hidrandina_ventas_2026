@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV39 - Pestañas de etapas OM5 y acciones iniciales. */
+/* HIDRANDINA_VENTAS REV62 — Diseño institucional OM5, lógica heredada REV61 intacta. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -299,7 +299,10 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
  ui.classList.toggle('hd-om5-compact',curso==='OM5');
  ui.classList.toggle('hd-om5-dense-metrics',curso==='OM5'&&(stage===2||stage===3));
  renderStageTabs();
- $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 61';
+ // REV62: solo el título solicitado en OM5; UIA mantiene su encabezado habitual.
+ $('amplFormTitle').textContent=curso==='OM5'?'Expediente OM5':(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — UIA';
+ $('amplModal')?.classList.toggle('hd-om5-rev62',curso==='OM5');
+ $('amplFormBody')?.setAttribute('data-hd-stage',curso==='OM5'?String(stage):'');
  const grouped=new Set();
  // Ocultar solo los campos que se renderizan en filas agrupadas; nunca eliminar sus valores reales.
  if(stage===0||curso==='UIA'){
@@ -314,6 +317,11 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
  const memoIndividual=curso==='OM5'&&stage===3?head(all,'MemoEnvioIndividualGT'):null;
  if(memoIndividual)grouped.add(memoIndividual);
  const out=[];
+ // El título ocupa la anchura del formulario, sin ocultar campos ni interferir con su captura.
+ if(curso==='OM5'){
+  const sectionTitles=['Información general del expediente','Datos de revisión de expediente','Datos técnicos de inspección','Información de montaje UMD','Datos de gestión de clientes'];
+  out.push('<div class="hd-om5-section-heading" aria-hidden="true"><span class="hd-om5-section-mark"></span><strong>'+safe(sectionTitles[stage]||'Datos del expediente')+'</strong></div>');
+ }
  hs.forEach(h=>{
   if(key(h)==='item'||grouped.has(h))return;
   let value=displayRow[h]??'';
@@ -331,6 +339,13 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
   out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell hd-om5-shorttext"><span>Número de memorando individual</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
  }
  ui.innerHTML=out.join('');
+ if(curso==='OM5'){
+  const groups=ui.querySelectorAll('.hd-ampl-doc-group');
+  groups.forEach(g=>{
+   const heading=(g.querySelector('h4')?.textContent||'').toLowerCase();
+   g.dataset.hdSection=heading.includes('solicitud')?'solicitudes':heading.includes('resoluci')?'resoluciones':heading.includes('observacion')||heading.includes('observacio')?'observaciones':heading.includes('individual')?'individual':'documentos';
+  });
+ }
  if(stage===0||curso==='UIA'){docs('sol',editable);if(curso==='OM5')docs('res',editable);}
  if(curso==='UIA')docs('memo',editable);
  if(curso==='OM5'&&stage===1)docs('obsExp',editable);
