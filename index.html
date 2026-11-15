@@ -1,3 +1,4 @@
+<!-- REV32: 9 roles consolidados; permisos por base en Reportes y gráficos -->
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-slate-100">
 <head>
@@ -1094,20 +1095,15 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                         <div>
                             <label class="font-bold text-slate-700 text-xs uppercase tracking-wider">Tipo Usuario *</label>
                             <select id="catalogInputTipoUsuario" class="w-full mt-1.5 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition shadow-inner font-semibold">
-                                <option value="Operador">Operador (Registrador)</option>
-                                <option value="Asistente">Asistente (Operativo Total)</option>
                                 <option value="Administrador">Administrador</option>
-                                <option value="Visita">Visita (Consulta)</option>
-                                <option value="Administrador Total">Administrador Total</option>
                                 <option value="Administrador documentos">Administrador Documentos</option>
-                                <option value="Operador Documentos">Operador Documentos</option>
                                 <option value="Asistente Documentos">Asistente Documentos</option>
+                                <option value="Operador Documentos">Operador Documentos</option>
                                 <option value="Visitante documento">Visitante Documentos</option>
                                 <option value="Administrador OM5">Administrador OM5 / UIA</option>
-                                <option value="Operador OM5">Operador OM5 / UIA</option>
                                 <option value="Asistente OM5">Asistente OM5 / UIA</option>
+                                <option value="Operador OM5">Operador OM5 / UIA</option>
                                 <option value="Visitante OM5">Visitante OM5 / UIA</option>
-                                <option value="Visitante Total">Visitante Total</option>
                             </select>
                         </div>
                     </div>
@@ -1358,15 +1354,43 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
              'Asistente Documentos':'Asistente','Operador Documentos':'Operador',
              'Visitante documento':'Visita'})[rol] || rol;
         }
-        function hdEsSoloOM5_(rol) {return ['Administrador OM5','Operador OM5','Asistente OM5','Visitante OM5','Visitante Total'].includes(rol);}
+        function hdEsSoloOM5_(rol) {return ['Administrador OM5','Operador OM5','Asistente OM5','Visitante OM5'].includes(rol);}
+        function hdPuedeModulo_(modulo){
+          if(!currentUser)return false;
+          const rol=currentUser.tipo;
+          if(modulo==='Documentos')return ['Administrador','Administrador documentos','Asistente Documentos','Operador Documentos','Visitante documento','Asistente','Operador','Visita'].includes(rol);
+          return ['OM5','UIA'].includes(modulo)&&['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5'].includes(rol);
+        }
+        function hdEtiquetaRol_(rol){
+          return ({'Administrador Total':'Administrador','Administrador documentos':'Administrador Documentos',
+            'Visitante documento':'Visitante Documentos',
+            'Administrador OM5':'Administrador OM5 / UIA','Asistente OM5':'Asistente OM5 / UIA',
+            'Operador OM5':'Operador OM5 / UIA','Visitante OM5':'Visitante OM5 / UIA',
+            'Asistente':'Asistente Documentos','Operador':'Operador Documentos','Visita':'Visitante Documentos'})[rol]||rol;
+        }
+        function hdSincronizarModulos_(){
+          const allowed=['Documentos','OM5','UIA'].filter(hdPuedeModulo_);
+          for(const id of ['hdNumMod','hdRepModulo']){
+            const el=document.getElementById(id);if(!el)continue;
+            const previous=el.value;
+            for(const option of Array.from(el.options))option.remove();
+            for(const m of allowed){const option=document.createElement('option');option.value=m;option.textContent=({'Documentos':'Gestión de Documentos','OM5':'Ampliaciones OM5','UIA':'Ampliaciones UIA'})[m];el.appendChild(option);}
+            if(allowed.includes(previous))el.value=previous;
+          }
+          const oldTable=document.getElementById('hdReporteVista');if(oldTable)oldTable.innerHTML='';
+          const oldStatus=document.getElementById('hdReporteEstado');if(oldStatus)oldStatus.textContent='';
+          const m=document.getElementById('hdNumMod');
+          if(m&&allowed.length&&window.HDNumReports?.refreshTypes){HDNumReports.refreshTypes();HDNumReports.refreshFields();HDNumReports.clearOutput();}
+        }
         function applyUserPermissions() {
             if (!currentUser) return;
-            const isVisita = hdRolDocJS_(currentUser.tipo) === 'Visita' || hdEsSoloOM5_(currentUser.tipo);
+            const isVisita = hdRolDocJS_(currentUser.tipo) === 'Visita' || currentUser.tipo === 'Visitante OM5';
             const isAdmin = hdRolDocJS_(currentUser.tipo) === 'Administrador';
-            const isAmpliaciones = ['Administrador','Administrador Total','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Visitante Total'].includes(currentUser.tipo);
+            const isAmpliaciones = ['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5'].includes(currentUser.tipo);
             const canPerson = hdPuedeAdministrarUsuarios_();
+            hdSincronizarModulos_();
             const canBackup = hdPuedeRespaldar_();
-            const canDocs = !hdEsSoloOM5_(currentUser.tipo);
+            const canDocs = hdPuedeModulo_('Documentos');
             for (const [k,visible] of [['personal',canPerson],['copias',canBackup],['dash-ampl',isAmpliaciones],['reportes',canDocs||isAmpliaciones]]) {
                 const btn=document.getElementById('tab-btn-'+k);
                 if(btn) btn.style.display=visible?'':'none';
@@ -1412,6 +1436,9 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             hidraSesionVersion++;
             om5.seq++; om5.hojas=[];om5.data=[];om5.filtered=[];om5.gid=null;om5.loaded=false;
             if(window.Ampliaciones?.reset)Ampliaciones.reset();
+            hdUltimoReporte=null;
+            const lastReport=document.getElementById('hdReporteVista');if(lastReport)lastReport.innerHTML='';
+            if(window.HDNumReports?.clearOutput)HDNumReports.clearOutput();
             hidraCerrandoSesion = true;
             const tokenAlCerrar = window.hidraSessionToken;
             window.hidraSessionToken = null;
@@ -1579,7 +1606,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                 if (!u || !u.tipo) throw new Error('Respuesta sin usuario verificado');
                 currentUser = {nombre:u.nombre, usuario:u.usuario, tipo:u.tipo};
                 document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${currentUser.tipo})`;
+                document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${hdEtiquetaRol_(currentUser.tipo)})`;
                 document.getElementById('userSessionBadge').classList.remove('hidden');
                 applyUserPermissions();
                 window.handleGASResponse(data);
@@ -3100,7 +3127,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                     document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
                     document.getElementById('catalogInputUsuario').value = getProp(item, ['usuario', 'Usuario', 4]) || '';
                     document.getElementById('catalogInputClave').value = ''; // Nunca mostrar hash ni contraseña anterior
-                    document.getElementById('catalogInputTipoUsuario').value = getProp(item, ['tipo_usuario', 'Tipo_Usuario', 6]) || 'Operador';
+                    document.getElementById('catalogInputTipoUsuario').value = ({'Administrador Total':'Administrador','Asistente':'Asistente Documentos','Operador':'Operador Documentos','Visita':'Visitante documento'})[getProp(item, ['tipo_usuario', 'Tipo_Usuario', 6])] || getProp(item, ['tipo_usuario', 'Tipo_Usuario', 6]) || 'Operador Documentos';
                 } else if (type === 'Estados') {
                     const col = getProp(item, ['Color_Hex', 2]) || '#3b82f6';
                     document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Estado', 1]) || '';
@@ -3179,9 +3206,9 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         function om5Entrar(){if(window.Ampliaciones)Ampliaciones.enter('OM5');}
 
         // ADMINISTRACIÓN Y REPORTES. No se modifica el módulo Documentos original.
-        function hdAccesoAmpliaciones_(){return !!currentUser && ['Administrador','Administrador Total','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Visitante Total'].includes(currentUser.tipo);}
-        function hdPuedeAdministrarUsuarios_(){return !!currentUser && ['Administrador','Administrador Total','Administrador documentos'].includes(currentUser.tipo);}
-        function hdPuedeRespaldar_(){return !!currentUser && ['Administrador','Administrador Total','Administrador documentos','Asistente Documentos','Administrador OM5','Asistente OM5'].includes(currentUser.tipo);}
+        function hdAccesoAmpliaciones_(){return hdPuedeModulo_('OM5')&&hdPuedeModulo_('UIA');}
+        function hdPuedeAdministrarUsuarios_(){return !!currentUser && ['Administrador','Administrador documentos'].includes(currentUser.tipo);}
+        function hdPuedeRespaldar_(){return !!currentUser && ['Administrador','Administrador documentos','Administrador OM5'].includes(currentUser.tipo);}
         function hdEsc_(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
         async function hdAsegurarAmpl_(mod){if(!hdAccesoAmpliaciones_())throw Error('No tienes acceso a '+mod);if(!window.Ampliaciones?.getData(mod)){await Ampliaciones.refresh(mod);}let x=Ampliaciones.getData(mod);if(!x||!Array.isArray(x.registros))throw Error('No fue posible leer '+mod+'. Comprueba la URL del backend y tu sesión.');return x;}
         function hdNro_(r,candidatos){for(const k of candidatos){const encontrado=Object.keys(r).find(x=>x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'')===k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''));if(encontrado)return r[encontrado]}return '';}
@@ -3189,8 +3216,9 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         async function hdMostrarDashboardAmpl(){const e=document.getElementById('hdDashEstado'),out=document.getElementById('hdDashContenido'),charts=document.getElementById('hdDashGraficos');e.textContent='Consultando las bases de datos...';try{const [om5,uia]=await Promise.all([hdAsegurarAmpl_('OM5'),hdAsegurarAmpl_('UIA')]);let grupos={};let totalClientes=0;for(const r of om5.registros){let m=String(hdNro_(r,['Modalidad'])||'Sin modalidad');grupos[m]=(grupos[m]||0)+1;totalClientes+=Number(hdNro_(r,['ClientesCaptar'])||0)||0;}let pending=0,attended=0;for(const r of uia.registros){const v=String(hdNro_(r,['Estado Actual'])).toLowerCase().trim();if(v==='pendiente')pending++;if(v==='atendido')attended++;}out.innerHTML=`<article class="hd-ampl-card"><h3>OM5</h3><p><b>${om5.registros.length}</b> expedientes</p><p>${totalClientes} clientes a captar</p></article><article class="hd-ampl-card"><h3>UIA</h3><p><b>${uia.registros.length}</b> expedientes</p><p>${pending} pendientes · ${attended} atendidos · ${uia.registros.length-pending-attended} sin estado u otro</p></article>`;hdChartsAmpl.forEach(c=>c.destroy());hdChartsAmpl=[];charts.innerHTML='<div class="hd-ampl-card"><h3>OM5 por modalidad</h3><canvas id="hdChartOM5"></canvas></div><div class="hd-ampl-card"><h3>UIA por estado</h3><canvas id="hdChartUIA"></canvas></div>';if(window.Chart){hdChartsAmpl.push(new Chart(document.getElementById('hdChartOM5'),{type:'bar',data:{labels:Object.keys(grupos),datasets:[{label:'Ampliaciones',data:Object.values(grupos)}]},options:{responsive:true}}));hdChartsAmpl.push(new Chart(document.getElementById('hdChartUIA'),{type:'doughnut',data:{labels:['Pendiente','Atendido','Otro'],datasets:[{data:[pending,attended,uia.registros.length-pending-attended]}]},options:{responsive:true}}));}e.textContent='Datos obtenidos de OM5 y UIA.';}catch(err){e.textContent='No se pudo cargar el dashboard: '+err.message;out.innerHTML='';charts.innerHTML='';}}
         async function hdDatosReporte_(){
           const mod=document.getElementById('hdRepModulo').value;
+          if(!hdPuedeModulo_(mod))throw Error('Sin acceso al módulo '+mod);
           if(mod==='Documentos'){
-            if(hdEsSoloOM5_(currentUser?.tipo))throw Error('Sin acceso a Documentos');
+            if(!hdPuedeModulo_('Documentos'))throw Error('Sin acceso a Documentos');
             return {headers:['Numero_Documento','Origen_Tipo','Asunto','Fecha_Ingreso','Fecha_Vencimiento','Dias_Trancurridos','Dias_Exceso','Responsable','Estado','Observaciones'],registros:appData.Documentos};
           }
           const d=await hdAsegurarAmpl_(mod);
@@ -3254,11 +3282,11 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         }
 
         function hdBackupPermisos_(){
-          const docsAllowed=!hdEsSoloOM5_(currentUser?.tipo);
+          const docsAllowed=hdPuedeModulo_('Documentos');
           const amplAllowed=hdAccesoAmpliaciones_();
           const d=document.getElementById('hdBDocumentos');if(d){d.disabled=!docsAllowed;if(!docsAllowed)d.checked=false;}
           for(const id of ['hdBOM5','hdBUIA']){const e=document.getElementById(id);if(e){e.disabled=!amplAllowed;if(!amplAllowed)e.checked=false;}}
-          const sourceAllowed=['Administrador','Administrador Total','Administrador documentos','Administrador OM5'].includes(currentUser?.tipo);
+          const sourceAllowed=['Administrador','Administrador documentos','Administrador OM5'].includes(currentUser?.tipo);
           const original=document.querySelector('input[name="hdBFormato"][value="google"]');
           if(original){original.disabled=!sourceAllowed;
             if(!sourceAllowed&&original.checked){document.querySelector('input[name="hdBFormato"][value="profesional"]').checked=true;}}
@@ -3562,7 +3590,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         async function hdRenderExecutive(){
           const job=++hdExecRun;
           hdExecCharts.forEach(c=>{try{c.destroy()}catch(_){}});hdExecCharts=[];
-          const canDoc=!hdEsSoloOM5_(currentUser?.tipo),canAmpl=hdAccesoAmpliaciones_();
+          const canDoc=hdPuedeModulo_('Documentos'),canAmpl=hdAccesoAmpliaciones_();
           hdExecText_('hdExecutiveStatus','Actualizando indicadores con las bases de datos…');
           const docs=canDoc && Array.isArray(appData?.Documentos)?appData.Documentos:null;
           hdExecText_('hdKpiDocumentos',docs?docs.length.toLocaleString('es-PE'):'—');
@@ -3591,10 +3619,11 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         function switchTab(tabId) {
             if(currentUser && hdEsSoloOM5_(currentUser.tipo) && ['documentos','dashboard','catalogos'].includes(tabId))return;
             if (!document.getElementById('tab-'+tabId)) return;
+            if (tabId === 'reportes' && !(hdPuedeModulo_('Documentos')||hdPuedeModulo_('OM5')))return;
             if (tabId === 'personal' && !hdPuedeAdministrarUsuarios_()) return;
             if (tabId === 'copias' && !hdPuedeRespaldar_()) return;
             if (tabId === 'dash-ampl' && !hdAccesoAmpliaciones_()) return;
-            if(currentUser && ['om5','uia','ocr'].includes(tabId) && !['Administrador','Administrador Total','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Visitante Total'].includes(currentUser.tipo))return;
+            if(currentUser && ['om5','uia','ocr'].includes(tabId) && !['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5'].includes(currentUser.tipo))return;
 
             if (tabId === 'catalogos' && (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador')) return;
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
@@ -3617,7 +3646,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             if (tabId === 'dashboard') renderStatsAndCharts();
             if (tabId === 'catalogos' || tabId === 'personal') renderCatalogsManagement();
             if (tabId === 'dash-ampl') hdMostrarDashboardAmpl();
-            if (tabId === 'reportes') { if (hdEsSoloOM5_(currentUser?.tipo)) document.getElementById('hdRepModulo').value='OM5'; hdReporteVista(); }
+            if (tabId === 'reportes') {hdSincronizarModulos_(); if(hdPuedeModulo_(document.getElementById('hdRepModulo').value))hdReporteVista();}
         }
 
         function openConfigModal() { 
@@ -3765,7 +3794,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           currentUser = res.user && res.user.tipo ? {nombre:res.user.nombre,usuario:res.user.usuario,tipo:res.user.tipo} : null;
           if(currentUser){
               document.getElementById('loginModal').classList.add('hidden');
-              document.getElementById('userSessionBadge').textContent=`${currentUser.nombre} (${currentUser.tipo})`;
+              document.getElementById('userSessionBadge').textContent=`${currentUser.nombre} (${hdEtiquetaRol_(currentUser.tipo)})`;
               document.getElementById('userSessionBadge').classList.remove('hidden');
               applyUserPermissions();
           }
@@ -4000,13 +4029,13 @@ const col=(heads,lines,sourceMap)=>({heads,lines,sourceMap});
 let state={data:null,mod:null,report:null,chart:null,selected:[],render:0,prepared:null};
 function mount(){const t=$('hdNumMount');if(!t||t.dataset.ready)return;t.dataset.ready='1';t.innerHTML=`<div class="hd-num-panel"><h3 style="font-size:20px;font-weight:850;color:#133d7b">Indicadores numéricos gerenciales — 34 reportes</h3><p class="hd-num-note">Elige módulo, reporte y período. Haz clic en una fila para ver los expedientes que la componen.</p><div class="hd-num-grid"><label>Módulo<select id="hdNumMod"><option value="Documentos">Gestión de Documentos</option><option value="OM5">Ampliaciones OM5</option><option value="UIA">Ampliaciones UIA</option></select></label><label>Reporte<select id="hdNumType"></select></label><label>Fecha inicial<input id="hdNumStart" type="date"></label><label>Fecha final<input id="hdNumEnd" type="date"></label><label>Filtrar por<select id="hdNumFilterField"></select></label><label>Valor del filtro<select id="hdNumFilterValue"><option value="">Todos</option></select></label></div><div class="hd-num-buttons"><button type="button" id="hdNumGo">Consultar</button><button type="button" id="hdNumExcel" disabled>Descargar Excel</button><button type="button" id="hdNumMail" disabled>Abrir correo con Excel</button><button type="button" id="hdNumShare" disabled>Compartir Excel por WhatsApp</button></div><p class="hd-num-note">En celular compatible, «Compartir» abre la selección de aplicaciones con el Excel adjunto. En PC se descarga el archivo y se abre Correo o WhatsApp Web para adjuntarlo manualmente.</p><p id="hdNumStatus" class="hd-num-status" role="status" aria-live="polite"></p><div id="hdNumKpis" class="hd-num-kpis"></div><div class="hd-num-graph"><canvas id="hdNumChart"></canvas></div><div id="hdNumTable"></div><div id="hdNumDetails" class="hd-num-result" hidden></div></div>`;
  $('hdNumMod').addEventListener('change',()=>{refreshTypes();refreshFields();clearOutput()});$('hdNumFilterField').addEventListener('change',()=>{fillFilterValues();clearOutput()});$('hdNumGo').addEventListener('click',run);$('hdNumExcel').addEventListener('click',()=>exportReport('excel'));$('hdNumMail').addEventListener('click',()=>exportReport('mail'));$('hdNumShare').addEventListener('click',()=>exportReport('whatsapp'));['hdNumType','hdNumStart','hdNumEnd','hdNumFilterValue'].forEach(id=>$(id).addEventListener('change',clearOutput));refreshTypes();refreshFields();setExportEnabled(false);}
-function refreshFields(){const mod=$('hdNumMod').value;$('hdNumFilterField').innerHTML='<option value="">Sin filtro adicional</option>'+FILTER_FIELDS[mod].map(([id,label])=>`<option value="${esc(id)}">${esc(label)}</option>`).join('');$('hdNumFilterValue').innerHTML='<option value="">Todos</option>';}
+function refreshFields(){const mod=$('hdNumMod').value;if(!FILTER_FIELDS[mod])return;$('hdNumFilterField').innerHTML='<option value="">Sin filtro adicional</option>'+FILTER_FIELDS[mod].map(([id,label])=>`<option value="${esc(id)}">${esc(label)}</option>`).join('');$('hdNumFilterValue').innerHTML='<option value="">Todos</option>';}
 async function fillFilterValues(src){const field=$('hdNumFilterField').value;const value=$('hdNumFilterValue');value.innerHTML='<option value="">Todos</option>';if(!field)return;try{const data=src||await source($('hdNumMod').value);let vals=[...new Set(data.rows.map(r=>String(get(r,field)||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));value.innerHTML+=vals.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');}catch(e){$('hdNumStatus').textContent='No se pudieron leer los valores del filtro: '+e.message}}
-function refreshTypes(){const mod=$('hdNumMod').value;$('hdNumType').innerHTML=REPORTS[mod].map(([id,name],i)=>`<option value="${id}">${i+1}.- ${esc(name)}</option>`).join('');if(typeof currentUser!=='undefined'&&currentUser&&typeof hdEsSoloOM5_==='function'&&hdEsSoloOM5_(currentUser.tipo)){[...$('hdNumMod').options].forEach(o=>{if(o.value==='Documentos')o.disabled=true});if(mod==='Documentos'){$('hdNumMod').value='OM5';refreshTypes()}}}
+function refreshTypes(){const el=$('hdNumMod');if(!el)return;const mod=el.value;const dropdown=$('hdNumType');dropdown.innerHTML=REPORTS[mod]?REPORTS[mod].map(([id,name],i)=>`<option value="${id}">${i+1}.- ${esc(name)}</option>`).join(''):'';}
 function setExportEnabled(enabled){['hdNumExcel','hdNumMail','hdNumShare'].forEach(id=>{const el=$(id);if(el)el.disabled=!enabled})}
 function clearOutput(){++state.render;state.prepared=null;setExportEnabled(false);if(state.chart){state.chart.destroy();state.chart=null;}state.data=null;$('hdNumKpis').innerHTML='';$('hdNumTable').innerHTML='';$('hdNumDetails').hidden=true;$('hdNumStatus').textContent='Selecciona Consultar para calcular el reporte.'}
 function validateDate(){const a=$('hdNumStart').value,b=$('hdNumEnd').value;if(a&&b&&a>b)throw Error('La fecha inicial no puede ser posterior a la fecha final.');return {a,b};}
-async function source(mod){if(mod==='Documentos'){if(typeof hdEsSoloOM5_==='function'&&hdEsSoloOM5_(currentUser?.tipo))throw Error('Sin acceso a Documentos.');return {rows:appData.Documentos||[],headers:[]};}let data=await hdAsegurarAmpl_(mod);return {rows:data.registros||[],headers:data.headers||[],data};}
+async function source(mod){if(!hdPuedeModulo_(mod))throw Error('Sin acceso al módulo '+mod);if(mod==='Documentos'){return {rows:appData.Documentos||[],headers:[]};}let data=await hdAsegurarAmpl_(mod);return {rows:data.registros||[],headers:data.headers||[],data};}
 function recordDate(r,mod){return mod==='Documentos'?docDate(r):firstRequest(r,mod);}
 function filterDates(rows,mod,a,b){if(!a&&!b)return rows;return rows.filter(r=>dateIn(recordDate(r,mod),a,b));}
 function reportData(mod,type,rows){
@@ -4123,7 +4152,7 @@ function exportReport(mode){
  }
 }
 
-window.HDNumReports={mount,run};
+window.HDNumReports={mount,run,refreshTypes,refreshFields,clearOutput};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
 
