@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV17 REPORTE OM5 40 COLUMNAS (base REV16) — Guardar + validaciones claras + catálogo UUEE. Backend sin cambios. */
+/* HIDRANDINA_VENTAS REV35 - Permisos de eliminación OM5/UIA para operadores autorizados. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -16,8 +16,8 @@ const field=(h,prefix,n)=>head(h,prefix+n);
 const item=(d)=>get(d,STORE[curso]?.headers||[],'Item','Ítem');
 const id=(d)=>d.__HD_ID||'';
 const adm=()=>['Administrador','Administrador Total','Administrador OM5'].includes((typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : ''));
-const asis=()=>(typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : '')==='Asistente OM5';
-const oper=()=>(typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : '')==='Operador OM5';
+const asis=()=>['Asistente OM5','Asistente Documentos/OM5/UIA'].includes((typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : ''));
+const oper=()=>['Operador OM5','Operador Documentos/OM5/UIA'].includes((typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : ''));
 const view=()=>adm()||asis()||oper()||['Visitante OM5','Visitante Total'].includes((typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : ''));
 const edit=()=>adm()||asis()||oper();
 const update=(txt,type='info')=>{let e=$('amplStatus');if(e)e.textContent=txt;let m=$('amplFormStatus');if(m&&!$('amplModal')?.hidden){m.textContent=txt;m.dataset.type=type;m.hidden=!txt;}};
@@ -194,7 +194,7 @@ function render(mod){
  $('amplCount').textContent=source.length+' expedientes; página '+(n.page+1)+' de '+Math.max(1,Math.ceil(source.length/30));
  $('amplPrev').disabled=n.page===0;$('amplNext').disabled=(n.page+1)*30>=source.length;
  const buttons=$('amplStages');if(buttons){buttons.innerHTML=mod==='OM5'?ETAPAS.map((et,i)=>{const selected=sheet(mod).registros.find(r=>id(r)===n.selected),st=[null,'EstadoExpVentas','EstadoInspeccionVentas','EstadoUMD','EstadoCaptacionClientes'][i],estado=selected&&st?get(selected,h,st):'';return '<button style="background:'+(i===0?'#1e67d2':estadoColor(estado))+'" '+(selected?'':'disabled')+' onclick="Ampliaciones.open(\''+safe(n.selected)+'\','+i+',false)">'+safe(et[0])+'</button>';}).join(''):'<span class="hd-ampl-muted">UIA no utiliza etapas</span>';}
- $('amplNew').hidden=!edit();$('amplDelete').hidden=!edit()||!(adm()||asis());
+ $('amplNew').hidden=!edit();$('amplDelete').hidden=!edit()||!(adm()||asis()||oper());
 }
 
 function select(idValue){NAV[curso].selected=idValue;render(curso);}
