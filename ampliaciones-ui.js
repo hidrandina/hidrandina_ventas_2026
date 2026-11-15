@@ -233,7 +233,7 @@ function captureStage(){
  const selected=[];
  form.querySelectorAll('input[data-ampl-upload]').forEach(input=>{
   if(input.closest('[data-doc]')?.hidden)return;
-  [...(input.files||[])].forEach(file=>selected.push({campo:input.getAttribute('data-ampl-upload'),file}));
+  [...(input.files||[])].forEach(file=>selected.push({campo:input.getAttribute('data-ampl-upload'),file,reemplazarId:input.getAttribute('data-ampl-replace')||''}));
  });
  // Los adjuntos elegidos en otras visitas a esta etapa permanecen pendientes.
  // Una nueva selección del mismo campo reemplaza la pendiente anterior de ese campo.
@@ -338,14 +338,21 @@ function isPhoneCamera(){
 function inlineUpload(fieldName,editable){
  const files=attachmentsFor(fieldName);
  const pending=Object.values(registro?.pendingFiles||{}).flat().filter(x=>key(x.campo)===key(fieldName));
- const pendingHtml=pending.length?'<div class="hd-ampl-pending">Pendiente de guardar: '+pending.map(x=>safe(x.file.name)).join(', ')+'</div>':'';
- const saved=files.length?'<div class="hd-ampl-attached-files"><strong>Archivos guardados ('+files.length+')</strong>'+files.map(x=>
-  '<div class="hd-ampl-file-line"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+'</span><div class="hd-ampl-file-actions"><button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+(editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':'')+'</div></div>').join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
+ const pendingHtml=pending.length?'<div class="hd-ampl-pending">Pendiente de guardar: '+pending.map(x=>safe(x.file.name)+(x.reemplazarId?' (reemplazo)':'')).join(', ')+'</div>':'';
+ const line=x=>'<div class="hd-ampl-file-line"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+'</span><div class="hd-ampl-file-actions">'+
+  '<button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button>'+
+  '<button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+
+  (editable&&files.length>1?'<label class="hd-ampl-file-replace">Reemplazar este archivo<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" data-ampl-replace="'+safe(x.id)+'" aria-label="Reemplazar '+safe(x.nombre)+'"></label>':'')+
+  (editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':'')+'</div></div>';
+ const saved=files.length?'<div class="hd-ampl-attached-files"><strong>Archivos guardados ('+files.length+')</strong>'+files.map(line).join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
  if(!editable)return '<div class="hd-ampl-inline-attachment"><span>Documento vinculado</span>'+saved+'</div>';
- const camera=isPhoneCamera()?'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'';
- return '<div class="hd-ampl-inline-attachment"><span>Documento vinculado</span>'+saved+'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>'+camera+pendingHtml+'<small>Hasta 10 MB. Puedes ver el archivo antes de guardar. Los adjuntos anteriores no se eliminan automáticamente.</small><span class="hd-ampl-local-actions" data-preview-files></span></div>';
+ // Con un solo archivo se reemplaza por ID; con archivos históricos múltiples,
+ // cada fila ofrece reemplazo explícito para no modificar el equivocado.
+ const upload=files.length>1?'':'<label class="hd-ampl-choose-file">'+(files.length?'Reemplazar archivo':'Adjuntar PDF o imagen')+'<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" '+(files.length?'data-ampl-replace="'+safe(files[0].id)+'"':'')+' aria-label="'+(files.length?'Reemplazar':'Adjuntar')+' archivo de '+safe(fieldName)+'"></label>';
+ const camera=isPhoneCamera()&&files.length<=1?'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" '+(files.length?'data-ampl-replace="'+safe(files[0].id)+'"':'')+' aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'';
+ const note=files.length>1?'Hay varios archivos históricos. Selecciona cuál reemplazar; los demás se conservarán.':files.length?'El archivo anterior solo se eliminará después de guardar correctamente el reemplazo.':'Archivo nuevo pendiente de guardar.';
+ return '<div class="hd-ampl-inline-attachment"><span>Documento vinculado</span>'+saved+upload+camera+pendingHtml+'<small>PDF o imagen, hasta 10 MB. '+note+'</small><span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
-
 function docs(kind,editable){
  const g=docGroup(kind),container=g?$(g.id):null;if(!g||!container)return;
  if(!g.rows.length){container.innerHTML='<p class="hd-ampl-schema-warning">La estructura de columnas recibida no contiene los campos esperados para '+safe(g.label)+'. No se ha cambiado ni borrado información. Comprueba que la aplicación lea la base correcta.</p>';return;}
@@ -399,7 +406,7 @@ async function save(){
   if(validation){formAlert(validation.message,'error',validation.field);return;}
   const currentStage=registro.stage;
   const fileGroups=Object.entries(registro.pendingFiles).flatMap(([stage,arr])=>(arr||[]).map(item=>({...item,stage:Number(stage)})));
-  for(const {file} of fileGroups)if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);
+  for(const {file} of fileGroups){if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);if(!/\.(pdf|jpe?g|png|webp|gif)$/i.test(file.name))throw Error('Solo archivos PDF e imágenes: '+file.name);}
   saving=true;if(button){button.disabled=true;button.textContent='Guardando…';}
   update('Guardando expediente. Permanece en este formulario.');
   const r=await api('amplSave',{modulo:mod,expedienteId:registro.id,version:registro.version,datos:JSON.stringify(payload)});
@@ -409,9 +416,9 @@ async function save(){
   registro.id=r.expedienteId;registro.version=r.version;
   const failed=[];
   for(let i=0;i<fileGroups.length;i++){
-   const {campo,file,stage}=fileGroups[i];update('Guardado confirmado. Subiendo archivo '+(i+1)+' de '+fileGroups.length+': '+file.name);
-   try{await api('amplUpload',{modulo:mod,expedienteId:r.expedienteId,campo,nombre:file.name,base64:await fileToBase64(file)});}
-   catch(e){failed.push({campo,file,stage,error:e.message});}
+   const {campo,file,stage,reemplazarId}=fileGroups[i];update('Guardado confirmado. Subiendo archivo '+(i+1)+' de '+fileGroups.length+': '+file.name);
+   try{await api('amplUpload',{modulo:mod,expedienteId:r.expedienteId,campo,nombre:file.name,base64:await fileToBase64(file),reemplazarId:reemplazarId||''});}
+   catch(e){failed.push({campo,file,stage,reemplazarId,error:e.message});}
   }
   const note='Expediente guardado correctamente.'+(fileGroups.length?' '+(fileGroups.length-failed.length)+' archivo(s) adjuntados.':'');
   // Leer datos frescos sin cerrar la ventana; la versión y los adjuntos quedan actualizados.
@@ -428,11 +435,12 @@ async function save(){
   }
   if(refreshed){
    curso=mod;
-   open(r.expedienteId,currentStage,true);
+   const pendientesFallidos={};for(const item of failed)(pendientesFallidos[item.stage]||=[]).push({campo:item.campo,file:item.file,reemplazarId:item.reemplazarId||''});
+    open(r.expedienteId,currentStage,true,{},pendientesFallidos);
   }else{
    // Mantener el editor activo y su versión; descartar los cambios ya guardados.
    registro.row={...registro.row,...payload};registro.originalRow={...registro.row};registro.drafts={};
-   registro.pendingFiles={};
+   registro.pendingFiles={};for(const item of failed)(registro.pendingFiles[item.stage]||=[]).push({campo:item.campo,file:item.file,reemplazarId:item.reemplazarId||''});
   }
   if(failed.length){
    const detail=failed.map(x=>x.file.name+': '+x.error).join('\n');
@@ -469,80 +477,41 @@ function stageAttachmentTitle(){
   'Gestión de clientes'][registro.stage]||'Documentos de la etapa';
 }
 function renderAttachments(){
- // UIA conserva exactamente el control anterior, sin cambios de comportamiento.
+ const box=$('amplExistingAttachments');if(!box)return;
+ // UIA no se modifica: conserva su control de adjuntos actual.
  if(registro?.mod==='UIA'){
-  let box=$('amplExistingAttachments'),a=sheet(curso).adjuntos.filter(x=>x.expedienteId===registro.id);
+  box.hidden=false;
+  let a=(sheet(curso).adjuntos||[]).filter(x=>x.expedienteId===registro.id);
   box.innerHTML='<h4>Todos los archivos del expediente (consulta y administración adicional)</h4>'+a.map(x=>`<div class="hd-ampl-attach"><span title="${safe(x.nombre)}">${safe(x.nombre)} (${safe(x.campo)})</span><button type="button" onclick="Ampliaciones.previewSaved('${safe(x.id)}')">Vista previa</button><button type="button" onclick="Ampliaciones.download('${safe(x.id)}')">Descargar</button>${registro.editable?`<button onclick="Ampliaciones.removeFile('${safe(x.id)}')">Eliminar</button>`:''}</div>`).join('')+(registro.editable?`<label>Vincular nuevo archivo a campo <select id="amplAttachmentField">${sheet(curso).headers.filter(h=>/^nro(solicitud|resoluc)|^memo/i.test(key(h))).map(x=>`<option>${safe(x)}</option>`).join('')}</select></label><input type="file" id="amplUploadInput" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.gif"><div id="amplExtraPreviews" class="hd-ampl-local-actions"></div><button onclick="Ampliaciones.upload()">Subir adjuntos</button>`:'');
   return;
  }
- const box=$('amplExistingAttachments');if(!box||!registro?.id)return;
+ // OM5: los archivos reconocidos ya se gestionan en cada solicitud, resolución o memorando.
+ // Mostrar únicamente adjuntos antiguos que no corresponden a las 15 posiciones previstas.
  const all=(sheet(registro.mod).adjuntos||[]).filter(x=>String(x.expedienteId)===String(registro.id));
- const allowed=stageAttachmentFields(),allowedSet=new Set(allowed.map(x=>key(x.campo)));
- const shown=registro.mod==='OM5'?all.filter(x=>allowedSet.has(key(x.campo))):all;
- const descriptions=new Map(allowed.map(x=>[key(x.campo),x.label]));
- const seen=new Set(all.map(x=>key(x.campo)));
- // También excluir un campo que ya tenga un archivo seleccionado sin guardar
- // en los controles que aparecen junto al documento correspondiente.
- const pending=new Set(Object.values(registro.pendingFiles||{}).flat().map(x=>key(x.campo)));
- $('amplFormBody')?.querySelectorAll('input[data-ampl-upload]').forEach(el=>{
-  if(el.files?.length)pending.add(key(el.getAttribute('data-ampl-upload')));
- });
- const available=allowed.filter(x=>!seen.has(key(x.campo))&&!pending.has(key(x.campo)));
- const listing=shown.length?shown.map(x=>
-  '<div class="hd-ampl-attach"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+' — '+safe(descriptions.get(key(x.campo))||x.campo)+'</span>'+ 
-  '<button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Vista previa</button>'+ 
-  '<button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+ 
-  (registro.editable?'<button type="button" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':'')+'</div>'
- ).join(''):'<p class="hd-ampl-no-attachment">Esta etapa aún no tiene archivos guardados.</p>';
- let html='<h4>'+safe(stageAttachmentTitle())+' — archivos guardados</h4>'+listing;
- if(registro.editable){
-  if(registro.mod==='OM5'&&registro.stage===4){
-   // La quinta etapa no tiene campos documentales previstos.
-  }else if(!available.length){
-   html+='<p class="hd-ampl-no-attachment">No hay documentos pendientes de adjuntar en esta etapa. Para sustituir un archivo, elimínalo primero con confirmación.</p>';
-  }else{
-   html+='<div class="hd-ampl-attach-add"><label>Vincular nuevo archivo a documento de esta etapa '+
-    '<select id="amplAttachmentField" aria-label="Documento pendiente de adjuntar">'+
-    available.map(x=>'<option value="'+safe(x.campo)+'">'+safe(x.label)+'</option>').join('')+'</select></label>'+ 
-    '<input type="file" id="amplUploadInput" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" aria-label="Seleccionar archivo para el documento">'+
-    '<div id="amplExtraPreviews" class="hd-ampl-local-actions"></div>'+ 
-    '<button type="button" onclick="Ampliaciones.upload()">Subir adjunto</button></div>';
-  }
- }
- box.innerHTML=html;
+ const known=new Set([0,1,2,3].flatMap(st=>{
+  const prev=registro.stage;registro.stage=st;
+  const fields=stageAttachmentFields().map(x=>key(x.campo));registro.stage=prev;return fields;
+ }));
+ const legacy=all.filter(x=>!known.has(key(x.campo)));
+ if(registro.stage!==0||!legacy.length){box.innerHTML='';box.hidden=true;return;}
+ box.hidden=false;
+ box.innerHTML='<h4>Archivos históricos pendientes de clasificación</h4><p>Se conservan sin cambios porque su campo no está entre los documentos previstos de las etapas. No se eliminarán automáticamente.</p>'+legacy.map(x=>
+  '<div class="hd-ampl-attach"><span>'+safe(x.nombre)+' — '+safe(x.campo)+'</span><button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button></div>'
+ ).join('');
 }
 async function upload(){
- if(registro?.mod==='UIA'){
-  if(!registro?.id)return;let input=$('amplUploadInput'),campo=$('amplAttachmentField').value;if(!input?.files?.length)return;try{for(let file of input.files){if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);let b64=await fileToBase64(file);await api('amplUpload',{modulo:curso,expedienteId:registro.id,campo,nombre:file.name,base64:b64});}await refresh(curso);registro.row=sheet(curso).registros.find(r=>id(r)===registro.id);renderAttachments();formAlert('Archivos subidos correctamente.','info');}catch(e){formAlert('Error al subir archivo: '+e.message,'error')}return;
- }
- if(!registro?.id||!registro.editable)return;
- const input=$('amplUploadInput'),selector=$('amplAttachmentField');
- if(!input?.files?.length||!selector?.value)return formAlert('Selecciona un documento y su archivo.','error');
- const campo=selector.value;
- // Volver a comprobar antes de guardar para evitar duplicaciones.
- if(!stageAttachmentFields().some(x=>key(x.campo)===key(campo)))return formAlert('El campo no corresponde a esta etapa.','error');
- if(attachmentsFor(campo).length)return formAlert('Este documento ya tiene un archivo guardado. Utiliza su opción Eliminar antes de sustituirlo.','error');
- const pending=Object.values(registro.pendingFiles||{}).flat().some(x=>key(x.campo)===key(campo));
- const inline=[...($('amplFormBody')?.querySelectorAll('input[data-ampl-upload]')||[])].some(x=>key(x.getAttribute('data-ampl-upload'))===key(campo)&&x.files?.length);
- if(pending||inline)return formAlert('Ya hay un archivo pendiente para este documento. Guárdalo desde el formulario antes de adjuntar otro.','error');
- const file=input.files[0];
- if(file.size>10*1024*1024)return formAlert('Archivo mayor de 10 MB: '+file.name,'error');
- if(!/\.(pdf|jpe?g|png|webp|gif)$/i.test(file.name))return formAlert('Solo se permiten PDF e imágenes.','error');
- const btn=input.parentElement.querySelector('button');if(btn)btn.disabled=true;
+ if(registro?.mod!=='UIA')return formAlert('En OM5, adjunta o reemplaza el archivo dentro del documento de su etapa.','info');
+ if(!registro?.id)return;
+ let input=$('amplUploadInput'),campo=$('amplAttachmentField').value;
+ if(!input?.files?.length)return;
  try{
-  // Conservar toda la información escrita en la etapa antes de refrescar.
-  captureStage();
-  const mod=registro.mod,activeId=registro.id,activeStage=registro.stage;
-  const carriedDrafts=registro.drafts,carriedFiles=registro.pendingFiles;
-  await api('amplUpload',{modulo:mod,expedienteId:activeId,campo,nombre:file.name,base64:await fileToBase64(file)});
-  const fresh=await api('amplRead',{modulo:mod});
-  if(!fresh||!Array.isArray(fresh.registros))throw Error('Archivo guardado, pero no se pudo actualizar la consulta. Vuelve a abrir el expediente antes de reintentar.');
-  STORE[mod]=fresh;
-  if(activeAmplModule()===mod){curso=mod;render(mod);}
-  open(activeId,activeStage,true,carriedDrafts,carriedFiles);
-  formAlert('Archivo adjunto guardado correctamente. Puedes continuar editando.','info');
- }catch(e){formAlert('No se completó la operación: '+e.message,'error');}
- finally{if(btn?.isConnected)btn.disabled=false;}
+  for(let file of input.files){
+   if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);
+   await api('amplUpload',{modulo:curso,expedienteId:registro.id,campo,nombre:file.name,base64:await fileToBase64(file)});
+  }
+  await refresh(curso);registro.row=sheet(curso).registros.find(r=>id(r)===registro.id);
+  renderAttachments();formAlert('Archivos subidos correctamente.','info');
+ }catch(e){formAlert('Error al subir archivo: '+e.message,'error');}
 }
 function fileToBase64(file){return new Promise((resolve,reject)=>{let r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=()=>reject(Error('No se pudo leer archivo'));r.readAsDataURL(file)});}
 async function download(aid){try{let parts=[],r;for(let i=0;;i++){r=await api('amplPreview',{adjuntoId:aid,parte:i});let bin=atob(r.base64),ar=new Uint8Array(bin.length);for(let j=0;j<bin.length;j++)ar[j]=bin.charCodeAt(j);parts.push(ar);if(i+1>=r.total)break;}let blob=new Blob(parts,{type:r.mime}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=r.nombre;a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}catch(e){update('No se pudo recuperar el adjunto: '+e.message)}}
@@ -644,7 +613,17 @@ function renderPendingFilePreviews(input){
   b.onclick=()=>localPreview(file);target.appendChild(b);
  });
 }
-document.addEventListener('change',e=>{if(e.target.matches('input[data-ampl-upload],#amplUploadInput'))renderPendingFilePreviews(e.target);});
+document.addEventListener('change',e=>{
+ if(!e.target.matches('input[data-ampl-upload],#amplUploadInput'))return;
+ if(e.target.matches('input[data-ampl-upload]')&&e.target.files?.length){
+  const campo=key(e.target.getAttribute('data-ampl-upload'));
+  // Un único archivo nuevo por campo en esta operación, incluidos cámara y selector.
+  $('amplFormBody')?.querySelectorAll('input[data-ampl-upload]').forEach(other=>{
+   if(other!==e.target&&key(other.getAttribute('data-ampl-upload'))===campo){other.value='';const node=other.closest('.hd-ampl-inline-attachment');node?.querySelector('[data-preview-files]')?.replaceChildren();}
+  });
+ }
+ renderPendingFilePreviews(e.target);
+});
 // REV16: OCR conservador. Sin franjas con whitelist: causaban cifras inventadas.
 function ocrMessage(message){const e=$('amplOCRStatus');if(e)e.textContent=message;}
 let tesseractLoading=null;
