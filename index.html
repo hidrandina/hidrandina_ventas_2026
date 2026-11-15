@@ -1268,7 +1268,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
         <div class="hd-memo-scroller"><table><thead><tr><th>Marcar</th><th>Ítem</th><th>Solicitante</th><th>Nombre del sector</th><th>Memorandos</th><th>Último envío (AY)</th></tr></thead><tbody id="hdMemoItems"></tbody></table></div>
         <h3>Registrar / editar memorando</h3><p id="hdMemoEditNote" class="hd-memo-help"></p>
         <div class="hd-memo-form"><label>Número de memorando <input id="hdMemoNumber" maxlength="180" placeholder="Ej. MEM-001-2026-GC" required></label><label>Fecha de envío <input type="date" id="hdMemoDate" required></label><label>Asunto (opcional) <input id="hdMemoSubject" maxlength="600"></label><label>Adjuntar PDF o imagen (opcional, máx. 10 MB) <input type="file" id="hdMemoPdf" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"></label></div>
-        <div class="hd-memo-row"><label style="flex:0 1 auto;min-width:205px">Tomar foto (celular) <input id="hdMemoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label><button type="button" id="hdMemoLocalOpen">Ver archivo seleccionado</button><span class="hd-memo-help">Puedes adjuntar un PDF, elegir una imagen o tomar una fotografía. Solo se adjunta un archivo por memorando.</span></div>
+        <div class="hd-memo-row"><label id="hdMemoCameraBox" style="display:none;flex:0 1 auto;min-width:205px" hidden>Tomar foto (celular) <input id="hdMemoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label><button type="button" id="hdMemoLocalOpen">Ver archivo seleccionado</button><span class="hd-memo-help" id="hdMemoFileHelp">Puedes adjuntar un PDF o una imagen. Solo se adjunta un archivo por memorando.</span></div>
         <div id="hdMemoLocalPreview" hidden><div class="hd-memo-row"><strong>Archivo seleccionado (aún no guardado)</strong><a id="hdMemoLocalDownload" href="#" download>Descargar</a><button type="button" id="hdMemoLocalClose">Cerrar vista previa</button></div><iframe id="hdMemoLocalFrame" title="Vista previa del documento seleccionado"></iframe><img id="hdMemoLocalImage" alt="Imagen seleccionada" hidden></div>
         <div class="hd-memo-row"><button type="button" id="hdMemoSave" class="hd-memo-primary">Grabar memorando para seleccionados</button><button type="button" id="hdMemoNew">Nuevo memorando</button></div>
         <p id="hdMemoStatus" role="status" aria-live="polite" class="hd-memo-status"></p>
@@ -4014,7 +4014,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  </div>
 </div>
 <script src="./ampliaciones-ui.js?v=REV43-MEMOS-20261115"></script>
-<script src="./memorandos-masivos.js?v=REV46-MEMOS-20261115"></script>
+<script src="./memorandos-masivos.js?v=REV47-CAMARA-MOVIL-20261115"></script>
 <script>
 
 /* REV28: búsqueda autónoma; el módulo de ampliaciones y sus datos no se modifican. */
