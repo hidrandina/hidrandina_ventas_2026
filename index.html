@@ -716,6 +716,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
       <div class="hd-side-heading">OPERACIONES</div>
       <button id="tab-btn-documentos" class="tab-btn hd-side-item" onclick="switchTab('documentos')"><i class="fa-regular fa-file-lines"></i><span>Gestión de Documentos</span></button>
       <button id="tab-btn-om5" class="tab-btn hd-side-item" onclick="switchTab('om5')"><i class="fa-solid fa-tower-broadcast"></i><span>Ampliaciones OM5</span></button>
+      <button type="button" id="hdMemoLaunch" class="hd-side-item" hidden style="padding-left:24px!important" title="Control de memorandos GC a GT"><i class="fa-solid fa-envelope-open-text"></i><span>Asignación de memorando masivo a la GT (OM5)</span></button>
       <button id="tab-btn-uia" class="tab-btn hd-side-item" onclick="switchTab('uia')"><i class="fa-solid fa-network-wired"></i><span>Ampliaciones UIA</span></button>
       <button id="tab-btn-ocr" class="tab-btn hd-side-item" onclick="switchTab('ocr')"><i class="fa-solid fa-camera"></i><span>Búsqueda inteligente</span></button>
       <div class="hd-side-heading">ANÁLISIS</div>
@@ -1256,6 +1257,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
     </div>
 
 
+    <style>.hd-ampl-queryline{display:flex;align-items:center;gap:10px;flex:1 1 430px;min-width:230px}.hd-ampl-queryline #amplSearch{flex:1;min-width:0}.hd-ampl-queryline #amplConsult{flex:none;background:#155fc4;color:white;font-weight:800;padding:10px 17px}@media(max-width:540px){.hd-ampl-queryline{flex-basis:100%}.hd-ampl-queryline #amplConsult{padding:10px}}</style>
     <!-- REV43: Módulo independiente GC → GT; no cambia los formularios OM5/UIA -->
     <div id="hdMemoModal" class="hd-memo-overlay" hidden>
       <div class="hd-memo-panel" role="dialog" aria-modal="true" aria-labelledby="hdMemoTitle">
@@ -1265,14 +1267,14 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
         <div class="hd-memo-row"><strong>Expedientes incluidos</strong><button type="button" id="hdMemoAll">Seleccionar todos los disponibles</button><button type="button" id="hdMemoNone">Quitar selección</button><span id="hdMemoPicked">0 seleccionados</span></div>
         <div class="hd-memo-scroller"><table><thead><tr><th>Marcar</th><th>Ítem</th><th>Solicitante</th><th>Nombre del sector</th><th>Memorandos</th><th>Último envío (AY)</th></tr></thead><tbody id="hdMemoItems"></tbody></table></div>
         <h3>Registrar / editar memorando</h3><p id="hdMemoEditNote" class="hd-memo-help"></p>
-        <div class="hd-memo-form"><label>Número de memorando <input id="hdMemoNumber" maxlength="180" placeholder="Ej. MEM-001-2026-GC" required></label><label>Fecha de envío <input type="date" id="hdMemoDate" required></label><label>Asunto (opcional) <input id="hdMemoSubject" maxlength="600"></label><label>Adjuntar PDF (opcional, máx. 10 MB) <input type="file" id="hdMemoPdf" accept=".pdf,application/pdf"></label></div>
-        <div class="hd-memo-row"><button type="button" id="hdMemoLocalOpen">Ver PDF seleccionado</button><span class="hd-memo-help">Vista previa antes de registrarlo, sin subirlo a Drive.</span></div>
-        <div id="hdMemoLocalPreview" hidden><div class="hd-memo-row"><strong>PDF seleccionado (aún no guardado)</strong><a id="hdMemoLocalDownload" href="#" download>Descargar</a><button type="button" id="hdMemoLocalClose">Cerrar vista previa</button></div><iframe id="hdMemoLocalFrame" title="Vista previa del PDF seleccionado"></iframe></div>
-        <div class="hd-memo-row"><button type="button" id="hdMemoSave" class="hd-memo-primary">Registrar memorando para seleccionados</button><button type="button" id="hdMemoNew">Nuevo memorando</button></div>
+        <div class="hd-memo-form"><label>Número de memorando <input id="hdMemoNumber" maxlength="180" placeholder="Ej. MEM-001-2026-GC" required></label><label>Fecha de envío <input type="date" id="hdMemoDate" required></label><label>Asunto (opcional) <input id="hdMemoSubject" maxlength="600"></label><label>Adjuntar PDF o imagen (opcional, máx. 10 MB) <input type="file" id="hdMemoPdf" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"></label></div>
+        <div class="hd-memo-row"><label style="flex:0 1 auto;min-width:205px">Tomar foto (celular) <input id="hdMemoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label><button type="button" id="hdMemoLocalOpen">Ver archivo seleccionado</button><span class="hd-memo-help">Puedes adjuntar un PDF, elegir una imagen o tomar una fotografía. Solo se adjunta un archivo por memorando.</span></div>
+        <div id="hdMemoLocalPreview" hidden><div class="hd-memo-row"><strong>Archivo seleccionado (aún no guardado)</strong><a id="hdMemoLocalDownload" href="#" download>Descargar</a><button type="button" id="hdMemoLocalClose">Cerrar vista previa</button></div><iframe id="hdMemoLocalFrame" title="Vista previa del documento seleccionado"></iframe><img id="hdMemoLocalImage" alt="Imagen seleccionada" hidden></div>
+        <div class="hd-memo-row"><button type="button" id="hdMemoSave" class="hd-memo-primary">Grabar memorando para seleccionados</button><button type="button" id="hdMemoNew">Nuevo memorando</button></div>
         <p id="hdMemoStatus" role="status" aria-live="polite" class="hd-memo-status"></p>
         <div class="hd-memo-row"><h3>Historial de memorandos de la modalidad</h3><button type="button" id="hdMemoExport">Descargar control Excel</button><p id="hdMemoCount"></p></div>
         <div class="hd-memo-scroller"><table><thead><tr><th>Memorando</th><th>Fecha</th><th>Expedientes</th><th>Asunto</th><th>Acciones</th></tr></thead><tbody id="hdMemoHistory"></tbody></table></div>
-        <div id="hdMemoPdfPreview" hidden><div class="hd-memo-row"><strong>Vista previa del PDF</strong><a id="hdMemoPdfDownload" href="#" download="memorando.pdf">Descargar PDF</a><button type="button" id="hdMemoPdfClose">Cerrar vista previa</button></div><iframe id="hdMemoPdfFrame" title="Memorando PDF" loading="lazy"></iframe></div>
+        <div id="hdMemoPdfPreview" hidden><div class="hd-memo-row"><strong>Vista previa del archivo</strong><a id="hdMemoPdfDownload" href="#" download="memorando.pdf">Descargar archivo</a><button type="button" id="hdMemoPdfClose">Cerrar vista previa</button></div><iframe id="hdMemoPdfFrame" title="Documento del memorando" loading="lazy"></iframe><img id="hdMemoServerImage" alt="Imagen del memorando" hidden></div>
       </div>
     </div>
     <style>
@@ -1294,7 +1296,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
       .hd-memo-scroller th,.hd-memo-scroller td{border-bottom:1px solid #dde6f2;padding:9px}
       .hd-memo-scroller input[type=checkbox]{width:19px;height:19px}
       .hd-memo-actions{white-space:nowrap}.hd-memo-actions button{font-size:12px;padding:5px 7px;margin:2px}
-      #hdMemoPdfFrame,#hdMemoLocalFrame{width:100%;height:55vh;border:1px solid #d3e0f3}
+      #hdMemoPdfFrame,#hdMemoLocalFrame{width:100%;height:55vh;border:1px solid #d3e0f3}#hdMemoLocalImage,#hdMemoServerImage{max-width:100%;max-height:65vh;object-fit:contain;margin:12px auto;border:1px solid #d3e0f3}#hdMemoLocalImage[hidden],#hdMemoServerImage[hidden]{display:none!important}
     </style>
     <!-- Menú exclusivo para pantallas pequeñas: utiliza las funciones originales -->
     <nav class="mobile-bottom-nav" aria-label="Navegación móvil">
@@ -1544,6 +1546,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             hdSincronizarModulos_();
             const canBackup = hdPuedeRespaldar_();
             const canDocs = hdPuedeModulo_('Documentos');
+            const memoMenu=document.getElementById('hdMemoLaunch');if(memoMenu)memoMenu.hidden=!isAmpliaciones;
             for (const [k,visible] of [['personal',canPerson],['copias',canBackup],['dash-ampl',isAmpliaciones],['reportes',canDocs||isAmpliaciones]]) {
                 const btn=document.getElementById('tab-btn-'+k);
                 if(btn) btn.style.display=visible?'':'none';
@@ -3824,7 +3827,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             document.querySelectorAll('[data-mobile-tab]').forEach(btn => btn.classList.toggle('is-active', btn.dataset.mobileTab === tabId));
             if (tabId === 'ejecutivo') hdRenderExecutive();
             if (['om5','uia'].includes(tabId)) {const work=document.getElementById('amplWorkspace');const target=document.getElementById('tab-'+tabId);if(work&&target&&!target.contains(work)){target.appendChild(work);work.querySelector('h2').textContent=tabId==='om5'?'AMPLIACIONES DE REDES OM5':'AMPLIACIONES UIA';const sel=work.querySelector('#amplField');sel.innerHTML=tabId==='om5'?'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="res">Número de resolución</option><option value="Solicitante">Solicitante</option><option value="NombreSector">Sector</option>':'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="Nombre">Nombre</option><option value="Direccion">Dirección</option>';sel.value='todos';const s=work.querySelector('#amplSearch');s.value='';work.querySelector('#amplStart').value='';work.querySelector('#amplEnd').value='';}}
-            const hdMemoBtn=document.getElementById('hdMemoLaunch');if(hdMemoBtn)hdMemoBtn.hidden=tabId!=='om5';
+
             if (tabId === 'om5') om5Entrar();
             if (tabId === 'uia') {const ttl=document.querySelector('#tab-uia #amplWorkspace h2');if(ttl)ttl.textContent='AMPLIACIONES UIA';Ampliaciones.enter('UIA');}
             if (tabId === 'dashboard') renderStatsAndCharts();
@@ -4011,7 +4014,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  </div>
 </div>
 <script src="./ampliaciones-ui.js?v=REV43-MEMOS-20261115"></script>
-<script src="./memorandos-masivos.js?v=REV45-MEMOS-20261115"></script>
+<script src="./memorandos-masivos.js?v=REV46-MEMOS-20261115"></script>
 <script>
 
 /* REV28: búsqueda autónoma; el módulo de ampliaciones y sus datos no se modifican. */
@@ -4171,13 +4174,13 @@ document.addEventListener('DOMContentLoaded',init);
           const section=document.getElementById('tab-'+mod.toLowerCase());if(!section)continue;
           section.innerHTML=`<div id="amplWorkspace"><h2>${mod==='OM5'?'AMPLIACIONES DE REDES OM5':'AMPLIACIONES UIA'}</h2>
           <div class="hd-ampl-controls">
-           <input id="amplSearch" type="search" placeholder="Buscar por texto" oninput="Ampliaciones.search()" />
+           <div class="hd-ampl-queryline"><input id="amplSearch" type="search" placeholder="Buscar por texto" oninput="Ampliaciones.search()" /><button type="button" id="amplConsult" onclick="Ampliaciones.refresh(document.getElementById('tab-uia').contains(document.getElementById('amplWorkspace'))?'UIA':'OM5')">Consultar</button></div>
            <select id="amplField" onchange="Ampliaciones.search()"><option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option>${mod==='OM5'?'<option value="res">Número de resolución</option>':''}<option value="${mod==='OM5'?'Solicitante':'Nombre'}">Solicitante</option><option value="${mod==='OM5'?'NombreSector':'Direccion'}">Sector / Dirección</option></select>
            <label>Desde <input type="date" id="amplStart" onchange="Ampliaciones.search()" /></label><label>Hasta <input type="date" id="amplEnd" onchange="Ampliaciones.search()" /></label>
           </div><div class="hd-ampl-controls">
-           <button onclick="Ampliaciones.refresh('${mod}')">Actualizar</button><button id="amplNew" class="hd-ampl-primary" onclick="Ampliaciones.open('',0,true)">Nuevo expediente</button>
+           <button id="amplNew" class="hd-ampl-primary" onclick="Ampliaciones.open('',0,true)">Nuevo expediente</button>
            <button id="amplDelete" onclick="Ampliaciones.removeExp()">Eliminar seleccionado</button>
-           <button type="button" id="hdMemoLaunch" hidden>Memorandos masivos GC → GT</button><button onclick="Ampliaciones.excel()">Exportar Excel</button><button onclick="Ampliaciones.summary()">Reporte / Gráficos</button><button onclick="Ampliaciones.share()">WhatsApp</button>
+           <button onclick="Ampliaciones.excel()">Exportar Excel</button><button onclick="Ampliaciones.summary()">Reporte / Gráficos</button><button onclick="Ampliaciones.share()">WhatsApp</button>
           </div><div id="amplStages"></div><p id="amplStatus" role="status"></p>
           <div class="hd-ampl-grid"><table><thead id="amplTableHead"></thead><tbody id="amplTableBody"></tbody></table></div>
           <div class="hd-ampl-controls"><span id="amplCount"></span><button id="amplPrev" onclick="Ampliaciones.page(-1)">Anterior</button><button id="amplNext" onclick="Ampliaciones.page(1)">Siguiente</button></div>
