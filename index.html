@@ -4137,7 +4137,46 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV61-CAMARA-CAMPOS-20261115"></script>
+
+<style id="hdOm5InstitutionalRev62">
+/* REV62: cambios visuales confinados a la ventana OM5; ningún efecto en UIA. */
+#amplModal.hd-om5-rev62 .hd-ampl-panel{width:min(1120px,98vw);padding:18px 20px 20px;background:#fff;border:1px solid #bfd2ed;box-shadow:0 24px 70px #071e4d55}
+#amplModal.hd-om5-rev62 .hd-ampl-panel>.hd-ampl-controls:first-child{background:linear-gradient(112deg,#0b2b62,#12498e);color:white;border-radius:13px;padding:16px 18px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+#amplModal.hd-om5-rev62 #amplFormTitle{color:white;font-size:clamp(20px,2vw,26px);font-weight:850;line-height:1.25;margin:0;letter-spacing:-.02em}
+#amplModal.hd-om5-rev62 .hd-ampl-panel>.hd-ampl-controls:first-child button{background:white!important;border:1px solid #b7cfff!important;color:#103a74!important;border-radius:9px;padding:9px 13px;font-weight:800;flex-shrink:0}
+#amplModal.hd-om5-rev62 .hd-ampl-stage-tabs{background:#fff!important;border-bottom:1px solid #d5e2f4;margin-bottom:13px;top:0;padding:8px 0 12px;gap:7px;z-index:10}
+#amplModal.hd-om5-rev62 .hd-ampl-stage-tab{background:#fff!important;color:#20477e!important;border:1px solid #b6ccec!important;border-radius:9px;font-weight:750;min-height:39px;box-shadow:none}
+#amplModal.hd-om5-rev62 .hd-ampl-stage-tab.is-active{background:#1557b6!important;color:white!important;border-color:#1557b6!important;box-shadow:0 3px 9px #1b58a72a}
+#amplModal.hd-om5-rev62 #amplFormBody{column-gap:13px;row-gap:12px}
+#amplModal.hd-om5-rev62 #amplFormBody>.hd-om5-section-heading{grid-column:1/-1;display:flex;gap:10px;align-items:center;background:#edf4ff;color:#153d78;border:1px solid #c9ddfa;border-radius:10px;padding:10px 13px;margin-bottom:1px;font-size:14px;line-height:1.35}
+#amplModal.hd-om5-rev62 .hd-om5-section-mark{display:block;width:4px;height:22px;border-radius:10px;background:#1967d2;flex-shrink:0}
+#amplModal.hd-om5-rev62 #amplFormBody>.hd-ampl-label{font-size:12px;color:#29466f;gap:5px}
+#amplModal.hd-om5-rev62 #amplFormBody>.hd-ampl-label input,
+#amplModal.hd-om5-rev62 #amplFormBody>.hd-ampl-label select,
+#amplModal.hd-om5-rev62 #amplFormBody>.hd-ampl-label textarea{background:white;border:1px solid #c5d6ee;border-radius:9px;color:#15355e;box-shadow:none}
+#amplModal.hd-om5-rev62 #amplFormBody>.hd-ampl-label input:focus,
+#amplModal.hd-om5-rev62 #amplFormBody>.hd-ampl-label select:focus,
+#amplModal.hd-om5-rev62 #amplFormBody>.hd-ampl-label textarea:focus{outline:2px solid #a7c9f6;border-color:#226bc5}
+#amplModal.hd-om5-rev62 #amplFormBody .hd-ampl-doc-group{background:#f8fbff;border:1px solid #d5e3f6;padding:12px;margin:7px 0 9px;border-radius:13px}
+#amplModal.hd-om5-rev62 #amplFormBody .hd-ampl-doc-group>h4{font-size:15px;padding:10px 12px;margin:-4px -4px 10px;border-radius:9px;background:#e6f4f0;color:#11685a;border-left:4px solid #1c9278}
+#amplModal.hd-om5-rev62 #amplFormBody .hd-ampl-doc-group[data-hd-section="resoluciones"]>h4{background:#fff1de;color:#945911;border-left-color:#d29129}
+#amplModal.hd-om5-rev62 #amplFormBody .hd-ampl-doc-group[data-hd-section="observaciones"]>h4{background:#e9f1fc;color:#144c8e;border-left-color:#3576c7}
+#amplModal.hd-om5-rev62 #amplFormBody .hd-ampl-doc-group[data-hd-section="individual"]>h4{background:#f0eafb;color:#62449d;border-left-color:#8e6abe}
+#amplModal.hd-om5-rev62 #amplFormBody .hd-ampl-doc{border-color:#d0dded;background:#fff;box-shadow:0 2px 5px #102e5709}
+#amplModal.hd-om5-rev62 #amplFormBody .hd-ampl-inline-attachment{background:#f6f9ff;border:1px dashed #bed1eb;min-height:0}
+#amplModal.hd-om5-rev62 #amplFormBody .hd-ampl-add{background:#e7f0ff;border-color:#a4c4ee;color:#1452a8}
+#amplModal.hd-om5-rev62 #amplSave{background:#1559bb;color:white;border:1px solid #0f4b9b;font-weight:800;border-radius:10px;padding:10px 20px}
+@media(max-width:767px){
+ #amplModal.hd-om5-rev62 .hd-ampl-panel{width:100%;padding:10px;max-height:97dvh}
+ #amplModal.hd-om5-rev62 .hd-ampl-panel>.hd-ampl-controls:first-child{padding:12px 13px}
+ #amplModal.hd-om5-rev62 #amplFormTitle{font-size:21px}
+ #amplModal.hd-om5-rev62 .hd-ampl-stage-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
+ #amplModal.hd-om5-rev62 .hd-ampl-stage-tab{flex:0 0 auto;font-size:12px}
+ #amplModal.hd-om5-rev62 #amplFormBody .hd-ampl-doc-group{padding:9px}
+}
+</style>
+
+<script src="./ampliaciones-ui.js?v=REV62-DISENO-INSTITUCIONAL-20261115"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
