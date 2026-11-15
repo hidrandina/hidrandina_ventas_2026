@@ -1,23 +1,25 @@
-/* HIDRANDINA_VENTAS REV43 — Memorandos masivos OM5 GC → GT.
+/* HIDRANDINA_VENTAS REV44 — Memorandos masivos OM5 GC → GT.
    Interfaz aislada: no reemplaza los formularios ni el renderizado existentes. */
 (function(){'use strict';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const normalize=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const api=(action,data={})=>window.postGateway({action,...data},110000);
-let memos=[],items=[],selection=new Set(),modalOpen=false,editId='',busy=false,pdfUrl=null;
+let memos=[],items=[],selection=new Set(),modalOpen=false,editId='',busy=false,pdfUrl=null,serverReady=false;
 const role=()=>{try{return String(currentUser?.tipo||'')}catch(_){return ''}};
 const mayEdit=()=>['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(role());
 function alertBox(message,type='info'){
  const el=$('hdMemoStatus');if(!el)return;el.textContent=message;el.dataset.kind=type;
 }
-function setBusy(value){busy=value;const b=$('hdMemoSave');if(b)b.disabled=value;const d=$('hdMemoDelete');if(d)d.disabled=value;}
+function setBusy(value){busy=value;const b=$('hdMemoSave');if(b)b.disabled=value||!serverReady||!mayEdit();const d=$('hdMemoDelete');if(d)d.disabled=value;}
 function currentData(){return window.Ampliaciones?.getData?.('OM5');}
+function serverError(e){const m=String(e?.message||e||'');return /acci[oó]n de ampliaciones desconocida|unknown action/i.test(m)?'El servidor Apps Script publicado no reconoce las operaciones de memorandos (REV43/REV44). Actualiza Codigo.gs, publica una NUEVA VERSIÓN de la implementación actual y comprueba la URL configurada. Las modalidades pueden consultarse, pero no se permite guardar memorandos hasta conectar el servidor actualizado.':m;}
+function setServerReady(ready){serverReady=!!ready;const b=$('hdMemoSave');if(b)b.disabled=busy||!serverReady||!mayEdit();const e=$('hdMemoExport');if(e)e.disabled=false;}
 function selectModalidad(){const s=$('hdMemoModalidad');return s?.value||'';}
 function associatedCount(id){const n=memos.filter(m=>m.expedientes.some(e=>String(e.id)===String(id))).length;const row=currentData()?.registros?.find(r=>String(r.__HD_ID)===String(id));return n||(!n&&String(row?.MemoEnvioGTmasivo||'').trim()?1:0);}
 function renderModalities(){
- const data=currentData();if(!data){alertBox('Primero carga la base OM5.','error');return;}
- const old=selectModalidad();const list=[...new Set(data.registros.map(r=>String(r.Modalidad||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+ const data=currentData();if(!data){alertBox('No hay expedientes OM5 cargados. Actualiza los datos de OM5.','error');return;}
+ const old=selectModalidad();const list=[...new Set((data.registros||[]).map(r=>String(r.Modalidad||r.modalidad||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
  $('hdMemoModalidad').innerHTML='<option value="">Selecciona una modalidad</option>'+list.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
  if(list.includes(old))$('hdMemoModalidad').value=old;
 }
@@ -42,13 +44,34 @@ function renderMemos(){
  $('hdMemoCount').textContent=matched.length+' memorandos de esta modalidad';
 }
 function resetForm(){editId='';$('hdMemoNumber').value='';$('hdMemoDate').value=(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')})();$('hdMemoSubject').value='';$('hdMemoPdf').value='';$('hdMemoSave').textContent='Registrar memorando para seleccionados';$('hdMemoEditNote').textContent='Para registrar un memorando selecciona primero los expedientes de la modalidad.';}
-async function load(){const result=await api('amplMemoRead');if(!Array.isArray(result.memorandos))throw Error('Respuesta de memorandos incompleta.');memos=result.memorandos;}
-async function reload(){if(busy)return;alertBox('Actualizando memorandos…');try{await load();const current=selectModalidad();renderModalities();if(current)$('hdMemoModalidad').value=current;renderItems();renderMemos();alertBox('Memorandos actualizados correctamente.','success');}catch(e){alertBox('No se pudieron consultar los memorandos: '+e.message,'error');}}
+async function load(){const result=await api('amplMemoRead');if(!Array.isArray(result.memorandos))throw Error('Respuesta de memorandos incompleta.');memos=result.memorandos;setServerReady(true);}
+async function reload(){
+ if(busy)return;
+ alertBox('Actualizando expedientes y memorandos…');
+ try{
+   await window.Ampliaciones.refresh('OM5');
+   renderModalities();renderItems();renderMemos();
+ }catch(e){alertBox('No se pudieron actualizar los expedientes OM5: '+e.message,'error');}
+ try{
+   await load();renderItems();renderMemos();
+   alertBox('Expedientes y memorandos actualizados correctamente.','success');
+ }catch(e){setServerReady(false);alertBox('Los expedientes OM5 pueden consultarse, pero no se recuperó el historial. '+serverError(e),'error');}
+}
 async function open(){
  if(modalOpen)return;
- $('hdMemoModal').hidden=false;modalOpen=true;selection.clear();resetForm();alertBox('Cargando expedientes y memorandos…');
- try{if(!currentData())await window.Ampliaciones.refresh('OM5');await load();renderModalities();renderItems();renderMemos();alertBox('Selecciona la modalidad y los expedientes para registrar un memorando.');}
- catch(e){alertBox('Error al cargar el control: '+e.message,'error');}
+ $('hdMemoModal').hidden=false;modalOpen=true;selection.clear();resetForm();memos=[];setServerReady(false);
+ alertBox('Cargando las modalidades de OM5…');
+ // La lista de modalidades NO depende del historial ni de la acción amplMemoRead.
+ try{
+   if(!currentData())await window.Ampliaciones.refresh('OM5');
+   if(!currentData())throw Error('No fue posible cargar la base OM5.');
+   renderModalities();renderItems();renderMemos();
+ }catch(e){alertBox('No se pudieron cargar expedientes OM5: '+e.message,'error');return;}
+ alertBox('Modalidades disponibles. Consultando historial de memorandos…');
+ try{
+   await load();renderItems();renderMemos();
+   alertBox('Selecciona una modalidad y marca los expedientes para registrar el memorando.','success');
+ }catch(e){setServerReady(false);alertBox('Las modalidades ya están disponibles, pero no se puede consultar ni guardar el historial: '+serverError(e),'error');}
 }
 function close(){if(busy)return;modalOpen=false;$('hdMemoModal').hidden=true;closePdf();}
 function viewMemo(id){const m=memos.find(m=>m.id===id);if(!m)return;alertBox('Memorando '+m.numero+' · '+m.fecha+' · '+m.expedientes.length+' expedientes. Ítems: '+m.expedientes.map(x=>x.item).join(', ')+(m.asunto?' · '+m.asunto:''),'info');}
@@ -60,7 +83,7 @@ async function uploadPdf(id,file){
  const base64=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=()=>reject(Error('No se pudo leer el PDF.'));fr.onload=()=>resolve(String(fr.result).split(',')[1]);fr.readAsDataURL(file);});
  return await api('amplMemoPdf',{operacion:'subir',memoId:id,nombre:file.name,base64});
 }
-async function save(){if(busy||!mayEdit())return;
+async function save(){if(busy||!mayEdit())return;if(!serverReady){alertBox('No se puede guardar: el servidor de memorandos todavía no está disponible. Actualiza Apps Script y pulsa Actualizar datos.','error');return;}
  const numero=$('hdMemoNumber').value.trim(),fecha=$('hdMemoDate').value,asunto=$('hdMemoSubject').value.trim(),file=$('hdMemoPdf').files[0];
  if(!selectModalidad()||!numero||!fecha){alertBox('Selecciona modalidad, número y fecha del memorando.','error');return;}
  if(!editId&&!selection.size){alertBox('Selecciona al menos un expediente.','error');return;}
@@ -75,7 +98,7 @@ async function save(){if(busy||!mayEdit())return;
  }catch(e){alertBox((registered?'El memorando se guardó, pero quedó pendiente el PDF o la actualización visual. No vuelvas a registrarlo sin consultar el historial. ':'No se pudo guardar. ')+e.message,'error');}
  finally{setBusy(false);}
 }
-async function removeMemo(id){if(busy||!mayEdit())return;const m=memos.find(x=>x.id===id);if(!m)return;
+async function removeMemo(id){if(busy||!mayEdit()||!serverReady)return;const m=memos.find(x=>x.id===id);if(!m)return;
  if(!confirm('¿Eliminar el memorando '+m.numero+' de '+m.expedientes.length+' expedientes? La columna AY recuperará el memorando anterior cuando corresponda.'))return;
  setBusy(true);try{await api('amplMemoWrite',{operacion:'eliminar',memoId:id,confirmar:'ELIMINAR_MEMORANDO'});
  await Promise.all([window.Ampliaciones.refresh('OM5'),load()]);renderItems();renderMemos();if(editId===id)resetForm();alertBox('Memorando eliminado correctamente. Se actualizó la columna AY de sus expedientes.','success');
@@ -111,7 +134,7 @@ function init(){
  $('hdMemoAll').addEventListener('click',()=>{items.forEach(x=>{const id=String(x.__HD_ID);if(associatedCount(id)<4)selection.add(id);});renderItems();});
  $('hdMemoNone').addEventListener('click',()=>{selection.clear();renderItems();});
  $('hdMemoExport').addEventListener('click',exportExcel);$('hdMemoSave').addEventListener('click',save);$('hdMemoNew').addEventListener('click',()=>{selection.clear();resetForm();renderItems();});$('hdMemoPdfClose').addEventListener('click',closePdf);
- btn.hidden=false; $('hdMemoSave').disabled=!mayEdit(); $('hdMemoNew').disabled=!mayEdit();
+ btn.hidden=false; $('hdMemoSave').disabled=!mayEdit()||!serverReady; $('hdMemoNew').disabled=!mayEdit();
 }
 // El botón se construye en un manejador DOMContentLoaded posterior a este script.
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0));else setTimeout(init,0);
