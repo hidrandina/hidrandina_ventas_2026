@@ -89,21 +89,22 @@ async function save(){if(busy){alertBox('Ya se está procesando el memorando. Ev
  const numero=$('hdMemoNumber').value.trim(),fecha=$('hdMemoDate').value,asunto=$('hdMemoSubject').value.trim(),file=pickedAttachment();
  if(!selectModalidad()||!numero||!fecha){alertBox('Selecciona modalidad, número y fecha del memorando.','error');return;}
  if(!editId&&!selection.size){alertBox('Selecciona al menos un expediente.','error');return;}if(file){try{checkAttachment(file);}catch(e){alertBox(e.message+' No se ha registrado el memorando.','error');return;}}
- if(!confirm((editId?'¿Guardar los cambios del memorando?':'¿Registrar el memorando y actualizar la columna AY en '+selection.size+' expedientes?')))return;
+ if(!confirm((editId?'¿Confirma que desea guardar los cambios del memorando?':'¿Confirma que desea grabar el memorando en los '+selection.size+' expedientes seleccionados?')))return;
+ const cantidadSeleccionada=selection.size,esEdicion=!!editId;
  setBusy(true);let registered=false;
  try{const payload={operacion:editId?'editar':'agregar',memoId:editId,modalidad:selectModalidad(),numero,fecha,asunto,expedientes:JSON.stringify([...selection])};
   alertBox('Guardando memorando…');const result=await api('amplMemoWrite',payload);registered=true;
   if(file){alertBox('Memorando guardado. Adjuntando archivo…');await uploadAttachment(result.memoId,file);}
   // Recargar expedientes para reflejar el último memo y la nueva versión.
   await Promise.all([window.Ampliaciones.refresh('OM5'),load()]);renderModalities();renderItems();renderMemos();resetForm();selection.clear();renderItems();
-  alertBox((file?'Memorando guardado y archivo adjuntado correctamente.':'Memorando guardado correctamente.')+(result.antecedentesConservados?' Se conservaron '+result.antecedentesConservados+' memorandos anteriores de la columna AY.':''),'success');
+  alertBox((esEdicion?'Cambios del memorando guardados correctamente.':'Memorando grabado correctamente en '+cantidadSeleccionada+' expedientes.')+(file?' Archivo adjunto guardado correctamente.':''),'success');
  }catch(e){alertBox((registered?'El memorando se guardó, pero quedó pendiente el archivo adjunto o la actualización visual. No vuelvas a registrarlo sin consultar el historial. ':'No se pudo guardar. ')+e.message,'error');}
  finally{setBusy(false);}
 }
 async function removeMemo(id){if(busy||!mayEdit()||!serverReady)return;const m=memos.find(x=>x.id===id);if(!m)return;
- if(!confirm('¿Eliminar el memorando '+m.numero+' de '+m.expedientes.length+' expedientes? La columna AY recuperará el memorando anterior cuando corresponda.'))return;
+ if(!confirm('¿Confirma que desea eliminar el memorando '+m.numero+' de '+m.expedientes.length+' expedientes?'))return;
  setBusy(true);try{await api('amplMemoWrite',{operacion:'eliminar',memoId:id,confirmar:'ELIMINAR_MEMORANDO'});
- await Promise.all([window.Ampliaciones.refresh('OM5'),load()]);renderItems();renderMemos();if(editId===id)resetForm();alertBox('Memorando eliminado correctamente. Se actualizó la columna AY de sus expedientes.','success');
+ await Promise.all([window.Ampliaciones.refresh('OM5'),load()]);renderItems();renderMemos();if(editId===id)resetForm();alertBox('Memorando eliminado correctamente.','success');
  }catch(e){alertBox('No se pudo eliminar el memorando: '+e.message,'error');}finally{setBusy(false);}
 }
 function exportExcel(){
