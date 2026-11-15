@@ -77,8 +77,21 @@ function close(){if(busy){alertBox('El memorando se está guardando. Espera la c
 function viewMemo(id){const m=memos.find(m=>m.id===id);if(!m)return;alertBox('Memorando '+m.numero+' · '+m.fecha+' · '+m.expedientes.length+' expedientes. Ítems: '+m.expedientes.map(x=>x.item).join(', ')+(m.asunto?' · '+m.asunto:''),'info');}
 function pickedAttachment(){return $('hdMemoCamera')?.files?.[0]||$('hdMemoPdf')?.files?.[0]||null;}
 function checkAttachment(f){if(!f)return;const ok=/\.(pdf|jpe?g|png|webp)$/i.test(f.name);if(!ok||!f.size||f.size>10*1024*1024)throw Error('Solo PDF, JPG, PNG o WEBP de hasta 10 MB.');}
+function hdMemoFechaInput(fecha){
+ if(!fecha)return '';
+ const t=String(fecha).trim();
+ if(/^\d{4}-\d{2}-\d{2}$/.test(t))return t;
+ const es=t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+ if(es)return es[3]+'-'+es[2].padStart(2,'0')+'-'+es[1].padStart(2,'0');
+ const d=new Date(t);
+ if(Number.isNaN(d.getTime()))return '';
+ // Solo compatibilidad con respuestas antiguas. REV49 normaliza desde Apps Script.
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Lima',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d);
+ const byType=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+ return byType.year+'-'+byType.month+'-'+byType.day;
+}
 function editMemo(id){const m=memos.find(m=>m.id===id);if(!m)return;if(!mayEdit())return;
- editId=id;$('hdMemoModalidad').value=m.modalidad;renderItems();renderMemos();$('hdMemoNumber').value=m.numero;$('hdMemoDate').value=m.fecha;$('hdMemoSubject').value=m.asunto;$('hdMemoPdf').value='';$('hdMemoCamera').value='';$('hdMemoSave').textContent='Guardar cambios del memorando';$('hdMemoEditNote').textContent='Editando memorando existente. Su relación con los expedientes no se modifica.';alertBox('Editando '+m.numero+'. Para cambiar sus expedientes elimina y registra nuevamente el memorando.');
+ editId=id;$('hdMemoModalidad').value=m.modalidad;renderItems();renderMemos();$('hdMemoNumber').value=m.numero;$('hdMemoDate').value=hdMemoFechaInput(m.fecha);$('hdMemoSubject').value=m.asunto;$('hdMemoPdf').value='';$('hdMemoCamera').value='';$('hdMemoSave').textContent='Guardar cambios del memorando';$('hdMemoEditNote').textContent='Editando memorando existente. Su relación con los expedientes no se modifica.';alertBox('Editando '+m.numero+'. Para cambiar sus expedientes elimina y registra nuevamente el memorando.');
 }
 async function uploadAttachment(id,file){
  if(!file)return null;checkAttachment(file);
