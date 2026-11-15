@@ -1,20 +1,20 @@
-/* HIDRANDINA_VENTAS REV44 — Memorandos masivos OM5 GC → GT.
+/* HIDRANDINA_VENTAS REV45 — Memorandos masivos OM5 GC → GT.
    Interfaz aislada: no reemplaza los formularios ni el renderizado existentes. */
 (function(){'use strict';
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const normalize=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const api=(action,data={})=>window.postGateway({action,...data},110000);
-let memos=[],items=[],selection=new Set(),modalOpen=false,editId='',busy=false,pdfUrl=null,serverReady=false;
-const role=()=>{try{return String(currentUser?.tipo||'')}catch(_){return ''}};
+let memos=[],items=[],selection=new Set(),modalOpen=false,editId='',busy=false,pdfUrl=null,localPdfUrl=null,serverReady=false;
+const role=()=>{try{const u=(typeof currentUser!=='undefined'?currentUser:window.currentUser);return String(u?.tipo||u?.rol||'').trim()}catch(_){return ''}};
 const mayEdit=()=>['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(role());
 function alertBox(message,type='info'){
  const el=$('hdMemoStatus');if(!el)return;el.textContent=message;el.dataset.kind=type;
 }
-function setBusy(value){busy=value;const b=$('hdMemoSave');if(b)b.disabled=value||!serverReady||!mayEdit();const d=$('hdMemoDelete');if(d)d.disabled=value;}
+function setBusy(value){busy=value;const b=$('hdMemoSave');if(b){b.disabled=value;b.textContent=value?'Guardando memorando…':(editId?'Guardar cambios del memorando':'Registrar memorando para seleccionados');}const d=$('hdMemoDelete');if(d)d.disabled=value;}
 function currentData(){return window.Ampliaciones?.getData?.('OM5');}
 function serverError(e){const m=String(e?.message||e||'');return /acci[oó]n de ampliaciones desconocida|unknown action/i.test(m)?'El servidor Apps Script publicado no reconoce las operaciones de memorandos (REV43/REV44). Actualiza Codigo.gs, publica una NUEVA VERSIÓN de la implementación actual y comprueba la URL configurada. Las modalidades pueden consultarse, pero no se permite guardar memorandos hasta conectar el servidor actualizado.':m;}
-function setServerReady(ready){serverReady=!!ready;const b=$('hdMemoSave');if(b)b.disabled=busy||!serverReady||!mayEdit();const e=$('hdMemoExport');if(e)e.disabled=false;}
+function setServerReady(ready){serverReady=!!ready;const b=$('hdMemoSave');if(b){b.disabled=busy;b.title=serverReady?'Registrar o modificar el memorando':'El servidor no confirmó el módulo de memorandos: pulsa para ver el motivo';}const e=$('hdMemoExport');if(e)e.disabled=false;}
 function selectModalidad(){const s=$('hdMemoModalidad');return s?.value||'';}
 function associatedCount(id){const n=memos.filter(m=>m.expedientes.some(e=>String(e.id)===String(id))).length;const row=currentData()?.registros?.find(r=>String(r.__HD_ID)===String(id));return n||(!n&&String(row?.MemoEnvioGTmasivo||'').trim()?1:0);}
 function renderModalities(){
@@ -43,7 +43,7 @@ function renderMemos(){
  $('hdMemoHistory').querySelectorAll('[data-memo-remove]').forEach(b=>b.addEventListener('click',()=>removeMemo(b.dataset.memoRemove)));
  $('hdMemoCount').textContent=matched.length+' memorandos de esta modalidad';
 }
-function resetForm(){editId='';$('hdMemoNumber').value='';$('hdMemoDate').value=(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')})();$('hdMemoSubject').value='';$('hdMemoPdf').value='';$('hdMemoSave').textContent='Registrar memorando para seleccionados';$('hdMemoEditNote').textContent='Para registrar un memorando selecciona primero los expedientes de la modalidad.';}
+function resetForm(){closeLocalPdf();editId='';$('hdMemoNumber').value='';$('hdMemoDate').value=(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')})();$('hdMemoSubject').value='';$('hdMemoPdf').value='';$('hdMemoSave').textContent='Registrar memorando para seleccionados';$('hdMemoEditNote').textContent='Para registrar un memorando selecciona primero los expedientes de la modalidad.';}
 async function load(){const result=await api('amplMemoRead');if(!Array.isArray(result.memorandos))throw Error('Respuesta de memorandos incompleta.');memos=result.memorandos;setServerReady(true);}
 async function reload(){
  if(busy)return;
@@ -73,7 +73,7 @@ async function open(){
    alertBox('Selecciona una modalidad y marca los expedientes para registrar el memorando.','success');
  }catch(e){setServerReady(false);alertBox('Las modalidades ya están disponibles, pero no se puede consultar ni guardar el historial: '+serverError(e),'error');}
 }
-function close(){if(busy)return;modalOpen=false;$('hdMemoModal').hidden=true;closePdf();}
+function close(){if(busy){alertBox('El memorando se está guardando. Espera la confirmación antes de cerrar.','info');return;}modalOpen=false;$('hdMemoModal').hidden=true;closePdf();closeLocalPdf();}
 function viewMemo(id){const m=memos.find(m=>m.id===id);if(!m)return;alertBox('Memorando '+m.numero+' · '+m.fecha+' · '+m.expedientes.length+' expedientes. Ítems: '+m.expedientes.map(x=>x.item).join(', ')+(m.asunto?' · '+m.asunto:''),'info');}
 function editMemo(id){const m=memos.find(m=>m.id===id);if(!m)return;if(!mayEdit())return;
  editId=id;$('hdMemoModalidad').value=m.modalidad;renderItems();renderMemos();$('hdMemoNumber').value=m.numero;$('hdMemoDate').value=m.fecha;$('hdMemoSubject').value=m.asunto;$('hdMemoPdf').value='';$('hdMemoSave').textContent='Guardar cambios del memorando';$('hdMemoEditNote').textContent='Editando memorando existente. Su relación con los expedientes no se modifica.';alertBox('Editando '+m.numero+'. Para cambiar sus expedientes elimina y registra nuevamente el memorando.');
@@ -83,10 +83,10 @@ async function uploadPdf(id,file){
  const base64=await new Promise((resolve,reject)=>{const fr=new FileReader();fr.onerror=()=>reject(Error('No se pudo leer el PDF.'));fr.onload=()=>resolve(String(fr.result).split(',')[1]);fr.readAsDataURL(file);});
  return await api('amplMemoPdf',{operacion:'subir',memoId:id,nombre:file.name,base64});
 }
-async function save(){if(busy||!mayEdit())return;if(!serverReady){alertBox('No se puede guardar: el servidor de memorandos todavía no está disponible. Actualiza Apps Script y pulsa Actualizar datos.','error');return;}
+async function save(){if(busy){alertBox('Ya se está procesando el memorando. Evita enviarlo dos veces.','info');return;}if(!mayEdit()){alertBox('No se puede registrar: tu sesión no tiene permisos de edición OM5. Rol detectado: '+(role()||'sin identificar')+'. Si eres Administrador, cierra sesión e ingresa nuevamente.','error');return;}if(!serverReady){alertBox('No se puede guardar: la conexión actual no confirmó las operaciones de memorandos. Pulsa Actualizar datos. Si sigue igual, publica la Revisión 45 de Codigo.gs sobre tu implementación actual.','error');return;}
  const numero=$('hdMemoNumber').value.trim(),fecha=$('hdMemoDate').value,asunto=$('hdMemoSubject').value.trim(),file=$('hdMemoPdf').files[0];
  if(!selectModalidad()||!numero||!fecha){alertBox('Selecciona modalidad, número y fecha del memorando.','error');return;}
- if(!editId&&!selection.size){alertBox('Selecciona al menos un expediente.','error');return;}
+ if(!editId&&!selection.size){alertBox('Selecciona al menos un expediente.','error');return;}if(file&&(!/\.pdf$/i.test(file.name)||file.size>10*1024*1024)){alertBox('El adjunto debe ser PDF y no superar 10 MB. No se ha registrado ningún memorando.','error');return;}
  if(!confirm((editId?'¿Guardar los cambios del memorando?':'¿Registrar el memorando y actualizar la columna AY en '+selection.size+' expedientes?')))return;
  setBusy(true);let registered=false;
  try{const payload={operacion:editId?'editar':'agregar',memoId:editId,modalidad:selectModalidad(),numero,fecha,asunto,expedientes:JSON.stringify([...selection])};
@@ -120,6 +120,22 @@ function exportExcel(){
  const file='Control_Memorandos_OM5_'+new Date().toISOString().slice(0,10)+'.xlsx';window.XLSX.writeFile(wb,file);
  alertBox('Se inició la descarga del control de memorandos en Excel.','success');
 }
+function closeLocalPdf(){
+ const el=$('hdMemoLocalPreview');if(el)el.hidden=true;
+ const frame=$('hdMemoLocalFrame');if(frame)frame.src='about:blank';
+ if(localPdfUrl){URL.revokeObjectURL(localPdfUrl);localPdfUrl=null;}
+}
+function previewLocalPdf(){
+ const file=$('hdMemoPdf')?.files?.[0];if(!file){alertBox('Primero selecciona un PDF para visualizarlo.','error');return;}
+ if(!/\.pdf$/i.test(file.name)||file.size>10*1024*1024){alertBox('Solo se permite un archivo PDF de máximo 10 MB.','error');return;}
+ closeLocalPdf();localPdfUrl=URL.createObjectURL(file);
+ $('hdMemoLocalFrame').src=localPdfUrl;
+ $('hdMemoLocalPreview').hidden=false;
+ $('hdMemoLocalDownload').href=localPdfUrl;
+ $('hdMemoLocalDownload').download=file.name;
+ alertBox('Vista previa local del PDF preparada. Aún no está guardado en el expediente.','success');
+ $('hdMemoLocalPreview').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
 function closePdf(){const frame=$('hdMemoPdfFrame');if(frame)frame.src='about:blank';if(pdfUrl){URL.revokeObjectURL(pdfUrl);pdfUrl=null;}$('hdMemoPdfPreview').hidden=true;}
 async function showPdf(id){try{
  alertBox('Recuperando PDF…');const first=await api('amplMemoPdf',{operacion:'ver',memoId:id,parte:0});if(!first.base64||!Number.isInteger(Number(first.total))||first.total>40)throw Error('PDF demasiado grande o respuesta incompleta.');
@@ -133,8 +149,8 @@ function init(){
  $('hdMemoModalidad').addEventListener('change',()=>{selection.clear();resetForm();renderItems();renderMemos();});
  $('hdMemoAll').addEventListener('click',()=>{items.forEach(x=>{const id=String(x.__HD_ID);if(associatedCount(id)<4)selection.add(id);});renderItems();});
  $('hdMemoNone').addEventListener('click',()=>{selection.clear();renderItems();});
- $('hdMemoExport').addEventListener('click',exportExcel);$('hdMemoSave').addEventListener('click',save);$('hdMemoNew').addEventListener('click',()=>{selection.clear();resetForm();renderItems();});$('hdMemoPdfClose').addEventListener('click',closePdf);
- btn.hidden=false; $('hdMemoSave').disabled=!mayEdit()||!serverReady; $('hdMemoNew').disabled=!mayEdit();
+ $('hdMemoExport').addEventListener('click',exportExcel);$('hdMemoSave').addEventListener('click',()=>{save().catch(e=>alertBox('Error al registrar: '+String(e?.message||e),'error'));});$('hdMemoLocalOpen').addEventListener('click',previewLocalPdf);$('hdMemoLocalClose').addEventListener('click',closeLocalPdf);$('hdMemoPdf').addEventListener('change',()=>{closeLocalPdf();const f=$('hdMemoPdf').files?.[0];if(f)alertBox('Archivo seleccionado: '+f.name+'. Puedes revisar el PDF antes de registrar.','info');});$('hdMemoNew').addEventListener('click',()=>{selection.clear();resetForm();renderItems();});$('hdMemoPdfClose').addEventListener('click',closePdf);
+ btn.hidden=false; $('hdMemoSave').disabled=false; $('hdMemoNew').disabled=!mayEdit();
 }
 // El botón se construye en un manejador DOMContentLoaded posterior a este script.
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0));else setTimeout(init,0);
