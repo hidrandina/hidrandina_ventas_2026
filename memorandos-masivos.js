@@ -8,6 +8,9 @@ const api=(action,data={})=>window.postGateway({action,...data},110000);
 let memos=[],items=[],selection=new Set(),modalOpen=false,editId='',busy=false,pdfUrl=null,localPdfUrl=null,serverReady=false;
 const role=()=>{try{const u=(typeof currentUser!=='undefined'?currentUser:window.currentUser);return String(u?.tipo||u?.rol||'').trim()}catch(_){return ''}};
 const mayEdit=()=>['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(role());
+// Revalidar los permisos al abrir el módulo: durante DOMContentLoaded la sesión puede no estar restaurada.
+function syncNewButton(){const b=$('hdMemoNew');if(!b)return;const allowed=mayEdit();b.disabled=!allowed;b.title=allowed?'Preparar un memorando nuevo':'Tu perfil solo permite consultar memorandos';}
+
 function alertBox(message,type='info'){
  const el=$('hdMemoStatus');if(!el)return;el.textContent=message;el.dataset.kind=type;
 }
@@ -58,6 +61,7 @@ async function reload(){
  }catch(e){setServerReady(false);alertBox('Los expedientes OM5 pueden consultarse, pero no se recuperó el historial. '+serverError(e),'error');}
 }
 async function open(){
+ syncNewButton();
  if(modalOpen)return;
  $('hdMemoModal').hidden=false;modalOpen=true;selection.clear();resetForm();memos=[];setServerReady(false);
  alertBox('Cargando las modalidades de OM5…');
@@ -204,8 +208,8 @@ function init(){
  $('hdMemoModalidad').addEventListener('change',()=>{selection.clear();resetForm();renderItems();renderMemos();});
  $('hdMemoAll').addEventListener('click',()=>{items.forEach(x=>{const id=String(x.__HD_ID);if(associatedCount(id)<4)selection.add(id);});renderItems();});
  $('hdMemoNone').addEventListener('click',()=>{selection.clear();renderItems();});
- $('hdMemoExport').addEventListener('click',exportExcel);$('hdMemoSave').addEventListener('click',()=>{save().catch(e=>alertBox('Error al registrar: '+String(e?.message||e),'error'));});$('hdMemoLocalOpen').addEventListener('click',previewLocalPdf);$('hdMemoLocalClose').addEventListener('click',closeLocalPdf);$('hdMemoPdf').addEventListener('change',()=>{closeLocalPdf();$('hdMemoCamera').value='';const f=pickedAttachment();if(f)alertBox('Archivo seleccionado: '+f.name+'. Puedes revisar su vista previa.','info');});$('hdMemoCamera').addEventListener('change',()=>{closeLocalPdf();$('hdMemoPdf').value='';const f=pickedAttachment();if(f)alertBox('Fotografía seleccionada: '+f.name+'. Puedes revisar su vista previa.','info');});$('hdMemoNew').addEventListener('click',()=>{selection.clear();resetForm();renderItems();});$('hdMemoPdfClose').addEventListener('click',closePdf);
- $('hdMemoSave').disabled=false; $('hdMemoNew').disabled=!mayEdit();
+ $('hdMemoExport').addEventListener('click',exportExcel);$('hdMemoSave').addEventListener('click',()=>{save().catch(e=>alertBox('Error al registrar: '+String(e?.message||e),'error'));});$('hdMemoLocalOpen').addEventListener('click',previewLocalPdf);$('hdMemoLocalClose').addEventListener('click',closeLocalPdf);$('hdMemoPdf').addEventListener('change',()=>{closeLocalPdf();$('hdMemoCamera').value='';const f=pickedAttachment();if(f)alertBox('Archivo seleccionado: '+f.name+'. Puedes revisar su vista previa.','info');});$('hdMemoCamera').addEventListener('change',()=>{closeLocalPdf();$('hdMemoPdf').value='';const f=pickedAttachment();if(f)alertBox('Fotografía seleccionada: '+f.name+'. Puedes revisar su vista previa.','info');});$('hdMemoNew').addEventListener('click',()=>{syncNewButton();if(!mayEdit()){alertBox('Tu perfil no tiene permiso para crear memorandos.','error');return;}selection.clear();resetForm();renderItems();alertBox('Formulario listo para grabar un memorando nuevo. Selecciona los expedientes y completa los datos.','info');});$('hdMemoPdfClose').addEventListener('click',closePdf);
+ $('hdMemoSave').disabled=false; syncNewButton();
 }
 // El botón se construye en un manejador DOMContentLoaded posterior a este script.
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0));else setTimeout(init,0);
