@@ -1733,6 +1733,8 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 if (params.action !== 'read') { cachePreview.clear(); cachePreviewBytes=0; }
                 setConnectionStatus('active','Guardado en nube');
                 if(successCallback) await successCallback(res); else await fetchData();
+                if(params.action==='saveCatalog')alert('Datos de '+(params.type||'catálogo')+' guardados correctamente.');
+                if(params.action==='deleteCatalog')alert('Registro de '+(params.type||'catálogo')+' eliminado correctamente.');
             }catch(err){
                 if (err.respuestaServidor) {
                     // Usuario duplicado, permisos o validación: servidor accesible.
@@ -2843,6 +2845,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 appData.Adjuntos = (appData.Adjuntos || []).filter(a => String(getProp(a,['ID',0])) !== String(id));
                 saveLocalCache();
                 pintarAdjuntosEnFormulario(numero);
+                alert('Archivo adjunto eliminado correctamente.');
                 fetchData();
             });
         }
@@ -3068,6 +3071,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 try {
                     await subirSustentos(numDoc, archivos, tipo);
                     document.getElementById('adjuntoProgreso').textContent = 'Registro y adjuntos guardados correctamente.';
+                    alert('Documento guardado correctamente'+(archivos.length?' con '+archivos.length+' archivo(s) adjunto(s).':'.'));
                     closeDocFormModal();
                     fetchData();
                 } catch (err) {
