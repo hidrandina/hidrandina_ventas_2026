@@ -1,4 +1,4 @@
-<!-- REV32: 9 roles consolidados; permisos por base en Reportes y gráficos -->
+<!-- REV34: 11 roles; asistente integral y eliminación de documentos del propio creador -->
 <!DOCTYPE html>
 <html lang="es" class="h-full bg-slate-100">
 <head>
@@ -1103,6 +1103,8 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                                 <option value="Administrador OM5">Administrador OM5 / UIA</option>
                                 <option value="Asistente OM5">Asistente OM5 / UIA</option>
                                 <option value="Operador OM5">Operador OM5 / UIA</option>
+                                <option value="Operador Documentos/OM5/UIA">Operador Documentos / OM5 / UIA</option>
+                                <option value="Asistente Documentos/OM5/UIA">Asistente Documentos / OM5 / UIA</option>
                                 <option value="Visitante OM5">Visitante OM5 / UIA</option>
                             </select>
                         </div>
@@ -1352,20 +1354,23 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         function hdRolDocJS_(rol) {
           return ({'Administrador Total':'Administrador','Administrador documentos':'Administrador',
              'Asistente Documentos':'Asistente','Operador Documentos':'Operador',
+             'Operador Documentos/OM5/UIA':'Operador','Asistente Documentos/OM5/UIA':'Asistente',
              'Visitante documento':'Visita'})[rol] || rol;
         }
         function hdEsSoloOM5_(rol) {return ['Administrador OM5','Operador OM5','Asistente OM5','Visitante OM5'].includes(rol);}
         function hdPuedeModulo_(modulo){
           if(!currentUser)return false;
           const rol=currentUser.tipo;
-          if(modulo==='Documentos')return ['Administrador','Administrador documentos','Asistente Documentos','Operador Documentos','Visitante documento','Asistente','Operador','Visita'].includes(rol);
-          return ['OM5','UIA'].includes(modulo)&&['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5'].includes(rol);
+          if(modulo==='Documentos')return ['Administrador','Administrador documentos','Asistente Documentos','Operador Documentos','Visitante documento','Asistente','Operador','Visita','Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(rol);
+          return ['OM5','UIA'].includes(modulo)&&['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(rol);
         }
         function hdEtiquetaRol_(rol){
           return ({'Administrador Total':'Administrador','Administrador documentos':'Administrador Documentos',
             'Visitante documento':'Visitante Documentos',
             'Administrador OM5':'Administrador OM5 / UIA','Asistente OM5':'Asistente OM5 / UIA',
             'Operador OM5':'Operador OM5 / UIA','Visitante OM5':'Visitante OM5 / UIA',
+            'Operador Documentos/OM5/UIA':'Operador Documentos / OM5 / UIA',
+            'Asistente Documentos/OM5/UIA':'Asistente Documentos / OM5 / UIA',
             'Asistente':'Asistente Documentos','Operador':'Operador Documentos','Visita':'Visitante Documentos'})[rol]||rol;
         }
         function hdSincronizarModulos_(){
@@ -1386,7 +1391,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             if (!currentUser) return;
             const isVisita = hdRolDocJS_(currentUser.tipo) === 'Visita' || currentUser.tipo === 'Visitante OM5';
             const isAdmin = hdRolDocJS_(currentUser.tipo) === 'Administrador';
-            const isAmpliaciones = ['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5'].includes(currentUser.tipo);
+            const isAmpliaciones = ['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(currentUser.tipo);
             const canPerson = hdPuedeAdministrarUsuarios_();
             hdSincronizarModulos_();
             const canBackup = hdPuedeRespaldar_();
@@ -1992,6 +1997,12 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             const esResponsable = !!responsable && responsable === String(currentUser.nombre || '').trim().toLowerCase();
             return esCreador || esResponsable;
         }
+        function puedeEliminarDocumento(doc) {
+            if (!currentUser || !doc || !hdPuedeModulo_('Documentos')) return false;
+            // REV35: operador y asistente integrales pueden eliminar cualquier documento.
+            if (['Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(currentUser.tipo)) return true;
+            return puedeGestionarDocumento(doc);
+        }
         function renderTable(docs) {
             const tbody = document.getElementById('documentosTableBody');
             if (!docs || docs.length === 0) {
@@ -2061,7 +2072,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                             <button onclick="verAdjuntosDocumento(${actualIdx})" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 border border-blue-200" title="Consulta: ficha completa y adjuntos"><i class="fa-solid fa-eye text-xs"></i></button>
                             ${canEditOrDelete ? `
                                 <button onclick="editDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 transition" title="Editar Documento"><i class="fa-solid fa-pen text-xs"></i></button>
-                                ${canEditOrDelete ? `<button onclick="deleteDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
+                                ${puedeEliminarDocumento(doc) ? `<button onclick="deleteDocument(${actualIdx})" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition" title="Eliminar"><i class="fa-solid fa-trash text-xs"></i></button>` : ''}
                             ` : ''}
                         </td>
                     </tr>
@@ -2969,7 +2980,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         function editDocument(idx) { openDocFormModal(idx); }
 
         async function deleteDocument(idx) {
-            if (!currentUser || !puedeGestionarDocumento(appData.Documentos[idx])) { alert('No estás autorizado a eliminar este documento.'); return; }
+            if (!currentUser || !puedeEliminarDocumento(appData.Documentos[idx])) { alert('No tienes permiso para eliminar este documento.'); return; }
             const doc = appData.Documentos[idx];
             if (!doc) return;
             const numDoc = String(getProp(doc, ['Numero_Documento', 1]));
@@ -3208,7 +3219,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         // ADMINISTRACIÓN Y REPORTES. No se modifica el módulo Documentos original.
         function hdAccesoAmpliaciones_(){return hdPuedeModulo_('OM5')&&hdPuedeModulo_('UIA');}
         function hdPuedeAdministrarUsuarios_(){return !!currentUser && ['Administrador','Administrador documentos'].includes(currentUser.tipo);}
-        function hdPuedeRespaldar_(){return !!currentUser && ['Administrador','Administrador documentos','Administrador OM5'].includes(currentUser.tipo);}
+        function hdPuedeRespaldar_(){return !!currentUser && ['Administrador','Administrador documentos','Asistente Documentos','Administrador OM5','Asistente OM5','Asistente Documentos/OM5/UIA'].includes(currentUser.tipo);}
         function hdEsc_(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
         async function hdAsegurarAmpl_(mod){if(!hdAccesoAmpliaciones_())throw Error('No tienes acceso a '+mod);if(!window.Ampliaciones?.getData(mod)){await Ampliaciones.refresh(mod);}let x=Ampliaciones.getData(mod);if(!x||!Array.isArray(x.registros))throw Error('No fue posible leer '+mod+'. Comprueba la URL del backend y tu sesión.');return x;}
         function hdNro_(r,candidatos){for(const k of candidatos){const encontrado=Object.keys(r).find(x=>x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'')===k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''));if(encontrado)return r[encontrado]}return '';}
@@ -3286,7 +3297,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           const amplAllowed=hdAccesoAmpliaciones_();
           const d=document.getElementById('hdBDocumentos');if(d){d.disabled=!docsAllowed;if(!docsAllowed)d.checked=false;}
           for(const id of ['hdBOM5','hdBUIA']){const e=document.getElementById(id);if(e){e.disabled=!amplAllowed;if(!amplAllowed)e.checked=false;}}
-          const sourceAllowed=['Administrador','Administrador documentos','Administrador OM5'].includes(currentUser?.tipo);
+          const sourceAllowed=hdPuedeRespaldar_();
           const original=document.querySelector('input[name="hdBFormato"][value="google"]');
           if(original){original.disabled=!sourceAllowed;
             if(!sourceAllowed&&original.checked){document.querySelector('input[name="hdBFormato"][value="profesional"]').checked=true;}}
@@ -3623,7 +3634,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             if (tabId === 'personal' && !hdPuedeAdministrarUsuarios_()) return;
             if (tabId === 'copias' && !hdPuedeRespaldar_()) return;
             if (tabId === 'dash-ampl' && !hdAccesoAmpliaciones_()) return;
-            if(currentUser && ['om5','uia','ocr'].includes(tabId) && !['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5'].includes(currentUser.tipo))return;
+            if(currentUser && ['om5','uia','ocr'].includes(tabId) && !['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(currentUser.tipo))return;
 
             if (tabId === 'catalogos' && (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador')) return;
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
@@ -3824,7 +3835,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV19-UIA-SIN-TIPO-20261114"></script>
+<script src="./ampliaciones-ui.js?v=REV33-OPERADOR-INTEGRAL-20261114"></script>
 <script>
 
 /* REV28: búsqueda autónoma; el módulo de ampliaciones y sus datos no se modifican. */
