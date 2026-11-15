@@ -1272,18 +1272,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
         <div id="hdMemoLocalPreview" hidden><div class="hd-memo-row"><strong>Archivo seleccionado (aún no guardado)</strong><a id="hdMemoLocalDownload" href="#" download>Descargar</a><button type="button" id="hdMemoLocalClose">Cerrar vista previa</button></div><iframe id="hdMemoLocalFrame" title="Vista previa del documento seleccionado"></iframe><img id="hdMemoLocalImage" alt="Imagen seleccionada" hidden></div>
         <div class="hd-memo-row"><button type="button" id="hdMemoSave" class="hd-memo-primary">Grabar memorando para seleccionados</button><button type="button" id="hdMemoNew">Nuevo memorando</button></div>
         <p id="hdMemoStatus" role="status" aria-live="polite" class="hd-memo-status"></p>
-        <div class="hd-memo-row"><h3>Historial de memorandos de la modalidad</h3><p id="hdMemoCount"></p></div>
-        <div class="hd-memo-report-panel"><label for="hdMemoReportType">Seleccionar reporte
-          <select id="hdMemoReportType">
-            <option value="resumen">1.- Resumen gerencial por modalidad (todas las modalidades)</option>
-            <option value="memorandos">2.- Relación de memorandos registrados</option>
-            <option value="expedientes">3.- Control de expedientes por modalidad</option>
-            <option value="pendientes">4.- Expedientes sin memorando</option>
-            <option value="historial">5.- Historial detallado por expediente</option>
-          </select></label>
-          <button type="button" id="hdMemoExport" class="hd-memo-primary">Descargar reporte Excel</button>
-          <span class="hd-memo-help">El resumen abarca todas las modalidades; los otros reportes corresponden a la modalidad seleccionada.</span>
-        </div>
+        <div class="hd-memo-row"><h3>Historial de memorandos de la modalidad</h3><p id="hdMemoCount"></p><button type="button" id="hdMemoExport" class="hd-memo-primary">Descargar Excel</button></div>
         <div class="hd-memo-scroller"><table><thead><tr><th>Memorando</th><th>Fecha</th><th>Expedientes</th><th>Asunto</th><th>Acciones</th></tr></thead><tbody id="hdMemoHistory"></tbody></table></div>
         <div id="hdMemoPdfPreview" hidden><div class="hd-memo-row"><strong>Vista previa del archivo</strong><a id="hdMemoPdfDownload" href="#" download="memorando.pdf">Descargar archivo</a><button type="button" id="hdMemoPdfClose">Cerrar vista previa</button></div><iframe id="hdMemoPdfFrame" title="Documento del memorando" loading="lazy"></iframe><img id="hdMemoServerImage" alt="Imagen del memorando" hidden></div>
       </div>
@@ -4025,7 +4014,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  </div>
 </div>
 <script src="./ampliaciones-ui.js?v=REV43-MEMOS-20261115"></script>
-<script src="./memorandos-masivos.js?v=REV50-REPORTES-20261115"></script>
+<script src="./memorandos-masivos.js?v=REV51-HISTORIAL-EXCEL-20261115"></script>
 <script>
 
 /* REV28: búsqueda autónoma; el módulo de ampliaciones y sus datos no se modifican. */
