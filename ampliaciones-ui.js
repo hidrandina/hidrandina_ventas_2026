@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV35 - Permisos de eliminación OM5/UIA para operadores autorizados. */
+/* HIDRANDINA_VENTAS REV39 - Pestañas de etapas OM5 y acciones iniciales. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -174,21 +174,21 @@ function render(mod){
  const body=$('amplTableBody'),theader=$('amplTableHead');if(!body||!theader)return;
  if(mod==='OM5'){
   const columns=OM5_REPORT_HEADERS, report=om5ReportRows({headers:h,registros:sub});
-  theader.innerHTML='<tr><th class="hd-choose">Elegir</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'<th>Acción</th></tr>';
+  theader.innerHTML='<tr><th class="hd-choose">Seleccionar</th><th class="hd-report-actions">Consultar / Editar</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'</tr>';
   body.innerHTML=report.map((row,i)=>{const original=sub[i],uid=id(original),chosen=n.selected===uid;
     return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td class="hd-choose"><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' aria-label="Seleccionar ítem '+safe(row['Ítem'])+'" onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td>'+
-    columns.map(k=>'<td title="'+safe(row[k]).replace(/\n/g,' / ')+'" class="'+(OM5_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(row[k])+'</td>').join('')+
-    '<td class="hd-report-actions"><button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td></tr>';
+    '<td class="hd-report-actions"><button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td>'+
+    columns.map(k=>'<td title="'+safe(row[k]).replace(/\n/g,' / ')+'" class="'+(OM5_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(row[k])+'</td>').join('')+'</tr>';
   }).join('')||'<tr><td colspan="42">No se encontraron expedientes</td></tr>';
  }else{
   // UIA: 18 campos sin la columna duplicada Tipo; Elegir y Acción se conservan.
   const columns=UIA_REPORT_HEADERS,report=uiaReportRows({headers:h,registros:sub});
-  theader.innerHTML='<tr><th class="hd-choose">Elegir</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'<th>Acción</th></tr>';
+  theader.innerHTML='<tr><th class="hd-choose">Seleccionar</th><th class="hd-report-actions">Consultar / Editar</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'</tr>';
   body.innerHTML=report.map((r,i)=>{
    const original=sub[i],uid=id(original),chosen=n.selected===uid;
    return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td class="hd-choose"><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' aria-label="Seleccionar ítem '+safe(r['Item'])+'" onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td>'+
-    columns.map(k=>'<td title="'+safe(r[k]).replace(/\n/g,' / ')+'" class="'+(UIA_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(r[k])+'</td>').join('')+
-    '<td class="hd-report-actions"><button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td></tr>';
+    '<td class="hd-report-actions"><button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td>'+
+    columns.map(k=>'<td title="'+safe(r[k]).replace(/\n/g,' / ')+'" class="'+(UIA_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(r[k])+'</td>').join('')+'</tr>';
   }).join('')||'<tr><td colspan="20">No se encontraron expedientes UIA</td></tr>';
  }
  $('amplCount').textContent=source.length+' expedientes; página '+(n.page+1)+' de '+Math.max(1,Math.ceil(source.length/30));
@@ -206,14 +206,51 @@ function fieldInput(h,value,editable){let date=/^fecha/i.test(key(h)),text=/obse
  if(text)return `<textarea ${disabled} rows="3" data-k="${safe(h)}">${safe(val)}</textarea>`;
  return `<input ${disabled} data-k="${safe(h)}" type="${date?'date':/^clientes|^redes|^postes/i.test(key(h))?'number':'text'}" ${/^clientes|^redes|^postes/i.test(key(h))?'min="0"':''} value="${safe(date?val.slice(0,10):val)}">`;
 }
+/* REV39: Navegación de cinco etapas. Los cambios escritos y los archivos seleccionados
+   quedan en memoria hasta Guardar; cambiar de pestaña no los descarta. */
+function captureStage(){
+ if(!registro||!registro.editable)return;
+ const form=$('amplFormBody');if(!form)return;
+ const changes={};
+ form.querySelectorAll('[data-k]').forEach(el=>{
+  if(el.closest('[data-doc]')?.hidden)return;
+  const k=el.getAttribute('data-k');if(k)changes[k]=String(el.value??'').trim();
+ });
+ registro.drafts[registro.stage]=changes;
+ const selected=[];
+ form.querySelectorAll('input[data-ampl-upload]').forEach(input=>{
+  if(input.closest('[data-doc]')?.hidden)return;
+  [...(input.files||[])].forEach(file=>selected.push({campo:input.getAttribute('data-ampl-upload'),file}));
+ });
+ registro.pendingFiles[registro.stage]=selected;
+}
+function switchStage(next){
+ if(!registro||registro.mod!=='OM5'||saving)return;
+ if(!Number.isInteger(next)||next<0||next>=ETAPAS.length||next===registro.stage)return;
+ const old=registro;
+ captureStage();
+ const scrollPanel=$('amplModal')?.querySelector('.hd-ampl-panel');
+ open(old.id,next,old.editable,old.drafts,old.pendingFiles);
+ if(scrollPanel)scrollPanel.scrollTop=0;
+}
+function renderStageTabs(){
+ const nav=$('amplStageTabs');if(!nav)return;
+ if(curso!=='OM5'){nav.hidden=true;nav.innerHTML='';return;}
+ nav.hidden=false;
+ nav.innerHTML=ETAPAS.map(([title],i)=>'<button type="button" class="hd-ampl-stage-tab '+(i===registro.stage?'is-active':'')+'" '+(i===registro.stage?'aria-current="step"':'')+' onclick="Ampliaciones.switchStage('+i+')">'+(i+1)+'. '+safe(title)+'</button>').join('');
+}
+
 /* REV08: formularios compactos según estructura real de Google Sheets. */
-function open(rid,stage=0,editable=false){
+function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
  let row=rid?sheet(curso).registros.find(r=>id(r)===rid):null;
  if(rid&&!row){update('Expediente no disponible.');return;}
  if(editable&&!edit()){update('Sin permisos de edición.');return;}
- registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:row||{},mod:curso};
+ const drafts=carriedDrafts||{},pendingFiles=carriedFiles||{};
+ const displayRow={...(row||{}),...Object.assign({},...Object.values(drafts))};
+ registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles};
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
- $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 12';
+ renderStageTabs();
+ $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 39';
  const grouped=new Set();
  // Ocultar solo los campos que se renderizan en filas agrupadas; nunca eliminar sus valores reales.
  if(stage===0||curso==='UIA'){
@@ -227,7 +264,7 @@ function open(rid,stage=0,editable=false){
  const out=[];
  hs.forEach(h=>{
   if(key(h)==='item'||grouped.has(h))return;
-  let value=row?row[h]:'';
+  let value=displayRow[h]??'';
   if(curso==='UIA'&&!rid&&key(h)==='estadoactual')value='Pendiente';
   out.push(`<label class="hd-ampl-label"><span>${safe(sheet(curso).etiquetas?.[key(h)]||h)}</span>${fieldInput(h,value,editable)}</label>`);
  });
@@ -297,7 +334,16 @@ function addDoc(kind){
  next.querySelector('input[data-k],textarea[data-k]')?.focus();
 }
 async function deleteDocField(campo){if(!registro?.id||!registro.editable)return;if(!confirm('¿Eliminar '+campo+' y enviar a la papelera TODOS sus adjuntos?'))return;try{let r=await api('amplDeleteDocument',{modulo:curso,expedienteId:registro.id,campo,confirmar:'ELIMINAR_DOCUMENTO'});let rid=registro.id;await refresh(curso);open(rid,registro.stage,true);update('Documento eliminado; '+r.adjuntos+' adjunto(s) enviados a papelera.');}catch(e){update(e.message)}}
-function close(){if(saving){formAlert('El guardado todavía está en curso. No cierres el formulario.','info');return;}$('amplModal').hidden=true;registro=null;}
+function close(){
+ if(saving){formAlert('El guardado todavía está en curso. No cierres el formulario.','info');return;}
+ if(registro?.editable){
+  captureStage();
+  const changed=Object.values(registro.drafts).some(obj=>Object.entries(obj).some(([k,v])=>String(registro.originalRow[k]??'').trim()!==v));
+  const attached=Object.values(registro.pendingFiles).some(arr=>arr.length>0);
+  if((changed||attached)&&!confirm('Hay cambios sin guardar. ¿Cerrar y descartarlos?'))return;
+ }
+ $('amplModal').hidden=true;registro=null;
+}
 function collect(){let result={};$('amplFormBody').querySelectorAll('[data-k]').forEach(e=>{if(e.closest('[data-doc]')?.hidden)return;const fieldName=e.getAttribute('data-k');if(registro?.mod==='UIA'&&key(fieldName)==='tipo')return;result[fieldName]=e.value.trim();});return result;}
 async function save(){
  if(saving)return;
@@ -306,12 +352,11 @@ async function save(){
  let savedOnServer=false;
  try{
   $('amplFormBody').querySelectorAll('.hd-ampl-invalid').forEach(el=>{el.classList.remove('hd-ampl-invalid');el.removeAttribute('aria-invalid');});
-  const payload=collect(),mod=registro.mod,isNew=!registro.id;
+  captureStage();
+  const payload={...Object.assign({},...Object.values(registro.drafts))},mod=registro.mod,isNew=!registro.id;
   const validation=validateBeforeSave(payload,mod,isNew);
   if(validation){formAlert(validation.message,'error',validation.field);return;}
-  const files=[...$('amplFormBody').querySelectorAll('input[data-ampl-upload]')]
-   .filter(x=>!x.closest('[data-doc]')?.hidden)
-   .flatMap(x=>[...x.files].map(file=>({campo:x.getAttribute('data-ampl-upload'),file})));
+  const files=Object.values(registro.pendingFiles).flat();
   for(const {file} of files)if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);
   saving=true;if(button){button.disabled=true;button.textContent='Guardando…';}
   update('Guardando expediente. No cierres esta ventana.');
@@ -361,14 +406,21 @@ async function previewSaved(aid){
  if(cached){await previewBlob(cached.blob,cached.name,cached.mime,t);return;}
  openPreview('Cargando vista previa…');
  try{
-  const parts=[];let info=null;
-  for(let i=0;i<100;i++){
-   const p=await api('amplPreview',{adjuntoId:aid,parte:i});if(t!==previewGeneration)return;
-   if(!p||!p.base64)throw Error('Respuesta incompleta del archivo.');
-   info=p;const b=atob(p.base64),a=new Uint8Array(b.length);for(let j=0;j<b.length;j++)a[j]=b.charCodeAt(j);parts.push(a);
-   if(i+1>=Number(p.total||1))break;
-   const status=$('hdAmplPreviewBody');if(status)status.textContent='Descargando fragmento '+(i+1)+' de '+p.total+'…';
+  const first=await api('amplPreview',{adjuntoId:aid,parte:0});
+  if(t!==previewGeneration)return;
+  if(!first?.base64)throw Error('Respuesta incompleta del archivo.');
+  const total=Number(first.total||1);if(!Number.isInteger(total)||total<1||total>100)throw Error('Número de fragmentos inválido.');
+  const parts=new Array(total);let info=first,done=0;
+  function collect(p,i){
+   if(!p?.base64||Number(p.parte)!==i)throw Error('Fragmento incompleto: '+i);
+   const b=atob(p.base64),a=new Uint8Array(b.length);for(let j=0;j<b.length;j++)a[j]=b.charCodeAt(j);parts[i]=a;done++;
+   const status=$('hdAmplPreviewBody');if(status&&t===previewGeneration)status.textContent='Descargando archivo: '+Math.round(done*100/total)+' %';
   }
+  collect(first,0);let next=1;
+  // Descarga de tres fragmentos a la vez: reduce las esperas sin saturar Drive.
+  await Promise.all(Array.from({length:Math.min(3,total-1)},async()=>{
+   while(next<total){const i=next++;const p=await api('amplPreview',{adjuntoId:aid,parte:i});if(t!==previewGeneration)return;collect(p,i);}
+  }));
   if(t!==previewGeneration)return;
   const blob=new Blob(parts,{type:info.mime||'application/octet-stream'}),name=info.nombre||'Archivo',mime=info.mime||'';
   cacheAttachment(aid,blob,name,mime);
@@ -386,7 +438,7 @@ async function previewBlob(blob,name,mime,generation){
  const dl=$('hdAmplPreviewDownload');dl.hidden=false;dl.href=url;dl.download=name;
  const typ=(mime||blob.type||'').toLowerCase(),ext=String(name).split('.').pop().toLowerCase();
  if(typ.startsWith('image/')||['jpg','jpeg','png','gif','webp','bmp'].includes(ext)){
-  const img=document.createElement('img');img.alt='Vista previa: '+name;img.src=url;img.className='hd-ampl-preview-image';body.appendChild(img);return;
+  const img=document.createElement('img');img.alt='Vista previa: '+name;img.decoding='async';img.src=url;img.className='hd-ampl-preview-image';body.appendChild(img);return;
  }
  if(typ.includes('pdf')||ext==='pdf'){
   if(!window.pdfjsLib){body.textContent='No se cargó el visor PDF. Usa Descargar.';return;}
@@ -575,7 +627,7 @@ function ocrLocate(mod,rid){window.switchTab(mod.toLowerCase());curso=mod;NAV[mo
 // Mantener intactas las funciones disponibles de OM5, UIA, guardado y adjuntos.
 window.Ampliaciones={
   getData:mod=>STORE[mod],
-  enter,refresh,select,page,search,open,close,save,
+  enter,refresh,select,page,search,open,close,save,switchStage,
   addDoc,deleteDocField,upload,download,previewSaved,localPreview,closePreview,removeFile,removeExp,
   recognize,ocrCancel,searchOCR,ocrOpen,ocrLocate,ocrAddManual,showOCRImage,resetCrop,
   // Estas tres funciones no existen en REV12. No bloquear el arranque.
