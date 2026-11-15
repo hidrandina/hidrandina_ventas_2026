@@ -33,6 +33,20 @@ function validateBeforeSave(payload,mod,isNew){
  // datos base en expedientes nuevos; las solicitudes nuevas siempre llevan fecha.
  const hs=sheet(mod).headers;
  const lookup=(name)=>Object.keys(payload).find(h=>key(h)===key(name));
+ if(mod==='OM5'){
+  const before=registro?.originalRow||{};
+  for(const [column,v] of Object.entries(payload)){
+   const k=key(column),value=String(v??'').trim();
+   if(!isNew && value===String(before[column]??'').trim())continue;
+   if(OM5_SMALL_NUMERIC.has(k)&&value){
+    const n=Number(value);
+    if(!Number.isFinite(n)||n<0||n>10000||(k==='postesmt'||k==='postesbt')&&!Number.isInteger(n))
+     return {message:'El campo '+column+' debe contener un número entre 0 y 10000'+(k.startsWith('postes')?' sin decimales':'')+'.',field:column};
+   }
+   if(OM5_SHORT_TEXT.has(k)&&value.length>16)
+    return {message:'El campo '+column+' admite un máximo de 16 caracteres.',field:column};
+  }
+ }
  if(isNew){
   const required=mod==='OM5'?['Solicitante','NombreSector','Departamento','Provincia','Distrito','UUEE','ClientesCaptar']:['Nombre','Direccion','Departamento','Provincia','Distrito'];
   for(const label of required){
@@ -214,10 +228,25 @@ function select(idValue){NAV[curso].selected=idValue;render(curso);}
 function page(delta){let n=NAV[curso];n.page=Math.max(0,n.page+delta);render(curso);}
 function search(){let n=NAV[curso];n.filter=$('amplSearch').value;n.col=$('amplField').value;n.start=$('amplStart').value;n.end=$('amplEnd').value;n.page=0;render(curso);}
 function valuesOptions(c){let catalog=sheet(curso).catalogos||{},map={Modalidad:'A',TipoSuministro:'B',Departamento:'C',Provincia:'D',Distrito:'E',EstadoExpVentas:'F',EstadoInspeccionVentas:'G',EstadoUMD:'H',EstadoCaptacionClientes:'I',UUEE:'J'};let col=map[Object.keys(map).find(x=>key(x)===key(c))];return col?catalog[col]||[]:[];}
-function fieldInput(h,value,editable){let date=/^fecha/i.test(key(h)),text=/observac|obs|memo/i.test(key(h)),opts=valuesOptions(h);if(key(h)==='estadoactual'&&curso==='UIA')opts=['Pendiente','Atendido'];let disabled=editable?'':'disabled';let val=format(value);
+/* REV61: límites de captura y controles compactos, exclusivamente OM5.
+   Los registros históricos no se recortan; se valida solo si se cambia su valor. */
+const OM5_SMALL_NUMERIC=new Set(['redesmt','redesbt','postesmt','postesbt']);
+const OM5_SHORT_TEXT=new Set(['sed','memorespgc','memoenvioindividualgt','memoenviogtmasivo']);
+function fieldInput(h,value,editable){
+ const name=key(h), date=/^fecha/i.test(name),opts=valuesOptions(h),disabled=editable?'':'disabled',val=format(value);
+ if(name==='estadoactual'&&curso==='UIA')opts=['Pendiente','Atendido'];
  if(opts.length)return `<select data-k="${safe(h)}" ${disabled}><option value="">Seleccionar...</option>${[...new Set([...opts,val].filter(Boolean))].map(v=>`<option ${v===val?'selected':''} value="${safe(v)}">${safe(v)}</option>`).join('')}</select>`;
+ if(curso==='OM5'&&OM5_SMALL_NUMERIC.has(name)){
+  // Metros pueden ser decimales; postes son cantidades enteras.
+  const step=name==='redesmt'||name==='redesbt'?'any':'1';
+  return `<input ${disabled} data-k="${safe(h)}" type="number" inputmode="decimal" min="0" max="10000" step="${step}" value="${safe(val)}" title="Valor entre 0 y 10000">`;
+ }
+ if(curso==='OM5'&&OM5_SHORT_TEXT.has(name)){
+  return `<input ${disabled} data-k="${safe(h)}" type="text" maxlength="16" autocomplete="off" value="${safe(val)}" title="Máximo 16 caracteres">`;
+ }
+ const text=/observac|obs|memo/i.test(name);
  if(text)return `<textarea ${disabled} rows="3" data-k="${safe(h)}">${safe(val)}</textarea>`;
- return `<input ${disabled} data-k="${safe(h)}" type="${date?'date':/^clientes|^redes|^postes/i.test(key(h))?'number':'text'}" ${/^clientes|^redes|^postes/i.test(key(h))?'min="0"':''} value="${safe(date?val.slice(0,10):val)}">`;
+ return `<input ${disabled} data-k="${safe(h)}" type="${date?'date':/^clientes|^redes|^postes/i.test(name)?'number':'text'}" ${/^clientes|^redes|^postes/i.test(name)?'min="0"':''} value="${safe(date?val.slice(0,10):val)}">`;
 }
 /* REV39: Navegación de cinco etapas. Los cambios escritos y los archivos seleccionados
    quedan en memoria hasta Guardar; cambiar de pestaña no los descarta. */
@@ -268,8 +297,9 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
  // REV60: disposición compacta exclusiva de OM5; UIA conserva su diseño anterior.
  ui.classList.toggle('hd-om5-compact',curso==='OM5');
+ ui.classList.toggle('hd-om5-dense-metrics',curso==='OM5'&&(stage===2||stage===3));
  renderStageTabs();
- $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 53';
+ $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 61';
  const grouped=new Set();
  // Ocultar solo los campos que se renderizan en filas agrupadas; nunca eliminar sus valores reales.
  if(stage===0||curso==='UIA'){
@@ -288,7 +318,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
   if(key(h)==='item'||grouped.has(h))return;
   let value=displayRow[h]??'';
   if(curso==='UIA'&&!rid&&key(h)==='estadoactual')value='Pendiente';
-  out.push(`<label class="hd-ampl-label"><span>${safe(sheet(curso).etiquetas?.[key(h)]||h)}</span>${fieldInput(h,value,editable)}</label>`);
+  out.push(`<label class="hd-ampl-label ${curso==='OM5'&&OM5_SMALL_NUMERIC.has(key(h))?'hd-om5-numeric':curso==='OM5'&&OM5_SHORT_TEXT.has(key(h))?'hd-om5-shorttext':''}"><span>${safe(sheet(curso).etiquetas?.[key(h)]||h)}</span>${fieldInput(h,value,editable)}</label>`);
  });
  if(stage===0||curso==='UIA'){
   out.push('<section class="hd-ampl-doc-group"><h4>Solicitudes</h4><div class="hd-ampl-doc-list" id="amplRequests"></div></section>');
@@ -298,7 +328,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
  if(curso==='OM5'&&stage===1)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones de expediente y memorandos GC</h4><div class="hd-ampl-doc-list" id="amplObsExp"></div></section>');
  if(curso==='OM5'&&stage===2)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones de inspección y memorandos GC</h4><div class="hd-ampl-doc-list" id="amplObsInsp"></div></section>');
  if(memoIndividual){
-  out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell"><span>Número de memorando individual</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
+  out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell hd-om5-shorttext"><span>Número de memorando individual</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
  }
  ui.innerHTML=out.join('');
  if(stage===0||curso==='UIA'){docs('sol',editable);if(curso==='OM5')docs('res',editable);}
@@ -351,7 +381,7 @@ function inlineUpload(fieldName,editable){
  // Con un solo archivo se reemplaza por ID; con archivos históricos múltiples,
  // cada fila ofrece reemplazo explícito para no modificar el equivocado.
  const upload=files.length>1?'':'<label class="hd-ampl-choose-file">'+(files.length?'Reemplazar archivo':'Adjuntar PDF o imagen')+'<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" '+(files.length?'data-ampl-replace="'+safe(files[0].id)+'"':'')+' aria-label="'+(files.length?'Reemplazar':'Adjuntar')+' archivo de '+safe(fieldName)+'"></label>';
- const camera=isPhoneCamera()&&files.length<=1?'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" '+(files.length?'data-ampl-replace="'+safe(files[0].id)+'"':'')+' aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'';
+ const camera=isPhoneCamera()&&files.length<=1?'<label class="hd-ampl-camera-label"><span class="hd-ampl-camera-icon" aria-hidden="true">📷</span><span class="hd-ampl-camera-text">Tomar foto</span><input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" '+(files.length?'data-ampl-replace="'+safe(files[0].id)+'"':'')+' aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'';
  const note=files.length>1?'Hay varios archivos históricos. Selecciona cuál reemplazar; los demás se conservarán.':files.length?'El archivo anterior solo se eliminará después de guardar correctamente el reemplazo.':'Archivo nuevo pendiente de guardar.';
  return '<div class="hd-ampl-inline-attachment"><span>Documento vinculado</span>'+saved+upload+camera+pendingHtml+'<small>PDF o imagen, hasta 10 MB. '+note+'</small><span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
