@@ -193,7 +193,19 @@ function render(mod){
  }
  $('amplCount').textContent=source.length+' expedientes; página '+(n.page+1)+' de '+Math.max(1,Math.ceil(source.length/30));
  $('amplPrev').disabled=n.page===0;$('amplNext').disabled=(n.page+1)*30>=source.length;
- const buttons=$('amplStages');if(buttons){buttons.innerHTML=mod==='OM5'?ETAPAS.map((et,i)=>{const selected=sheet(mod).registros.find(r=>id(r)===n.selected),st=[null,'EstadoExpVentas','EstadoInspeccionVentas','EstadoUMD','EstadoCaptacionClientes'][i],estado=selected&&st?get(selected,h,st):'';return '<button style="background:'+(i===0?'#1e67d2':estadoColor(estado))+'" '+(selected?'':'disabled')+' onclick="Ampliaciones.open(\''+safe(n.selected)+'\','+i+',false)">'+safe(et[0])+'</button>';}).join(''):'<span class="hd-ampl-muted">UIA no utiliza etapas</span>';}
+ const buttons=$('amplStages');
+ if(buttons){
+  const selected=mod==='OM5'?sheet(mod).registros.find(r=>id(r)===n.selected):null;
+  const stateFields=[null,'EstadoExpVentas','EstadoInspeccionVentas','EstadoUMD','EstadoCaptacionClientes'];
+  buttons.innerHTML=mod==='OM5'?ETAPAS.map((et,i)=>{
+   const stateField=stateFields[i];
+   // Registro no tiene estado de avance. Sin selección, las cinco etapas permanecen plomo.
+   const state=selected&&stateField?get(selected,h,stateField):'';
+   const color=estadoColor(state);
+   const label=stateField?(String(state||'').trim()||'Sin información'):'Sin información';
+   return '<button type="button" style="background:'+color+'" title="'+safe(et[0]+': '+label)+'" '+(selected?'':'disabled')+' onclick="Ampliaciones.open(\''+safe(n.selected)+'\','+i+',false)">'+safe(et[0])+'</button>';
+  }).join(''):'<span class="hd-ampl-muted">UIA no utiliza etapas</span>';
+ }
  $('amplNew').hidden=!edit();$('amplDelete').hidden=!edit()||!(adm()||asis()||oper());
 }
 
