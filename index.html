@@ -1351,6 +1351,31 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
              'hidrandina_adjuntos_cache'].forEach(k=>localStorage.removeItem(k));
         }
 
+        // REV36: roles históricos y etiquetas normalizadas antes de guardar Personal.
+        function hdCanonRolJS_(rol) {
+            const original=String(rol==null?'':rol).trim();
+            const k=original.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+                .toLowerCase().replace(/\s*\/\s*/g,'/')
+                .replace(/\s*,\s*/g,',').replace(/\s+/g,' ').trim();
+            const map={
+                'administrador':'Administrador','administrador total':'Administrador',
+                'administrador documentos':'Administrador documentos','administrador documento':'Administrador documentos',
+                'asistente':'Asistente Documentos','asistente documentos':'Asistente Documentos','asistente documento':'Asistente Documentos',
+                'operador':'Operador Documentos','operador documentos':'Operador Documentos','operador documento':'Operador Documentos',
+                'visita':'Visitante documento','visitante documentos':'Visitante documento','visitante documento':'Visitante documento',
+                'administrador om5':'Administrador OM5','administrador om5/uia':'Administrador OM5',
+                'asistente om5':'Asistente OM5','asistente om5/uia':'Asistente OM5',
+                'operador om5':'Operador OM5','operador om5/uia':'Operador OM5',
+                'visitante om5':'Visitante OM5','visitante om5/uia':'Visitante OM5',
+                'operador documentos/om5/uia':'Operador Documentos/OM5/UIA',
+                'operador documento/om5/uia':'Operador Documentos/OM5/UIA',
+                'operador documentos,om5 y uia':'Operador Documentos/OM5/UIA',
+                'asistente documentos/om5/uia':'Asistente Documentos/OM5/UIA',
+                'asistente documento/om5/uia':'Asistente Documentos/OM5/UIA',
+                'asistente documentos,om5 y uia':'Asistente Documentos/OM5/UIA'
+            };
+            return map[k]||original;
+        }
         function hdRolDocJS_(rol) {
           return ({'Administrador Total':'Administrador','Administrador documentos':'Administrador',
              'Asistente Documentos':'Asistente','Operador Documentos':'Operador',
@@ -1655,7 +1680,8 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                 }
                 const b=document.querySelector('#docForm button[type="submit"]');
                 if(b){b.disabled=false;b.textContent='Guardar';}
-                alert('No se completó la operación: '+(err.message||err));
+                const perfilDesactualizado=params.action==='saveCatalog' && params.type==='Personal' && /perfil no v[aá]lido/i.test(String(err.message||''));
+                alert('No se completó la operación: '+(err.message||err)+(perfilDesactualizado?'\n\nRevisa que hayas publicado una NUEVA VERSIÓN de Codigo.gs REV36 en la misma implementación de Apps Script.':'') );
             }
         }
 
@@ -3138,7 +3164,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                     document.getElementById('catalogInputThird').value = getProp(item, ['Correo_Electronico', 'Correo', 3]) || '';
                     document.getElementById('catalogInputUsuario').value = getProp(item, ['usuario', 'Usuario', 4]) || '';
                     document.getElementById('catalogInputClave').value = ''; // Nunca mostrar hash ni contraseña anterior
-                    document.getElementById('catalogInputTipoUsuario').value = ({'Administrador Total':'Administrador','Asistente':'Asistente Documentos','Operador':'Operador Documentos','Visita':'Visitante documento'})[getProp(item, ['tipo_usuario', 'Tipo_Usuario', 6])] || getProp(item, ['tipo_usuario', 'Tipo_Usuario', 6]) || 'Operador Documentos';
+                    document.getElementById('catalogInputTipoUsuario').value = hdCanonRolJS_(getProp(item, ['tipo_usuario', 'Tipo_Usuario', 'TIPO_USUARIO', 6]) || 'Operador Documentos');
                 } else if (type === 'Estados') {
                     const col = getProp(item, ['Color_Hex', 2]) || '#3b82f6';
                     document.getElementById('catalogInputValue').value = getProp(item, ['Nombre_Estado', 1]) || '';
@@ -3173,7 +3199,10 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             const fourth = document.getElementById('catalogInputFourthText') ? document.getElementById('catalogInputFourthText').value.trim() : '';
             const usuario = document.getElementById('catalogInputUsuario') ? document.getElementById('catalogInputUsuario').value.trim() : '';
             const clave = document.getElementById('catalogInputClave') ? document.getElementById('catalogInputClave').value.trim() : '';
-            const tipo_usuario = document.getElementById('catalogInputTipoUsuario') ? document.getElementById('catalogInputTipoUsuario').value.trim() : '';
+            const tipo_usuario = document.getElementById('catalogInputTipoUsuario') ? hdCanonRolJS_(document.getElementById('catalogInputTipoUsuario').value) : '';
+            if(type==='Personal' && !Array.from(document.getElementById('catalogInputTipoUsuario').options).some(o=>o.value===tipo_usuario)){
+                alert('El perfil seleccionado no corresponde a uno de los 11 roles autorizados.');return;
+            }
             if (!val) return;
             if (type === 'Personal' && clave && !validarClaveNueva(clave)) {
                 alert('La contraseña debe tener entre 4 y 20 caracteres, mayúscula, minúscula, número y carácter especial, sin espacios.');
