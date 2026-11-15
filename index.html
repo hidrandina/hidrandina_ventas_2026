@@ -408,7 +408,7 @@ body{background:#eef4fc!important}
 .hd-action{width:100%;display:flex;align-items:center;gap:10px;padding:11px 13px;text-align:left;border-radius:10px;font-weight:800;font-size:13px;min-height:44px;border:1px solid #c3d8f2}
 .hd-action i{width:20px;text-align:center}.hd-act-blue{background:#0e6be4;color:white;border-color:#0e6be4}.hd-act-green{background:#079b50;color:white;border-color:#079b50}.hd-act-purple{background:#6240c6;color:white;border-color:#6240c6}.hd-act-light{background:#f8fbff;color:#0e3771}
 .hd-action:hover{filter:brightness(.97)}
-.hd-recent-card,.hd-alert-card{min-height:250px}
+
 .hd-recent-table{width:100%;border-collapse:collapse;font-size:12px}
 .hd-recent-table th{background:#0a3c7c;color:white;padding:8px;text-align:left}.hd-recent-table td{padding:8px;border-bottom:1px solid #e4ebf5;overflow-wrap:anywhere}.hd-recent-table tr:nth-child(even){background:#f6f9fe}
 .hd-alert-item{background:#f3f7fd;border:1px solid #dfebf8;border-radius:10px;padding:13px;margin:7px 0;color:#17396d;font-size:13px}
@@ -595,10 +595,29 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
     padding: 20px 14px 92px !important;
   }
 }
+/* REV38: la autenticación es un estado explícito, no una superposición espontánea. */
+#loginModal { visibility:hidden; }
+body[data-hd-auth-state="login"] #loginModal {visibility:visible!important;}
+body[data-hd-auth-state="app"] #loginModal,
+body[data-hd-auth-state="restore"] #loginModal {display:none!important;visibility:hidden!important;}
+#hdSessionRestore {position:fixed;inset:0;z-index:10000;background:rgba(9,27,59,.92);display:none;align-items:center;justify-content:center;padding:16px;}
+body[data-hd-auth-state="restore"] #hdSessionRestore {display:flex;}
+body[data-hd-auth-state="app"] #hdSessionRestore,
+body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
+<div id="hdSessionRestore" role="status" aria-live="polite">
+  <div style="width:min(440px,100%);padding:28px;border-radius:18px;background:#fff;box-shadow:0 20px 75px #0003;text-align:center;">
+    <h2 style="font-size:20px;font-weight:800;color:#10356f;margin:0 0 12px;">HIDRANDINA — Verificando sesión</h2>
+    <p id="hdSessionRestoreMsg" style="color:#475569;font-size:14px;line-height:1.5;">Recuperando la conexión segura sin solicitar de nuevo la contraseña.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px;">
+      <button type="button" onclick="hdReintentarSesion_()" style="padding:11px 18px;border-radius:10px;background:#1858ad;color:#fff;font-weight:700;">Reintentar conexión</button>
+      <button type="button" onclick="logoutSession()" style="padding:11px 18px;border-radius:10px;background:#edf2fa;color:#16447d;font-weight:700;">Cambiar usuario</button>
+    </div>
+  </div>
+</div>
          <!-- Acceso por usuario y clave administrado por HIDRANDINA -->
      <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl space-y-6 border border-slate-100 text-center">
@@ -716,8 +735,6 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
              <button onclick="switchTab('reportes')" class="hd-action hd-act-light"><i class="fa-solid fa-file-export"></i> Exportar reporte</button>
              <button id="hdExecBackup" onclick="switchTab('copias')" class="hd-action hd-act-light"><i class="fa-solid fa-database"></i> Crear copia de seguridad</button>
             </aside>
-            <article class="hd-exec-card hd-recent-card"><h3><i class="fa-solid fa-list-check"></i> Últimos registros</h3><div id="hdExecRecent" class="hd-recent-content">Cargando registros…</div></article>
-            <article class="hd-exec-card hd-alert-card"><h3><i class="fa-solid fa-bell"></i> Alertas de seguimiento</h3><div id="hdExecAlerts">Consultando estados…</div></article>
           </div>
         </section>
 
@@ -1314,12 +1331,12 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
         let chartsInstance = { estados: null, origenes: null };
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Restaurar token sólo en la misma pestaña/sesión (nunca contraseña).
+            // Restaurar sesión en esta pestaña sin guardar contraseña. Cerrar sesión es explícito.
             checkSession();
             limpiarCacheAntigua_();
             // Salud del servidor: consulta ligera sin descargar todos los documentos.
             // Un error de negocio no equivale a una desconexión.
-            setInterval(() => { verificarConexionHidra_(); }, 15 * 60 * 1000);
+            setInterval(() => { verificarConexionHidra_(); }, 3 * 60 * 1000);
             // Si el navegador suspendió temporizadores, verificar al volver.
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) reanudarConexionHidra_();
@@ -1330,18 +1347,37 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
             // Reintentar automáticamente cuando una comprobación temporal falla.
             setInterval(() => {
                 if (!hidraUltimaConexionConfirmada) verificarConexionHidra_();
-            }, 60 * 1000);
+            }, 45 * 1000);
         });
 
+        // REV38: único controlador de la pantalla de acceso. Una lectura o un
+        // ping con retraso NO tienen permiso para abrir el formulario de login.
+        function hdSetAuthUI_(estado, mensaje) {
+            if (!['login','restore','app'].includes(estado)) return;
+            if (estado === 'login' && currentUser && window.hidraSessionToken && !hidraCerrandoSesion) return;
+            document.body.dataset.hdAuthState = estado;
+            const login = document.getElementById('loginModal');
+            if (login) login.classList.toggle('hidden', estado !== 'login');
+            const mensajeEl = document.getElementById('hdSessionRestoreMsg');
+            if (mensaje && mensajeEl) mensajeEl.textContent = mensaje;
+        }
+        async function hdReintentarSesion_() {
+            if (hidraCerrandoSesion || !window.hidraSessionToken) return;
+            hdSetAuthUI_('restore','Verificando nuevamente la sesión con el servidor...');
+            await fetchData();
+        }
         function checkSession() {
-            currentUser = null;
+            // Solo se ejecuta en el arranque de una página nueva.
             const token = sessionStorage.getItem('hidrandina_session_token');
             if (token && /^[a-f0-9]{64}$/.test(token)) {
                 window.hidraSessionToken = token;
-                // La sesión siempre se valida en servidor, nunca se acepta sin validación.
-                fetchData().catch(err => console.warn('No se pudo verificar la conexión todavía:',err));
+                hdSetAuthUI_('restore','Restableciendo tu sesión. No necesitas ingresar de nuevo.');
+                fetchData().catch(err => console.warn('Restauración de sesión:',err));
             } else {
-                document.getElementById('loginModal').classList.remove('hidden');
+                sessionStorage.removeItem('hidrandina_session_token');
+                window.hidraSessionToken = null;
+                currentUser = null;
+                hdSetAuthUI_('login');
             }
         }
 
@@ -1480,7 +1516,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
               cachePreview.clear();cachePreviewBytes=0;
               appData = {Documentos:[],Personal:[],Estados:[],Origenes:[],Alarmas:[],Adjuntos:[]};
               limpiarCacheAntigua_();
-              document.getElementById('loginModal').classList.remove('hidden');
+              hdSetAuthUI_('login');
               document.getElementById('userSessionBadge').classList.add('hidden');
               hidraCerrandoSesion = false;
             }
@@ -1635,7 +1671,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                 const u = data.user;
                 if (!u || !u.tipo) throw new Error('Respuesta sin usuario verificado');
                 currentUser = {nombre:u.nombre, usuario:u.usuario, tipo:u.tipo};
-                document.getElementById('loginModal').classList.add('hidden');
+                hdSetAuthUI_('app');
                 document.getElementById('userSessionBadge').innerText = `${currentUser.nombre} (${hdEtiquetaRol_(currentUser.tipo)})`;
                 document.getElementById('userSessionBadge').classList.remove('hidden');
                 applyUserPermissions();
@@ -1649,15 +1685,22 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
                 setConnectionStatus('error', /sesi[oó]n (finalizada|revocada|caducada|requerida)|debes iniciar sesi[oó]n/i.test(mensaje)
                     ? 'Sesión por verificar' : 'No sincronizado');
                 console.warn('HIDRANDINA: no se pudo completar la sincronización:', mensaje);
-                // Nunca superponer el formulario a alguien que ya estaba trabajando.
-                // Si realmente expiró, el usuario podrá cerrar sesión y autenticarse explícitamente.
+                // La aplicación que ya está autenticada permanece abierta.
+                // Durante una restauración, el acceso no se muestra si hay
+                // problemas de red; se ofrece reintentar sin perder la sesión.
                 if (!currentUser) {
-                    // Al abrir una pestaña sin una identidad validada, mantener el acceso visible.
-                    document.getElementById('loginModal').classList.remove('hidden');
-                    const aviso = document.getElementById('errorLogin');
-                    if (aviso) {
-                        aviso.textContent = 'No se pudo verificar la sesión: ' + mensaje;
-                        aviso.classList.remove('hidden');
+                    if (err.respuestaServidor && esSesionCaducadaHidra_(mensaje)) {
+                        sessionStorage.removeItem('hidrandina_session_token');
+                        window.hidraSessionToken = null;
+                        hidraSesionVersion++;
+                        hdSetAuthUI_('login');
+                        const aviso = document.getElementById('errorLogin');
+                        if (aviso) {
+                            aviso.textContent = 'La sesión ya no es válida. Ingresa nuevamente.';
+                            aviso.classList.remove('hidden');
+                        }
+                    } else {
+                        hdSetAuthUI_('restore','No se pudo confirmar la conexión. Puedes reintentar sin escribir tu usuario y contraseña. ' + mensaje);
                     }
                 }
                 return false;
@@ -3648,13 +3691,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           else hdExecText_('hdExecDocNote',canDoc?'No hay datos de Documentos disponibles.':'Sin permiso para consultar Documentos.');
           const modes={};if(om5){om5.registros.forEach(r=>{const mode=String(hdNro_(r,['Modalidad'])||'Sin modalidad').trim()||'Sin modalidad';modes[mode]=(modes[mode]||0)+1;});const arr=Object.entries(modes).sort((a,b)=>b[1]-a[1]).slice(0,10);hdExecGraph_('hdExecOM5Chart','bar',arr.map(x=>x[0]),arr.map(x=>x[1]),'#1976ee');hdExecText_('hdExecOM5Note',om5.registros.length+' expedientes OM5, clasificados por modalidad.');}
           else hdExecText_('hdExecOM5Note',canAmpl?'No se pudo consultar OM5.':'Sin acceso a OM5.');
-          const recent=document.getElementById('hdExecRecent');
-          if(docs && docs.length){const rows=docs.slice(-5).reverse();recent.innerHTML='<table class="hd-recent-table"><thead><tr><th>Documento</th><th>Responsable</th><th>Estado</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+hdEsc_(getProp(r,['Numero_Documento',1]))+'</td><td>'+hdEsc_(getProp(r,['Responsable',8]))+'</td><td>'+hdEsc_(getProp(r,['Estado',9]))+'</td></tr>').join('')+'</tbody></table>';}
-          else recent.textContent='No hay registros de Documentos disponibles para este usuario.';
-          const alerts=[];
-          if(docs){const pending=docs.filter(d=>/pendiente/i.test(String(getProp(d,['Estado',9])))).length;if(pending)alerts.push(pending+' documentos pendientes');const observed=docs.filter(d=>/observad/i.test(String(getProp(d,['Estado',9])))).length;if(observed)alerts.push(observed+' documentos observados');}
-          if(uia){const pending=uia.registros.filter(r=>String(hdNro_(r,['Estado Actual'])).trim().toLowerCase()==='pendiente').length;if(pending)alerts.push(pending+' expedientes UIA pendientes');}
-          const alertBox=document.getElementById('hdExecAlerts');alertBox.innerHTML=alerts.length?alerts.map(x=>'<div class="hd-alert-item"><i class="fa-solid fa-circle-info"></i>'+hdEsc_(x)+'</div>').join(''):'<div class="hd-alert-item">Sin alertas calculables con los datos disponibles.</div>';
+
         }
         function switchTab(tabId) {
             if(currentUser && hdEsSoloOM5_(currentUser.tipo) && ['documentos','dashboard','catalogos'].includes(tabId))return;
@@ -3814,7 +3851,7 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
       };
       window.loginUsuarioClave=async function(ev){
         ev.preventDefault();
-        if (hidraCerrandoSesion || document.getElementById('loginModal').classList.contains('hidden')) return;
+        if (hidraCerrandoSesion || (currentUser && window.hidraSessionToken) || document.body.dataset.hdAuthState !== 'login' || document.getElementById('btnIngreso').disabled) return;
         const estaVersion = ++hidraSesionVersion;
         const btn=document.getElementById('btnIngreso');
         const error=document.getElementById('errorLogin');
@@ -3833,12 +3870,13 @@ body > nav#hdExecutiveSidebar .tab-btn.hd-side-active.border-blue-600 {
           // en segundo plano; no debe prolongar innecesariamente el formulario.
           currentUser = res.user && res.user.tipo ? {nombre:res.user.nombre,usuario:res.user.usuario,tipo:res.user.tipo} : null;
           if(currentUser){
-              document.getElementById('loginModal').classList.add('hidden');
+              hdSetAuthUI_('app');
               document.getElementById('userSessionBadge').textContent=`${currentUser.nombre} (${hdEtiquetaRol_(currentUser.tipo)})`;
               document.getElementById('userSessionBadge').classList.remove('hidden');
               applyUserPermissions();
           }
           fetchData().catch(err=>console.warn(err));
+          verificarConexionHidra_().catch(err=>console.warn('Conexión:',err));
           document.getElementById('estadoLoginConexion').textContent='Sincronizando documentos...';
         }catch(e){
           if (estaVersion !== hidraSesionVersion || hidraCerrandoSesion) return;
