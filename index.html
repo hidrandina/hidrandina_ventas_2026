@@ -1358,6 +1358,17 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #amplFormBody .hd-ampl-remove{border:1px solid #e4b9b9;color:#a32b2b;background:#fff8f8;border-radius:8px;padding:7px;font-size:11px}
 @media(max-width:800px){#amplFormBody .hd-ampl-doc,#amplFormBody .hd-ampl-doc:has(.hd-ampl-note){grid-template-columns:1fr!important}#amplFormBody .hd-ampl-doc-heading{grid-column:1}#amplFormBody .hd-ampl-doc-group{padding:10px}#amplFormBody .hd-ampl-inline-attachment{min-height:60px}}
 #amplFormBody .hd-ampl-schema-warning{padding:12px;border-radius:8px;color:#8e421c;background:#fff3e8;border:1px solid #f0d1b9;font-size:13px}
+#amplFormBody .hd-ampl-attached-files{display:flex;flex-direction:column;gap:7px;padding:8px 0}
+#amplFormBody .hd-ampl-file-line{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;word-break:break-word;font-size:12px;font-weight:500}
+#amplFormBody .hd-ampl-file-actions{display:flex;gap:5px;flex-wrap:wrap}
+#amplFormBody .hd-ampl-file-actions button{border:1px solid #b6c9e5;border-radius:7px;background:#f5f9ff;color:#154d92;padding:5px 8px;cursor:pointer}
+#amplFormBody .hd-ampl-file-actions .hd-ampl-delete-file{color:#a52626;border-color:#efc4c4}
+#amplFormBody .hd-ampl-camera-label,#amplFormBody .hd-ampl-choose-file{font-size:12px;display:flex;flex-direction:column;gap:5px;font-weight:600}
+#amplFormBody .hd-ampl-camera-label{padding:8px;background:#eaf3ff;border-radius:8px}
+#amplFormBody .hd-ampl-no-attachment{font-weight:400;color:#6d7990}
+#amplFormBody .hd-ampl-pending{padding:6px;border-radius:7px;background:#fff7dc;color:#775000;font-weight:600;font-size:12px}
+#amplFormBody .hd-ampl-single-doc{grid-template-columns:minmax(220px,1fr) minmax(270px,1.5fr)}
+@media(max-width:800px){#amplFormBody .hd-ampl-single-doc{grid-template-columns:1fr}}
 #amplFormBody .hd-ampl-doc-group{background:#f7faff}
 #amplFormBody .hd-ampl-doc-heading{font-size:13px}
 #amplFormBody .hd-ampl-doc-cell input[type="date"]{max-width:100%}
@@ -4013,7 +4024,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV43-MEMOS-20261115"></script>
+<script src="./ampliaciones-ui.js?v=REV53-ADJUNTOS-ETAPAS-20261115"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
