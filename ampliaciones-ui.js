@@ -199,10 +199,11 @@ function render(mod){
   const stateFields=[null,'EstadoExpVentas','EstadoInspeccionVentas','EstadoUMD','EstadoCaptacionClientes'];
   buttons.innerHTML=mod==='OM5'?ETAPAS.map((et,i)=>{
    const stateField=stateFields[i];
-   // Registro no tiene estado de avance. Sin selección, las cinco etapas permanecen plomo.
+   // El registro existe y está completo si el usuario ha seleccionado un expediente.
+   // Sin selección, todas las etapas se muestran en plomo.
    const state=selected&&stateField?get(selected,h,stateField):'';
-   const color=estadoColor(state);
-   const label=stateField?(String(state||'').trim()||'Sin información'):'Sin información';
+   const color=i===0?(selected?'#1e67d2':'#8c96a6'):estadoColor(state);
+   const label=i===0?(selected?'Terminado':'Sin información'):(String(state||'').trim()||'Sin información');
    return '<button type="button" style="background:'+color+'" title="'+safe(et[0]+': '+label)+'" '+(selected?'':'disabled')+' onclick="Ampliaciones.open(\''+safe(n.selected)+'\','+i+',false)">'+safe(et[0])+'</button>';
   }).join(''):'<span class="hd-ampl-muted">UIA no utiliza etapas</span>';
  }
