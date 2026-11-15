@@ -368,6 +368,25 @@ html, body { max-width:100%; }
 #hdSmartStatus{color:#315780;min-height:24px;margin:12px 0}#hdSmartStatus[data-error="true"]{color:#a21c28}.hd-smart-results{margin-top:20px;max-width:1100px}.hd-smart-results>h3{font-weight:800;font-size:19px;margin-bottom:12px}.hd-smart-result{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:white;border:1px solid #cfdff4;border-radius:14px;padding:15px;margin:9px 0;box-shadow:0 4px 12px #13418b14}.hd-smart-result p{margin:5px 0;color:#345473}.hd-smart-result small{color:#60728c}.hd-smart-result button{white-space:nowrap}
 .hd-smart-mobile-photo{display:none}.hd-smart-photo-btn{display:block;text-align:center;background:#1156bc;color:white!important;font-weight:800;padding:16px;border-radius:12px;position:relative}.hd-smart-photo-btn input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}.hd-smart-mobile-photo p{color:#526784;font-size:13px;margin:8px 0}#hdSmartCanvas{width:100%;height:auto;display:block;border:1px solid #a9c5e9;border-radius:9px;touch-action:none;cursor:crosshair}#hdSmartCropWrap[hidden]{display:none!important}.hd-smart-photo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
 @media(max-width:767px){.hd-smart-mobile-photo{display:block}.hd-smart-searchpanel{padding:13px}.hd-smart-radios{flex-direction:column;gap:8px}.hd-smart-radios label{width:100%}.hd-smart-buttons button{flex:1}.hd-smart-result{align-items:flex-start}}
+
+/* REV39: Selección + Consulta/Edición al principio, fijadas al desplazarse. */
+#tab-om5 .hd-ampl-grid td.hd-choose,#tab-om5 .hd-ampl-grid th.hd-choose,
+#tab-uia .hd-ampl-grid td.hd-choose,#tab-uia .hd-ampl-grid th.hd-choose{width:84px;min-width:84px;max-width:84px;left:0;position:sticky;text-align:center;z-index:4}
+#tab-om5 .hd-ampl-grid td:nth-child(2),#tab-om5 .hd-ampl-grid th:nth-child(2),
+#tab-uia .hd-ampl-grid td:nth-child(2),#tab-uia .hd-ampl-grid th:nth-child(2){width:145px;min-width:145px;max-width:145px;left:84px;position:sticky;z-index:4;box-shadow:2px 0 5px rgba(12,48,104,.12)}
+#tab-om5 .hd-ampl-grid th:nth-child(2),#tab-uia .hd-ampl-grid th:nth-child(2),
+#tab-om5 .hd-ampl-grid th.hd-choose,#tab-uia .hd-ampl-grid th.hd-choose{z-index:7;background:#0b3479;color:#fff}
+#tab-om5 .hd-ampl-grid tbody tr:nth-child(even) td:nth-child(2),
+#tab-uia .hd-ampl-grid tbody tr:nth-child(even) td:nth-child(2){background:#edf5ff}
+#tab-om5 .hd-ampl-grid tbody tr:nth-child(odd) td:nth-child(2),
+#tab-uia .hd-ampl-grid tbody tr:nth-child(odd) td:nth-child(2){background:#fff}
+#tab-om5 .hd-ampl-grid .hd-report-actions button,#tab-uia .hd-ampl-grid .hd-report-actions button{font-size:12px;margin:0 0 5px;padding:6px 8px;white-space:nowrap}
+.hd-ampl-stage-tabs{display:flex;gap:8px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #d5e1f2;padding:12px 0;position:sticky;top:0;z-index:9}
+.hd-ampl-stage-tabs[hidden]{display:none!important}
+.hd-ampl-stage-tab{padding:9px 12px;border-radius:9px;background:#eff5ff;border:1px solid #bed1ed;color:#16417e;font-size:12px;font-weight:700;cursor:pointer}
+.hd-ampl-stage-tab.is-active{background:#1257b8;border-color:#1257b8;color:#fff}
+@media(max-width:650px){.hd-ampl-stage-tabs{flex-wrap:nowrap;overflow-x:auto}.hd-ampl-stage-tab{flex:0 0 auto}#tab-om5 .hd-ampl-grid td:nth-child(2),#tab-uia .hd-ampl-grid td:nth-child(2){min-width:112px;width:112px;max-width:112px}#tab-om5 .hd-ampl-grid th:nth-child(2),#tab-uia .hd-ampl-grid th:nth-child(2){min-width:112px;width:112px;max-width:112px}}
+
 </style>
 
 <style id="hdExecutiveStyles">
@@ -1204,6 +1223,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 
     <div id="amplModal" class="hd-ampl-modal" hidden>
       <div class="hd-ampl-panel"><div class="hd-ampl-controls"><h2 id="amplFormTitle">Expediente</h2><button onclick="Ampliaciones.close()">Cerrar ✕</button></div>
+      <nav id="amplStageTabs" class="hd-ampl-stage-tabs" aria-label="Etapas del expediente OM5" hidden></nav>
       <p id="amplFormStatus" class="hd-ampl-form-status" role="alert" aria-live="assertive" hidden></p>
       <div id="amplFormBody" class="hd-ampl-fields"></div><hr><div id="amplExistingAttachments"></div>
       <div class="hd-ampl-controls"><button id="amplSave" onclick="Ampliaciones.save()" class="hd-ampl-primary">Guardar</button><button onclick="Ampliaciones.close()">Cancelar</button></div></div>
@@ -2419,19 +2439,32 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 if (blobCache) {
                     blob=blobCache;
                 } else {
-                const partes=[];let total=null;let mime='application/octet-stream';let tamano=0;
-                for(let parte=0;total===null||parte<total;parte++) {
-                    const res=await postGateway({action:'previewAdjunto',adjuntoId:String(adjuntoId),parte:String(parte)},120000);
-                    if(solicitud!==vistaSolicitud)return;
-                    if(total===null){total=Number(res.totalPartes);mime=res.mimeType||mime;tamano=Number(res.tamano)||0;}
-                    if(!Number.isInteger(total)||total<1||total>120)throw new Error('Número de partes inválido.');
-                    if(!res.base64 || Number(res.parte)!==parte)throw new Error('Fragmento incompleto.');
-                    const datos=atob(res.base64);
-                    const bytes=new Uint8Array(datos.length);
-                    for(let i=0;i<datos.length;i++)bytes[i]=datos.charCodeAt(i);
-                    partes.push(bytes);
-                    estado.textContent=`Cargando vista previa: ${Math.round(100*(parte+1)/total)} %`;
+                let mime='application/octet-stream';let tamano=0;
+                const first=await postGateway({action:'previewAdjunto',adjuntoId:String(adjuntoId),parte:'0'},120000);
+                if(solicitud!==vistaSolicitud)return;
+                const total=Number(first.totalPartes);mime=first.mimeType||mime;tamano=Number(first.tamano)||0;
+                if(!Number.isInteger(total)||total<1||total>120)throw new Error('Número de partes inválido.');
+                const partes=new Array(total);
+                function parsePart(res,i){
+                  if(!res.base64||Number(res.parte)!==i)throw new Error('Fragmento incompleto: '+i);
+                  const bin=atob(res.base64),bytes=new Uint8Array(bin.length);
+                  for(let j=0;j<bin.length;j++)bytes[j]=bin.charCodeAt(j);
+                  partes[i]=bytes;
                 }
+                parsePart(first,0);let done=1;
+                estado.textContent=`Cargando vista previa: ${Math.round(done*100/total)} %`;
+                // Descarga limitada a 3 peticiones simultáneas para evitar saturar Apps Script.
+                let siguiente=1;
+                const workers=Array.from({length:Math.min(3,total-1)},async()=>{
+                  while(siguiente<total){
+                    const i=siguiente++;
+                    const res=await postGateway({action:'previewAdjunto',adjuntoId:String(adjuntoId),parte:String(i)},120000);
+                    if(solicitud!==vistaSolicitud)return;
+                    parsePart(res,i);done++;
+                    estado.textContent=`Cargando vista previa: ${Math.round(done*100/total)} %`;
+                  }
+                });
+                await Promise.all(workers);if(solicitud!==vistaSolicitud)return;
                 blob=new Blob(partes,{type:mime});
                 if(tamano&&blob.size!==tamano)throw new Error('La descarga no está completa.');
                 guardarCachePreview(String(adjuntoId),blob);
@@ -2491,7 +2524,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                     siguiente.onclick=()=>mostrarPagina(actual+1);
                     await mostrarPagina(1);
                 } else if(mime.startsWith('image/') || /\.(png|jpg|jpeg|webp|gif|bmp)$/i.test(nombre)) {
-                    const img=document.createElement('img');img.alt='Vista previa de '+nombre;img.src=vistaObjetoUrl;cuerpo.appendChild(img);
+                    const img=document.createElement('img');img.alt='Vista previa de '+nombre;img.decoding='async';img.src=vistaObjetoUrl;cuerpo.appendChild(img);
                 } else if(lower.endsWith('.docx') && window.mammoth) {
                     const result=await mammoth.convertToHtml({arrayBuffer:await blob.arrayBuffer()});
                     if(solicitud!==vistaSolicitud)return;
@@ -2909,12 +2942,14 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 if (archivo.type === 'application/pdf' || /\.pdf$/i.test(archivo.name)) {
                     visor = document.createElement('iframe');
                     visor.src = url;
+                    visor.loading = 'lazy';
                     visor.title = 'Vista previa PDF: ' + archivo.name;
                     visor.className = 'w-full rounded border border-slate-200';
                     visor.style.height = '280px';
                 } else if (archivo.type.startsWith('image/')) {
                     visor = document.createElement('img');
                     visor.src = url;
+                    visor.loading = 'lazy';visor.decoding = 'async';
                     visor.alt = 'Vista previa de ' + archivo.name;
                     visor.className = 'rounded max-w-full max-h-64 object-contain';
                 } else if (/\.docx$/i.test(archivo.name)) {
@@ -3902,7 +3937,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV33-OPERADOR-INTEGRAL-20261114"></script>
+<script src="./ampliaciones-ui.js?v=REV40-LIMPIAR-FOTO-PREVIEW-20261114"></script>
 <script>
 
 /* REV28: búsqueda autónoma; el módulo de ampliaciones y sus datos no se modifican. */
@@ -3913,7 +3948,7 @@ const clean=x=>String(x??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toL
 const digits=x=>String(x??'').replace(/\D/g,'').replace(/^0+/,'')||'0';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=x=>clean(x).replace(/[^a-z0-9]/g,'');
-let resultRows=[], queryId=0, currentFile=null,image=null,selection=null,origin=null,ocrWorker=null,fromSearch=false;
+let resultRows=[], queryId=0, currentFile=null,image=null,selection=null,origin=null,ocrWorker=null,fromSearch=false,photoRequest=0;
 let cached={OM5:null,UIA:null};
 const fieldOptions={OM5:[['todos','Todos'],['sol','N.º de solicitud'],['nombre','Solicitante'],['sector','Nombre del sector']],UIA:[['todos','Todos'],['sol','N.º de solicitud'],['nombre','Nombre']]};
 function base(){return document.querySelector('input[name="hdSmartBase"]:checked')?.value||'OM5';}
@@ -3973,7 +4008,6 @@ async function openResult(i,mod){
   await window.Ampliaciones.enter(mod);
   if(!window.Ampliaciones.getData(mod)?.registros?.some(r=>String(r.__HD_ID)===String(rid)))throw Error('El expediente ya no está disponible en la consulta.');
   window.Ampliaciones.open(String(rid),0,false);
-  addStageNavigator(mod,String(rid),0);
   fromSearch=true;
   status('Puedes cerrar la ficha para volver a los resultados.');
  }catch(e){fromSearch=false;window.switchTab('ocr');status('No se pudo abrir la consulta: '+(e.message||e),true);}
@@ -3998,17 +4032,23 @@ function draw(){const c=$('hdSmartCanvas');if(!c||!image)return;const ctx=c.getC
 }
 function pointer(e){const r=$('hdSmartCanvas').getBoundingClientRect();return {x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};}
 async function photoChange(){
+ const request=++photoRequest;
  const f=$('hdSmartPhoto').files?.[0];currentFile=f||null;image=null;selection=null;origin=null;$('hdSmartCropWrap').hidden=true;
+ const canvas=$('hdSmartCanvas');if(canvas){canvas.width=1;canvas.height=1;canvas.getContext('2d')?.clearRect(0,0,1,1);}
+ $('hdSmartOCRStatus').textContent='';
  if(!f)return;
  if(!f.type.startsWith('image/')){$('hdSmartOCRStatus').textContent='Solo se admiten fotografías.';return;}
  try{
-  const url=URL.createObjectURL(f);const img=new Image();img.src=url;await img.decode();URL.revokeObjectURL(url);
+  const url=URL.createObjectURL(f);const img=new Image();img.decoding='async';
+  try{img.src=url;await img.decode();}finally{URL.revokeObjectURL(url);}
+  if(request!==photoRequest)return;
   image=img;const c=$('hdSmartCanvas'),scale=Math.min(1,1100/img.naturalWidth,1300/img.naturalHeight);c.width=Math.max(1,Math.round(img.naturalWidth*scale));c.height=Math.max(1,Math.round(img.naturalHeight*scale));draw();$('hdSmartCropWrap').hidden=false;
   $('hdSmartOCRStatus').textContent='Marca con el dedo un rectángulo alrededor del número o texto.';
- }catch(e){$('hdSmartOCRStatus').textContent='No se pudo abrir la fotografía: '+(e.message||e);}
+ }catch(e){if(request===photoRequest)$('hdSmartOCRStatus').textContent='No se pudo abrir la fotografía: '+(e.message||e);}
 }
 async function readZone(){
  if(!image)return;
+ const request=photoRequest;
  const btn=$('hdSmartRead');btn.disabled=true;const st=$('hdSmartOCRStatus');
  let worker=null;
  try{
@@ -4019,20 +4059,28 @@ async function readZone(){
   }
   const bounds=selection;const source=document.createElement('canvas');source.width=Math.max(1,Math.round(bounds.w*image.naturalWidth));source.height=Math.max(1,Math.round(bounds.h*image.naturalHeight));source.getContext('2d').drawImage(image,bounds.x*image.naturalWidth,bounds.y*image.naturalHeight,bounds.w*image.naturalWidth,bounds.h*image.naturalHeight,0,0,source.width,source.height);
   worker=await window.Tesseract.createWorker('spa',1,{logger:p=>{if(p.status==='recognizing text')st.textContent='Reconociendo área: '+Math.round((p.progress||0)*100)+' %';}});
-  const result=await worker.recognize(source),raw=String(result.data?.text||'').trim();
+  const result=await worker.recognize(source);if(request!==photoRequest)return;
+  const raw=String(result.data?.text||'').trim();
   // Una sola línea seleccionada; el OCR no crea ni selecciona candidatos ficticios.
   const t=raw.split(/\n/).map(x=>x.trim()).filter(Boolean).join(' ');
   if(!t){st.textContent='No se reconoció texto. Selecciona una zona más precisa o amplia.';return;}
   $('hdSmartQuery').value=t;st.textContent='Texto reconocido: «'+t+'». Revísalo y corrígelo antes de pulsar Buscar.';
   source.width=source.height=0;
- }catch(e){st.textContent='No se pudo reconocer la fotografía: '+(e.message||e);}
+ }catch(e){if(request===photoRequest)st.textContent='No se pudo reconocer la fotografía: '+(e.message||e);}
  finally{if(worker)await worker.terminate().catch(()=>{});btn.disabled=false;}
 }
 function init(){
  const root=$('tab-ocr');if(!root||root.dataset.smartReady)return;root.dataset.smartReady='true';
  opts();document.querySelectorAll('input[name="hdSmartBase"]').forEach(r=>r.addEventListener('change',()=>{queryId++;opts();}));
  $('hdSmartSearchButton').addEventListener('click',search);$('hdSmartQuery').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();search();}});
- $('hdSmartClear').addEventListener('click',()=>{$('hdSmartQuery').value='';$('hdSmartResults').replaceChildren();status('');$('hdSmartQuery').focus();});
+ $('hdSmartClear').addEventListener('click',()=>{
+  queryId++;photoRequest++;resultRows=[];
+  $('hdSmartQuery').value='';$('hdSmartPhoto').value='';
+  currentFile=null;image=null;selection=null;origin=null;
+  const canvas=$('hdSmartCanvas');canvas.width=1;canvas.height=1;canvas.getContext('2d')?.clearRect(0,0,1,1);
+  $('hdSmartCropWrap').hidden=true;$('hdSmartOCRStatus').textContent='';
+  $('hdSmartResults').replaceChildren();status('');$('hdSmartQuery').focus();
+ });
  $('hdSmartPhoto').addEventListener('change',photoChange);$('hdSmartRead').addEventListener('click',readZone);$('hdSmartReset').addEventListener('click',()=>{selection=null;origin=null;draw();});
  const c=$('hdSmartCanvas');c.addEventListener('pointerdown',e=>{if(!image)return;c.setPointerCapture(e.pointerId);origin={...pointer(e),end:null};selection=null;draw();e.preventDefault();});
  c.addEventListener('pointermove',e=>{if(!origin)return;origin.end=pointer(e);draw();e.preventDefault();});
