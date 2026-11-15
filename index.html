@@ -1326,6 +1326,17 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 .hd-ampl-multi{white-space:pre-line;overflow-wrap:anywhere}
 .hd-ampl-selected{background:#ddedff}
 #amplStages{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}#amplStages button{color:white;border:0}
+/* REV54: Leyenda exclusivamente visual de estados OM5. No cambia valores ni permisos. */
+#tab-om5 .hd-om5-status-legend{display:flex;align-items:center;flex-wrap:wrap;gap:10px 20px;padding:11px 14px;margin:9px 0 12px;border:1px solid #cbdcf2;border-radius:12px;background:#f6f9ff;color:#193c6d;font-size:14px}
+#tab-om5 .hd-om5-status-legend-title{display:inline-flex;gap:8px;align-items:center;font-size:14px;white-space:nowrap}
+#tab-om5 .hd-om5-legend-item{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-weight:600}
+#tab-om5 .hd-om5-legend-dot{display:inline-block;flex:none;width:13px;height:13px;border-radius:4px;border:1px solid #0002}
+#tab-om5 .hd-om5-legend-dot.is-done{background:#1e67d2}
+#tab-om5 .hd-om5-legend-dot.is-progress{background:#e59624}
+#tab-om5 .hd-om5-legend-dot.is-pending{background:#d64545}
+#tab-om5 .hd-om5-legend-note{width:100%;color:#526783;line-height:1.5;font-size:12px}
+@media(max-width:600px){#tab-om5 .hd-om5-status-legend{gap:8px 14px;padding:10px;font-size:12px}#tab-om5 .hd-om5-status-legend-title{width:100%}}
+
 .hd-ampl-modal{position:fixed;inset:0;z-index:80;background:#001b3a99;display:flex;align-items:center;justify-content:center;padding:12px}
 .hd-ampl-panel{background:white;width:min(960px,99vw);max-height:94vh;overflow-y:auto;border-radius:19px;padding:18px}
 .hd-ampl-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
@@ -4192,7 +4203,14 @@ document.addEventListener('DOMContentLoaded',init);
            <button id="amplNew" class="hd-ampl-primary" onclick="Ampliaciones.open('',0,true)">Nuevo expediente</button>
            <button id="amplDelete" onclick="Ampliaciones.removeExp()">Eliminar seleccionado</button>
            <button onclick="Ampliaciones.excel()">Exportar Excel</button><button onclick="Ampliaciones.summary()">Reporte / Gráficos</button><button onclick="Ampliaciones.share()">WhatsApp</button>
-          </div><div id="amplStages"></div><p id="amplStatus" role="status"></p>
+          </div><div id="amplStages"></div>
+          <div class="hd-om5-status-legend" role="group" aria-label="Leyenda de colores de las etapas OM5">
+            <strong class="hd-om5-status-legend-title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Leyenda de estados</strong>
+            <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-done" aria-hidden="true"></span> Azul: Terminado</span>
+            <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-progress" aria-hidden="true"></span> Naranja: En proceso</span>
+            <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-pending" aria-hidden="true"></span> Rojo: Pendiente</span>
+            <small class="hd-om5-legend-note">Los colores representan el estado de la etapa seleccionada del expediente (Revisión, Inspección, Montaje o Gestión de clientes). «Registro» se muestra azul por ser la etapa inicial, no como indicador de término.</small>
+          </div><p id="amplStatus" role="status"></p>
           <div class="hd-ampl-grid"><table><thead id="amplTableHead"></thead><tbody id="amplTableBody"></tbody></table></div>
           <div class="hd-ampl-controls"><span id="amplCount"></span><button id="amplPrev" onclick="Ampliaciones.page(-1)">Anterior</button><button id="amplNext" onclick="Ampliaciones.page(1)">Siguiente</button></div>
           <div id="amplExtras"></div></div>`;
