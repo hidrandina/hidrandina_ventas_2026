@@ -120,21 +120,57 @@ async function removeMemo(id){if(busy||!mayEdit()||!serverReady)return;const m=m
  await Promise.all([window.Ampliaciones.refresh('OM5'),load()]);renderItems();renderMemos();if(editId===id)resetForm();alertBox('Memorando eliminado correctamente.','success');
  }catch(e){alertBox('No se pudo eliminar el memorando: '+e.message,'error');}finally{setBusy(false);}
 }
-function exportExcel(){
- if(!window.XLSX){alertBox('No se cargó la biblioteca de Excel.','error');return;}
- const mod=selectModalidad();if(!mod){alertBox('Selecciona una modalidad para exportar su control.','error');return;}
- const list=memos.filter(m=>normalize(m.modalidad)===normalize(mod));
- const h1=['Memorando GC → GT','Fecha de envío','Modalidad','Asunto','N.º de expedientes','Ítems incluidos','PDF adjunto','Usuario'];
- const rows1=[h1,...list.map(m=>[m.numero,m.fecha,m.modalidad,m.asunto,m.expedientes.length,m.expedientes.map(e=>e.item).join(', '),m.archivo?'Sí':'No',m.usuario])];
- const h2=['Ítem','Solicitante','Nombre del sector','Cantidad memorandos','Último memorando (AY)','Historial completo'];
- const rows2=[h2,...items.map(r=>{const id=String(r.__HD_ID),history=memos.filter(m=>m.expedientes.some(e=>String(e.id)===id));return [r['Ítem']||r.Item||'',r.Solicitante||'',r.NombreSector||'',history.length,r.MemoEnvioGTmasivo||'',history.map(m=>m.numero).join(' / ')];})];
- const wb=window.XLSX.utils.book_new();
- const sh1=window.XLSX.utils.aoa_to_sheet(rows1),sh2=window.XLSX.utils.aoa_to_sheet(rows2);
- sh1['!cols']=[{wch:30},{wch:16},{wch:24},{wch:48},{wch:19},{wch:45},{wch:16},{wch:24}];
- sh2['!cols']=[{wch:12},{wch:29},{wch:43},{wch:20},{wch:31},{wch:65}];
- window.XLSX.utils.book_append_sheet(wb,sh1,'Memorandos');window.XLSX.utils.book_append_sheet(wb,sh2,'Expedientes');
- const file='Control_Memorandos_OM5_'+new Date().toISOString().slice(0,10)+'.xlsx';window.XLSX.writeFile(wb,file);
- alertBox('Se inició la descarga del control de memorandos en Excel.','success');
+// REV50: reportes independientes. Reutiliza el exportador institucional existente
+// (Tahoma 11, encabezado azul, bordes, zoom 90 %, sin autofiltros y metadatos al pie).
+function memoReportDate(value){return hdMemoFechaInput(value)?hdMemoFechaInput(value).split('-').reverse().join('/'):String(value||'');}
+function memoItem(r){return String(r['Ítem']??r.Item??'');}
+function memoHistory(id){return memos.filter(m=>Array.isArray(m.expedientes)&&m.expedientes.some(e=>String(e.id)===String(id)));}
+function memoCount(r){return associatedCount(String(r.__HD_ID||''));}
+function memoReportData(){
+ const type=$('hdMemoReportType')?.value||'resumen';
+ const mod=selectModalidad();
+ const all=currentData()?.registros||[];
+ if(type!=='resumen'&&!mod)throw Error('Selecciona una modalidad para generar este reporte.');
+ const records=type==='resumen'?all:all.filter(r=>normalize(r.Modalidad)===normalize(mod));
+ const selectedMemos=type==='resumen'?memos:memos.filter(m=>normalize(m.modalidad)===normalize(mod));
+ if(!serverReady)throw Error('No se recuperó el historial. Pulsa Actualizar datos antes de descargar un reporte.');
+ const byMod=Array.from(new Set(all.map(r=>String(r.Modalidad||'').trim()).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'es'));
+ let title,headers,rows;
+ if(type==='resumen'){
+  title='Resumen gerencial de memorandos masivos GC a GT por modalidad';
+  headers=['Modalidad','Total expedientes','Con memorando','Sin memorando','Con 1 memorando','Con 2 memorandos','Con 3 memorandos','Con 4 memorandos','Total memorandos registrados','Cobertura (%)'];
+  rows=byMod.map(n=>{const rs=all.filter(r=>normalize(r.Modalidad)===normalize(n));const counts=rs.map(memoCount);const covered=counts.filter(x=>x>0).length;const ms=memos.filter(m=>normalize(m.modalidad)===normalize(n));return [n,rs.length,covered,rs.length-covered,...[1,2,3,4].map(k=>counts.filter(x=>x===k).length),ms.length,rs.length?Math.round(covered/rs.length*10000)/100:0];});
+  const total=rows.reduce((a,r)=>{for(let j=1;j<=8;j++)a[j]+=Number(r[j])||0;return a;},['TOTAL',0,0,0,0,0,0,0,0,0]);total[9]=total[1]?Math.round(total[2]/total[1]*10000)/100:0;rows.push(total);
+ }else if(type==='memorandos'){
+  title='Relación de memorandos masivos GC a GT — '+mod;
+  headers=['N.º','Memorando','Fecha de envío','Modalidad','Asunto','Expedientes incluidos','Ítems incluidos','Archivo adjunto','Usuario'];
+  rows=selectedMemos.map((m,i)=>[i+1,m.numero,memoReportDate(m.fecha),m.modalidad,m.asunto||'',m.expedientes?.length||0,(m.expedientes||[]).map(x=>x.item).join(', '),m.archivo?'Sí':'No',m.usuario||'']);
+ }else if(type==='expedientes'||type==='pendientes'){
+  title=(type==='pendientes'?'Expedientes sin memorando':'Control de expedientes y memorandos')+' — '+mod;
+  headers=['Ítem','Solicitante','Nombre del sector','Modalidad','Cantidad memorandos','Último memorando','Historial completo'];
+  const rs=type==='pendientes'?records.filter(r=>memoCount(r)===0):records;
+  rows=rs.map(r=>{const history=memoHistory(r.__HD_ID);return [memoItem(r),r.Solicitante||'',r.NombreSector||'',r.Modalidad||'',memoCount(r),r.MemoEnvioGTmasivo||'',history.map(m=>m.numero).join(' / ')||(r.MemoEnvioGTmasivo||'')];});
+ }else if(type==='historial'){
+  title='Historial detallado de memorandos por expediente — '+mod;
+  headers=['Ítem','Solicitante','Nombre del sector','Modalidad','Orden','Memorando','Fecha de envío','Asunto','Último memorando','Archivo adjunto'];
+  rows=[];for(const r of records){const hs=memoHistory(r.__HD_ID);if(!hs.length&&String(r.MemoEnvioGTmasivo||'').trim()){rows.push([memoItem(r),r.Solicitante||'',r.NombreSector||'',r.Modalidad||'',1,r.MemoEnvioGTmasivo||'','', 'Antecedente registrado antes de habilitar el historial',r.MemoEnvioGTmasivo||'','No identificado']);}else hs.forEach((m,i)=>rows.push([memoItem(r),r.Solicitante||'',r.NombreSector||'',r.Modalidad||'',i+1,m.numero,memoReportDate(m.fecha),m.asunto||'',r.MemoEnvioGTmasivo||'',m.archivo?'Sí':'No']));}
+ }else throw Error('Opción de reporte desconocida.');
+ return {title,headers,rows,type,mod};
+}
+async function exportExcel(){
+ if(busy){alertBox('Ya se está procesando otra operación.','info');return;}
+ const button=$('hdMemoExport');
+ try{
+  if(typeof hdExcelDescargar_!=='function')throw Error('No se cargó el exportador institucional de Excel.');
+  const r=memoReportData();
+  if(!r.rows.length){alertBox('El reporte seleccionado no tiene registros para exportar.','info');return;}
+  button.disabled=true;button.textContent='Preparando Excel…';alertBox('Preparando reporte profesional en Excel…');
+  const safe=(r.mod||'TODAS').replace(/[^a-z0-9_-]/gi,'_').slice(0,35);
+  const filename='Memorandos_OM5_'+r.type+'_'+safe+'_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  await hdExcelDescargar_(r.title,'Ampliaciones OM5 / Memorandos GC → GT',r.headers,r.rows,filename);
+  alertBox('Reporte '+r.title+' preparado y descargado correctamente.','success');
+ }catch(e){alertBox('No se pudo generar el reporte Excel: '+String(e?.message||e),'error');}
+ finally{button.disabled=false;button.textContent='Descargar reporte Excel';}
 }
 function closeLocalPdf(){
  const el=$('hdMemoLocalPreview');if(el)el.hidden=true;
