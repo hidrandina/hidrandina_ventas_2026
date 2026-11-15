@@ -1464,6 +1464,28 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  #amplFormBody.hd-om5-compact .hd-ampl-file-line>span{flex-basis:100%}
 }
 
+
+/* REV61: cuatro campos compactos por fila en Inspección y Montaje.
+   Los grupos de documentos conservan el ancho completo. */
+@media(min-width:1000px){#amplFormBody.hd-om5-dense-metrics{grid-template-columns:repeat(4,minmax(0,1fr));column-gap:12px;row-gap:12px}}
+@media(min-width:768px) and (max-width:999px){#amplFormBody.hd-om5-dense-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+#amplFormBody.hd-om5-dense-metrics>.hd-ampl-label{max-width:none;width:100%}
+#amplFormBody.hd-om5-dense-metrics>.hd-ampl-label input{box-sizing:border-box;width:100%;min-height:40px;height:40px;padding:7px 10px}
+#amplFormBody.hd-om5-dense-metrics>.hd-ampl-label textarea{min-height:58px}
+/* REV61 — Campos de longitud controlada y cámara compacta (OM5 solamente).
+   No cambia lógica de backend ni formularios de UIA. */
+#amplFormBody.hd-om5-compact>.hd-om5-numeric,
+#amplFormBody.hd-om5-compact>.hd-om5-shorttext{width:100%;max-width:260px;justify-self:start;align-self:start}
+#amplFormBody.hd-om5-compact>.hd-om5-numeric input,
+#amplFormBody.hd-om5-compact>.hd-om5-shorttext input{box-sizing:border-box;width:100%;height:40px;min-height:40px;padding:7px 10px}
+#amplFormBody.hd-om5-compact .hd-ampl-single-doc .hd-om5-shorttext input{width:100%;max-width:260px;min-height:40px;height:40px}
+#amplFormBody.hd-om5-compact .hd-ampl-camera-label{display:inline-flex;align-items:center;gap:5px;min-height:33px;font-size:12px;white-space:nowrap}
+#amplFormBody.hd-om5-compact .hd-ampl-camera-icon{font-size:19px;line-height:1}
+@media(max-width:767px){
+ #amplFormBody.hd-om5-compact>.hd-om5-numeric,
+ #amplFormBody.hd-om5-compact>.hd-om5-shorttext{max-width:100%;width:100%}
+ #amplFormBody.hd-om5-compact .hd-ampl-camera-label{padding:7px 10px}
+}
 </style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
@@ -4115,7 +4137,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV60-COMPACTO-20261115"></script>
+<script src="./ampliaciones-ui.js?v=REV61-CAMARA-CAMPOS-20261115"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
