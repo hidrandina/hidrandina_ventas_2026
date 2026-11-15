@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV46 — Memorandos masivos OM5 GC → GT.
+/* HIDRANDINA_VENTAS REV47 — Memorandos masivos OM5 GC → GT.
    Interfaz aislada: no reemplaza los formularios ni el renderizado existentes. */
 (function(){'use strict';
 const $=id=>document.getElementById(id);
@@ -147,8 +147,23 @@ async function showPdf(id){try{
  decode(first,0);let cursor=1;await Promise.all(Array.from({length:Math.min(3,chunks.length-1)},async()=>{while(cursor<chunks.length){let i=cursor++;decode(await api('amplMemoPdf',{operacion:'ver',memoId:id,parte:i}),i);}}));
  closePdf();const mime=String(first.mime||'application/pdf');pdfUrl=URL.createObjectURL(new Blob(chunks,{type:mime}));const isImg=/^image\//.test(mime);$('hdMemoPdfFrame').hidden=isImg;$('hdMemoServerImage').hidden=!isImg;if(isImg)$('hdMemoServerImage').src=pdfUrl;else $('hdMemoPdfFrame').src=pdfUrl;$('hdMemoPdfDownload').href=pdfUrl;$('hdMemoPdfDownload').download=first.nombre||'memorando.pdf';$('hdMemoPdfPreview').hidden=false;alertBox('Archivo disponible para consulta o descarga.','success');
  }catch(e){alertBox('No se pudo abrir el archivo: '+e.message,'error');}}
+// Solo mostrar la opción de cámara en teléfonos. No basta con un ancho de pantalla
+// pequeño: una ventana estrecha de PC no debe revelar el control.
+function configureMobileCamera(){
+ const container=$('hdMemoCameraBox');if(!container)return;
+ const ua=String(navigator.userAgent||'');
+ const isMobile=Boolean(navigator.userAgentData?.mobile)||/iPhone|iPod|Windows Phone|Android[^)]*Mobile|Android.*Mobile|Mobile.*Android/i.test(ua);
+ container.hidden=!isMobile;
+ container.style.display=isMobile?'block':'none';
+ if(!isMobile&&$('hdMemoCamera'))$('hdMemoCamera').value='';
+ const help=$('hdMemoFileHelp');
+ if(help)help.textContent=isMobile
+  ?'Puedes adjuntar un PDF, elegir una imagen o tomar una fotografía. Solo se adjunta un archivo por memorando.'
+  :'Puedes adjuntar un PDF o elegir una imagen. Solo se adjunta un archivo por memorando.';
+}
 function init(){
  const btn=$('hdMemoLaunch');if(!btn)return;
+ configureMobileCamera();
  btn.addEventListener('click',()=>{if(!window.hdPuedeModulo_?.('OM5')){alertBox('No tienes permiso para acceder a OM5.','error');return;}open();});$('hdMemoClose').addEventListener('click',close);$('hdMemoRefresh').addEventListener('click',reload);
  $('hdMemoModalidad').addEventListener('change',()=>{selection.clear();resetForm();renderItems();renderMemos();});
  $('hdMemoAll').addEventListener('click',()=>{items.forEach(x=>{const id=String(x.__HD_ID);if(associatedCount(id)<4)selection.add(id);});renderItems();});
