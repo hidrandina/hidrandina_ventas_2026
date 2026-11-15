@@ -1265,14 +1265,25 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
         <p class="hd-memo-help">Selecciona una modalidad, marca los expedientes y registra el envío. Cada expediente admite hasta cuatro memorandos vigentes. La columna AY muestra solo el último. Si un expediente ya tiene un memorando antiguo en AY, se conservará como antecedente al registrar uno nuevo.</p>
         <div class="hd-memo-row"><label>Modalidad <select id="hdMemoModalidad"><option value="">Selecciona una modalidad</option></select></label><button type="button" id="hdMemoRefresh">Actualizar datos</button><span id="hdMemoTotal"></span></div>
         <div class="hd-memo-row"><strong>Expedientes incluidos</strong><button type="button" id="hdMemoAll">Seleccionar todos los disponibles</button><button type="button" id="hdMemoNone">Quitar selección</button><span id="hdMemoPicked">0 seleccionados</span></div>
-        <div class="hd-memo-scroller"><table><thead><tr><th>Marcar</th><th>Ítem</th><th>Solicitante</th><th>Nombre del sector</th><th>Memorandos</th><th>Último envío (AY)</th></tr></thead><tbody id="hdMemoItems"></tbody></table></div>
+        <div class="hd-memo-scroller"><table><thead><tr><th>Marcar</th><th>Ítem</th><th>Solicitante</th><th>Nombre del sector</th><th>Memorandos</th><th>Último memorando</th></tr></thead><tbody id="hdMemoItems"></tbody></table></div>
         <h3>Registrar / editar memorando</h3><p id="hdMemoEditNote" class="hd-memo-help"></p>
         <div class="hd-memo-form"><label>Número de memorando <input id="hdMemoNumber" maxlength="180" placeholder="Ej. MEM-001-2026-GC" required></label><label>Fecha de envío <input type="date" id="hdMemoDate" required></label><label>Asunto (opcional) <input id="hdMemoSubject" maxlength="600"></label><label>Adjuntar PDF o imagen (opcional, máx. 10 MB) <input type="file" id="hdMemoPdf" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"></label></div>
         <div class="hd-memo-row"><label id="hdMemoCameraBox" style="display:none;flex:0 1 auto;min-width:205px" hidden>Tomar foto (celular) <input id="hdMemoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label><button type="button" id="hdMemoLocalOpen">Ver archivo seleccionado</button><span class="hd-memo-help" id="hdMemoFileHelp">Puedes adjuntar un PDF o una imagen. Solo se adjunta un archivo por memorando.</span></div>
         <div id="hdMemoLocalPreview" hidden><div class="hd-memo-row"><strong>Archivo seleccionado (aún no guardado)</strong><a id="hdMemoLocalDownload" href="#" download>Descargar</a><button type="button" id="hdMemoLocalClose">Cerrar vista previa</button></div><iframe id="hdMemoLocalFrame" title="Vista previa del documento seleccionado"></iframe><img id="hdMemoLocalImage" alt="Imagen seleccionada" hidden></div>
         <div class="hd-memo-row"><button type="button" id="hdMemoSave" class="hd-memo-primary">Grabar memorando para seleccionados</button><button type="button" id="hdMemoNew">Nuevo memorando</button></div>
         <p id="hdMemoStatus" role="status" aria-live="polite" class="hd-memo-status"></p>
-        <div class="hd-memo-row"><h3>Historial de memorandos de la modalidad</h3><button type="button" id="hdMemoExport">Descargar control Excel</button><p id="hdMemoCount"></p></div>
+        <div class="hd-memo-row"><h3>Historial de memorandos de la modalidad</h3><p id="hdMemoCount"></p></div>
+        <div class="hd-memo-report-panel"><label for="hdMemoReportType">Seleccionar reporte
+          <select id="hdMemoReportType">
+            <option value="resumen">1.- Resumen gerencial por modalidad (todas las modalidades)</option>
+            <option value="memorandos">2.- Relación de memorandos registrados</option>
+            <option value="expedientes">3.- Control de expedientes por modalidad</option>
+            <option value="pendientes">4.- Expedientes sin memorando</option>
+            <option value="historial">5.- Historial detallado por expediente</option>
+          </select></label>
+          <button type="button" id="hdMemoExport" class="hd-memo-primary">Descargar reporte Excel</button>
+          <span class="hd-memo-help">El resumen abarca todas las modalidades; los otros reportes corresponden a la modalidad seleccionada.</span>
+        </div>
         <div class="hd-memo-scroller"><table><thead><tr><th>Memorando</th><th>Fecha</th><th>Expedientes</th><th>Asunto</th><th>Acciones</th></tr></thead><tbody id="hdMemoHistory"></tbody></table></div>
         <div id="hdMemoPdfPreview" hidden><div class="hd-memo-row"><strong>Vista previa del archivo</strong><a id="hdMemoPdfDownload" href="#" download="memorando.pdf">Descargar archivo</a><button type="button" id="hdMemoPdfClose">Cerrar vista previa</button></div><iframe id="hdMemoPdfFrame" title="Documento del memorando" loading="lazy"></iframe><img id="hdMemoServerImage" alt="Imagen del memorando" hidden></div>
       </div>
@@ -1295,7 +1306,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
       .hd-memo-scroller th{background:#143e81;color:#fff;position:sticky;top:0;text-align:left}
       .hd-memo-scroller th,.hd-memo-scroller td{border-bottom:1px solid #dde6f2;padding:9px}
       .hd-memo-scroller input[type=checkbox]{width:19px;height:19px}
-      .hd-memo-actions{white-space:nowrap}.hd-memo-actions button{font-size:12px;padding:5px 7px;margin:2px}
+      .hd-memo-report-panel{display:flex;align-items:end;flex-wrap:wrap;gap:12px;padding:14px;background:#f2f6fd;border:1px solid #d3e0f3;border-radius:12px;margin:12px 0}.hd-memo-report-panel label{flex:1 1 330px}.hd-memo-report-panel select{max-width:780px}.hd-memo-actions{white-space:nowrap}.hd-memo-actions button{font-size:12px;padding:5px 7px;margin:2px}
       #hdMemoPdfFrame,#hdMemoLocalFrame{width:100%;height:55vh;border:1px solid #d3e0f3}#hdMemoLocalImage,#hdMemoServerImage{max-width:100%;max-height:65vh;object-fit:contain;margin:12px auto;border:1px solid #d3e0f3}#hdMemoLocalImage[hidden],#hdMemoServerImage[hidden]{display:none!important}
     </style>
     <!-- Menú exclusivo para pantallas pequeñas: utiliza las funciones originales -->
@@ -4014,7 +4025,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  </div>
 </div>
 <script src="./ampliaciones-ui.js?v=REV43-MEMOS-20261115"></script>
-<script src="./memorandos-masivos.js?v=REV49-FECHA-20261115"></script>
+<script src="./memorandos-masivos.js?v=REV50-REPORTES-20261115"></script>
 <script>
 
 /* REV28: búsqueda autónoma; el módulo de ampliaciones y sus datos no se modifican. */
