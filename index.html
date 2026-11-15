@@ -970,6 +970,14 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 
         <!-- TAB 3: GESTIÓN DE CATÁLOGOS -->
         <section id="tab-catalogos" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+              <h2 class="text-xl font-extrabold text-blue-950 mb-3">Gestión de catálogos</h2>
+              <div class="flex flex-wrap gap-2" role="group" aria-label="Grupo de catálogos">
+                <button type="button" id="hdCatDocTab" onclick="hdCatalogoGrupo('documentos')" class="px-4 py-2 bg-blue-700 text-white rounded-xl font-bold">Catálogos de Documentos</button>
+                <button type="button" id="hdCatAmplTab" onclick="hdCatalogoGrupo('ampliaciones')" class="px-4 py-2 border rounded-xl font-bold">Catálogos de Ampliaciones OM5 / UIA</button>
+              </div>
+            </div>
+            <div id="hdDocsCatalogArea">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1002,6 +1010,24 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                     </div>
                     <div id="manageAlarmasList" class="divide-y divide-slate-100 max-h-80 overflow-y-auto pr-1"></div>
                 </div>
+            </div>
+            </div><!-- /hdDocsCatalogArea -->
+            <div id="hdAmplCatalogArea" class="hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div class="flex flex-wrap gap-3 justify-between items-center">
+                <div><h3 class="font-extrabold text-blue-950 text-lg">Catálogos OM5 / UIA</h3><p class="text-sm text-slate-500">Fuente: hoja Menu de BD_Ampliaciones_OM5. Las diez listas son independientes.</p></div>
+                <button type="button" onclick="hdAmplCatCargar()" class="border border-blue-300 px-4 py-2 rounded-xl font-bold text-blue-900"><i class="fa-solid fa-rotate mr-1"></i>Actualizar listas</button>
+              </div>
+              <div class="grid gap-3 md:grid-cols-[minmax(220px,1fr)_auto] items-end">
+                <label class="block text-sm font-bold text-blue-950">Selecciona el catálogo
+                  <select id="hdAmplCatTipo" onchange="hdAmplCatPintar()" class="block mt-2 w-full rounded-xl border border-blue-200 p-3 bg-white"></select>
+                </label>
+                <button type="button" onclick="hdAmplCatAgregar()" class="px-4 py-3 rounded-xl bg-blue-700 text-white font-bold"><i class="fa-solid fa-plus mr-1"></i>Agregar valor</button>
+              </div>
+              <div id="hdAmplCatStatus" role="status" aria-live="polite" class="text-sm text-slate-600">Selecciona un catálogo para consultar sus valores.</div>
+              <div class="overflow-x-auto max-h-[55vh] overflow-y-auto border rounded-xl">
+                <table class="w-full text-sm text-left"><thead class="sticky top-0 bg-blue-900 text-white"><tr><th class="p-3">N.º</th><th class="p-3">Valor registrado</th><th class="p-3">Acciones</th></tr></thead><tbody id="hdAmplCatFilas"></tbody></table>
+              </div>
+              <p class="text-xs text-slate-500">Editar o eliminar un valor del catálogo no modifica automáticamente expedientes anteriores. Departamento, Provincia y Distrito no tienen relación ni filtros jerárquicos.</p>
             </div>
         </section>
     </main>
@@ -1471,7 +1497,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
         function applyUserPermissions() {
             if (!currentUser) return;
             const isVisita = hdRolDocJS_(currentUser.tipo) === 'Visita' || currentUser.tipo === 'Visitante OM5';
-            const isAdmin = hdRolDocJS_(currentUser.tipo) === 'Administrador';
+            const isAdmin = ['Administrador','Administrador Total'].includes(String(currentUser.tipo));
             const isAmpliaciones = ['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(currentUser.tipo);
             const canPerson = hdPuedeAdministrarUsuarios_();
             hdSincronizarModulos_();
@@ -3741,7 +3767,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             if (tabId === 'dash-ampl' && !hdAccesoAmpliaciones_()) return;
             if(currentUser && ['om5','uia','ocr'].includes(tabId) && !['Administrador','Administrador OM5','Asistente OM5','Operador OM5','Visitante OM5','Operador Documentos/OM5/UIA','Asistente Documentos/OM5/UIA'].includes(currentUser.tipo))return;
 
-            if (tabId === 'catalogos' && (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador')) return;
+            if (tabId === 'catalogos' && (!currentUser || !['Administrador','Administrador Total'].includes(String(currentUser.tipo)))) return;
             document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('border-blue-600', 'text-blue-600', 'font-extrabold');
@@ -3761,6 +3787,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             if (tabId === 'uia') {const ttl=document.querySelector('#tab-uia #amplWorkspace h2');if(ttl)ttl.textContent='AMPLIACIONES UIA';Ampliaciones.enter('UIA');}
             if (tabId === 'dashboard') renderStatsAndCharts();
             if (tabId === 'catalogos' || tabId === 'personal') renderCatalogsManagement();
+            if (tabId === 'catalogos' && !window.hdAmplCatReady) hdAmplCatCargar();
             if (tabId === 'dash-ampl') hdMostrarDashboardAmpl();
             if (tabId === 'reportes') {hdSincronizarModulos_(); if(hdPuedeModulo_(document.getElementById('hdRepModulo').value))hdReporteVista();}
         }
@@ -3941,7 +3968,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV40-LIMPIAR-FOTO-PREVIEW-20261114"></script>
+<script src="./ampliaciones-ui.js?v=REV42-CATALOGOS-20261115"></script>
 <script>
 
 /* REV28: búsqueda autónoma; el módulo de ampliaciones y sus datos no se modifican. */
@@ -4286,6 +4313,83 @@ window.HDNumReports={mount,run,refreshTypes,refreshFields,clearOutput};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
 })();
 
+</script>
+
+<!-- REV42: Catálogos de Ampliaciones administrados desde Menu A:J -->
+<script>
+(function(){
+  'use strict';
+  const LABELS=[['A','Modalidad'],['B','Tipo de suministro'],['C','Departamento'],['D','Provincia'],['E','Distrito'],['F','Estado Expediente'],['G','Estado Inspección Ventas'],['H','Estado UMD'],['I','Estado de Captación de Clientes'],['J','UUEE']];
+  let data={},loaded=false,busy=false;
+  const $=id=>document.getElementById(id);
+  const isAdmin=()=>typeof currentUser!=='undefined'&&currentUser&&['Administrador','Administrador Total'].includes(String(currentUser.tipo));
+  const status=(text,error=false)=>{const el=$('hdAmplCatStatus');if(el){el.textContent=text;el.style.color=error?'#b91c1c':'#36537d';}};
+  const ensureAdmin=()=>{if(isAdmin())return true;status('Acceso exclusivo del Administrador.',true);return false;};
+  function toggle(group){
+    if(!ensureAdmin())return;
+    const docs=group!=='ampliaciones';$('hdDocsCatalogArea').classList.toggle('hidden',!docs);$('hdAmplCatalogArea').classList.toggle('hidden',docs);
+    for(const [id,selected] of [['hdCatDocTab',docs],['hdCatAmplTab',!docs]]){
+      const el=$(id);el.classList.toggle('bg-blue-700',selected);el.classList.toggle('text-white',selected);el.classList.toggle('border',!selected);
+    }
+    if(!docs&&!loaded)load();
+  }
+  function chosen(){return $('hdAmplCatTipo')?.value||'A';}
+  function render(){
+    const tb=$('hdAmplCatFilas');if(!tb)return;tb.replaceChildren();
+    const entries=data[chosen()]||[];
+    if(!entries.length){const tr=tb.insertRow(),td=tr.insertCell();td.colSpan=3;td.className='p-4 text-slate-500';td.textContent=loaded?'No hay valores registrados.':'Selecciona Actualizar listas.';return;}
+    entries.forEach((entry,i)=>{
+      const tr=tb.insertRow();tr.className=i%2?'bg-slate-50':'';
+      let a=tr.insertCell();a.className='p-3';a.textContent=String(i+1);
+      a=tr.insertCell();a.className='p-3 font-semibold break-words';a.textContent=entry.valor;
+      a=tr.insertCell();a.className='p-3 whitespace-nowrap';
+      const edit=document.createElement('button');edit.type='button';edit.className='border border-blue-200 text-blue-800 rounded-lg px-3 py-1 mr-2';edit.textContent='Editar';edit.addEventListener('click',()=>mutate('editar',entry));a.appendChild(edit);
+      const del=document.createElement('button');del.type='button';del.className='border border-red-200 text-red-700 rounded-lg px-3 py-1';del.textContent='Eliminar';del.addEventListener('click',()=>mutate('eliminar',entry));a.appendChild(del);
+    });
+  }
+  async function load(){
+    if(!ensureAdmin()||busy)return;busy=true;status('Consultando catálogos de ampliaciones...');
+    try{
+      const r=await window.postGateway({action:'amplCatalogRead'},110000);
+      if(!r||!r.catalogos)throw Error('Respuesta sin catálogos.');
+      data=r.catalogos;loaded=true;window.hdAmplCatReady=true;render();status('Listas actualizadas desde la hoja Menu.');
+    }catch(e){status('No se pudieron consultar los catálogos: '+(e.message||e),true);}finally{busy=false;}
+  }
+  async function mutate(action,entry=null){
+    if(!ensureAdmin()||busy)return;
+    const name=LABELS.find(x=>x[0]===chosen())?.[1]||chosen();
+    let val='';
+    if(action==='agregar'||action==='editar'){
+      const v=prompt((action==='agregar'?'Agregar valor en ':'Editar valor de ')+name+':',entry?.valor||'');
+      if(v===null)return;val=v.trim();if(!val){status('Ingresa un valor no vacío.',true);return;}
+    }else if(action==='eliminar'){
+      if(!confirm('¿Eliminar «'+entry.valor+'» del catálogo '+name+'? Los expedientes existentes conservarán sus datos.'))return;
+    }
+    busy=true;status('Procesando '+name+'...');
+    try{
+      const r=await window.postGateway({action:'amplCatalogSave',columna:chosen(),operacion:action,valor:val,fila:entry?.fila||'',valorAnterior:entry?.valor||''},110000);
+      if(!r?.success)throw Error(r?.message||'No se confirmó la operación.');
+      status(r.mensaje||'Operación completada.');
+      alert(r.mensaje||'Operación completada.');
+      // Borrar caché de listas cargadas: refrescar ambas bases sin escribir expedientes.
+      loaded=false;
+      const fresh=await window.postGateway({action:'amplCatalogRead'},110000);
+      data=fresh.catalogos||{};loaded=true;window.hdAmplCatReady=true;render();
+      if(window.Ampliaciones?.refresh){
+        // Actualizar ambos repositorios; solo se redibuja el módulo activo.
+        await Promise.allSettled(['OM5','UIA'].map(m=>window.Ampliaciones.refresh(m)));
+      }
+    }catch(e){status('No se completó la operación: '+(e.message||e),true);alert('No se completó la operación: '+(e.message||e));}
+    finally{busy=false;}
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    const sel=$('hdAmplCatTipo');if(sel){LABELS.forEach(([k,label])=>{const o=document.createElement('option');o.value=k;o.textContent=k+' · '+label;sel.appendChild(o);});render();}
+  });
+  window.hdCatalogoGrupo=toggle;
+  window.hdAmplCatCargar=load;
+  window.hdAmplCatPintar=render;
+  window.hdAmplCatAgregar=()=>mutate('agregar');
+})();
 </script>
 </body>
 </html>
