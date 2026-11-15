@@ -1335,7 +1335,6 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #tab-om5 .hd-om5-legend-dot.is-done{background:#1e67d2}
 #tab-om5 .hd-om5-legend-dot.is-progress{background:#e59624}
 #tab-om5 .hd-om5-legend-dot.is-pending{background:#d64545}
-#tab-om5 .hd-om5-legend-note{width:100%;color:#526783;line-height:1.5;font-size:12px}
 @media(max-width:600px){#tab-om5 .hd-om5-status-legend{gap:8px 14px;padding:10px;font-size:12px}#tab-om5 .hd-om5-status-legend-title{width:100%}}
 
 .hd-ampl-modal{position:fixed;inset:0;z-index:80;background:#001b3a99;display:flex;align-items:center;justify-content:center;padding:12px}
@@ -4036,7 +4035,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV56-ESTADOS-20261115"></script>
+<script src="./ampliaciones-ui.js?v=REV57-REGISTRO-AZUL-20261115"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
@@ -4211,7 +4210,6 @@ document.addEventListener('DOMContentLoaded',init);
             <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-done" aria-hidden="true"></span> Terminado</span>
             <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-progress" aria-hidden="true"></span> En proceso</span>
             <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-pending" aria-hidden="true"></span> Pendiente</span>
-            <small class="hd-om5-legend-note">Sin expediente seleccionado, todas las etapas se muestran en plomo. Al seleccionar uno, cada etapa refleja su propio estado; «Registro» permanece plomo porque no tiene estado de avance.</small>
           </div><p id="amplStatus" role="status"></p>
           <div class="hd-ampl-grid"><table><thead id="amplTableHead"></thead><tbody id="amplTableBody"></tbody></table></div>
           <div class="hd-ampl-controls"><span id="amplCount"></span><button id="amplPrev" onclick="Ampliaciones.page(-1)">Anterior</button><button id="amplNext" onclick="Ampliaciones.page(1)">Siguiente</button></div>
