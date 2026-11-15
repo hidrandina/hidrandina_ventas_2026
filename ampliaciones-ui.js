@@ -266,6 +266,8 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
  const displayRow={...(row||{}),...Object.assign({},...Object.values(drafts))};
  registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles};
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
+ // REV60: disposición compacta exclusiva de OM5; UIA conserva su diseño anterior.
+ ui.classList.toggle('hd-om5-compact',curso==='OM5');
  renderStageTabs();
  $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 53';
  const grouped=new Set();
