@@ -635,7 +635,11 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #tab-ocr .hd-smart-heading h2{color:#fff!important;font-weight:850;line-height:1.25;letter-spacing:.015em;font-size:clamp(18px,2vw,24px);margin:0 0 5px}
 #tab-ocr .hd-smart-heading .hd-smart-help{margin:0;color:#dce9ff;font-size:13px;line-height:1.5}
 #tab-ocr .hd-smart-searchpanel{max-width:none;width:100%;border:1px solid #cadbf2;border-radius:15px;padding:20px 22px;background:#fff;box-shadow:0 5px 18px #1b46851a}
-#tab-ocr .hd-smart-form-grid{display:grid;grid-template-columns:minmax(220px,1fr) minmax(240px,1.25fr) minmax(180px,.75fr);gap:15px;align-items:end}
+#tab-ocr .hd-smart-form-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(190px,1fr);gap:15px;align-items:end}
+#tab-ocr .hd-smart-base{grid-column:1/-1}
+#tab-ocr .hd-smart-radios{max-width:100%;min-width:0}
+#tab-ocr .hd-smart-radios label{min-width:0;flex:0 1 210px;box-sizing:border-box}
+#tab-ocr .hd-smart-query,#tab-ocr .hd-smart-field{min-width:0}
 #tab-ocr .hd-smart-form-cell{display:flex;flex-direction:column;min-width:0;gap:8px}
 #tab-ocr .hd-smart-form-cell>label,#tab-ocr .hd-smart-field-title{font-size:12px;font-weight:800;color:#234879;margin:0;line-height:1.4}
 #tab-ocr .hd-smart-form-cell input[type=search],#tab-ocr .hd-smart-form-cell select{height:47px;min-height:47px;margin:0;border:1px solid #b8cde9;border-radius:10px;background:#f9fbff;color:#173b70;font-size:13px;font-weight:600;box-sizing:border-box;width:100%}
@@ -672,8 +676,8 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #tab-ocr .hd-smart-empty{background:#fff;border:1px solid #d5e2f4;border-radius:12px;padding:17px;color:#456180;font-size:13px}
 #tab-ocr .hd-smart-mobile-photo{margin:0 0 19px;padding:15px;border:1px solid #c9daf2;border-radius:13px;background:#f6faff}
 #tab-ocr .hd-smart-photo-btn{background:#1455b8;color:#fff;border-radius:10px}
-@media(max-width:1050px){#tab-ocr .hd-smart-form-grid{grid-template-columns:1fr 1fr}#tab-ocr .hd-smart-base{grid-column:1/-1}}
-@media(max-width:767px){#tab-ocr.hd-smart-search{padding:12px;border-radius:14px}#tab-ocr .hd-smart-heading{padding:14px;gap:10px}#tab-ocr .hd-smart-heading-icon{width:40px;height:40px;font-size:18px}#tab-ocr .hd-smart-heading h2{font-size:17px}#tab-ocr .hd-smart-heading .hd-smart-help{font-size:11px}#tab-ocr .hd-smart-searchpanel{padding:13px}#tab-ocr .hd-smart-form-grid{grid-template-columns:1fr;gap:13px}#tab-ocr .hd-smart-base{grid-column:auto}#tab-ocr .hd-smart-radios{flex-direction:row;gap:6px}#tab-ocr .hd-smart-radios label{width:auto;font-size:11px;padding:8px 5px;white-space:normal;text-align:center}#tab-ocr .hd-smart-buttons{display:grid;grid-template-columns:1fr 1fr}#tab-ocr .hd-smart-buttons button{width:100%;min-width:0}#tab-ocr .hd-smart-table th,#tab-ocr .hd-smart-table td{padding:11px 10px;font-size:11px}}
+@media(max-width:1050px){#tab-ocr .hd-smart-form-grid{grid-template-columns:minmax(0,1fr) minmax(180px,.7fr)}#tab-ocr .hd-smart-base{grid-column:1/-1}}
+@media(max-width:767px){#tab-ocr.hd-smart-search{padding:12px;border-radius:14px}#tab-ocr .hd-smart-heading{padding:14px;gap:10px}#tab-ocr .hd-smart-heading-icon{width:40px;height:40px;font-size:18px}#tab-ocr .hd-smart-heading h2{font-size:17px}#tab-ocr .hd-smart-heading .hd-smart-help{font-size:11px}#tab-ocr .hd-smart-searchpanel{padding:13px}#tab-ocr .hd-smart-form-grid{grid-template-columns:1fr;gap:13px}#tab-ocr .hd-smart-base{grid-column:auto}#tab-ocr .hd-smart-radios{flex-direction:row;gap:6px}#tab-ocr .hd-smart-radios label{width:auto;min-width:0;flex:1 1 0;font-size:11px;padding:8px 5px;white-space:normal;text-align:center}#tab-ocr .hd-smart-buttons{display:grid;grid-template-columns:1fr 1fr}#tab-ocr .hd-smart-buttons button{width:100%;min-width:0}#tab-ocr .hd-smart-table th,#tab-ocr .hd-smart-table td{padding:11px 10px;font-size:11px}}
 
 /* WhatsApp en Búsqueda Inteligente: preparar el mensaje sin abrir otra sesión. */
 /* HIDRANDINA REV58: Ocultar Ítem únicamente en las tablas de expedientes OM5/UIA.
