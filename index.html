@@ -658,12 +658,15 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #tab-ocr .hd-smart-table th:first-child,#tab-ocr .hd-smart-table td:first-child{position:sticky;left:0;min-width:70px;width:80px;z-index:2}
 #tab-ocr .hd-smart-table td:first-child{background:#f4f8ff;font-weight:800;color:#124a96}
 #tab-ocr .hd-smart-table th:first-child{z-index:4;background:#0b3479}
-#tab-ocr .hd-smart-table-actions{min-width:185px}
+#tab-ocr .hd-smart-table-actions{min-width:235px}
 #tab-ocr .hd-smart-action-buttons{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
 #tab-ocr .hd-smart-table-actions button{min-width:105px;background:#fff;color:#124da0;border:1px solid #acc5eb;border-radius:8px;padding:7px 10px;font-weight:750}
 #tab-ocr .hd-smart-open-btn{flex:1 1 auto}
 #tab-ocr .hd-smart-table-actions button.hd-smart-wa-btn{flex:0 0 44px;min-width:44px;width:44px;padding:7px 0;background:#ecfdf3;color:#15803d;border-color:#9ad0ab}
 #tab-ocr .hd-smart-wa-btn i{font-size:15px}
+#tab-ocr .hd-smart-table-actions button.hd-smart-zip-btn{flex:0 0 44px;min-width:44px;width:44px;padding:7px 0;background:#eef5ff;color:#1455b8;border-color:#a9c7ed}
+#tab-ocr .hd-smart-zip-btn i{font-size:14px}
+#tab-ocr .hd-smart-action-buttons button:disabled{opacity:.5;cursor:wait}
 #tab-ocr .hd-smart-empty{background:#fff;border:1px solid #d5e2f4;border-radius:12px;padding:17px;color:#456180;font-size:13px}
 #tab-ocr .hd-smart-mobile-photo{margin:0 0 19px;padding:15px;border:1px solid #c9daf2;border-radius:13px;background:#f6faff}
 #tab-ocr .hd-smart-photo-btn{background:#1455b8;color:#fff;border-radius:10px}
@@ -4131,10 +4134,11 @@ async function search(){
    resultRows.forEach((x,idx)=>{
     const row=x.row,number=value(row,data,'Ítem','Item')||String(idx+1),name=value(row,data,mod==='OM5'?'Solicitante':'Nombre'),place=value(row,data,mod==='OM5'?'NombreSector':'Direccion','Dirección');
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+esc(number)+'</td><td>'+esc(name||'Sin nombre')+'</td><td>'+esc(place||'—')+'</td><td>'+esc(x.matched.join(', '))+'</td><td class="hd-smart-table-actions"><div class="hd-smart-action-buttons"><button type="button" class="hd-smart-open-btn">Consultar</button><button type="button" class="hd-smart-wa-btn" title="Enviar resumen por WhatsApp" aria-label="Enviar resumen por WhatsApp"><i class="fa-brands fa-whatsapp"></i></button></div></td>';
+    tr.innerHTML='<td>'+esc(number)+'</td><td>'+esc(name||'Sin nombre')+'</td><td>'+esc(place||'—')+'</td><td>'+esc(x.matched.join(', '))+'</td><td class="hd-smart-table-actions"><div class="hd-smart-action-buttons"><button type="button" class="hd-smart-open-btn">Consultar</button><button type="button" class="hd-smart-wa-btn" title="Enviar resumen por WhatsApp" aria-label="Enviar resumen por WhatsApp"><i class="fa-brands fa-whatsapp"></i></button><button type="button" class="hd-smart-zip-btn" title="Descargar todos los adjuntos (ZIP)" aria-label="Descargar documentos adjuntos del expediente en ZIP"><i class="fa-solid fa-file-zipper"></i></button></div></td>';
     const buttons=tr.querySelectorAll('button');
     buttons[0].addEventListener('click',()=>openResult(idx,mod));
     buttons[1].addEventListener('click',()=>shareResult(idx,mod));
+    buttons[2].addEventListener('click',()=>downloadAttachments(idx,mod,buttons[2]));
     tbody.appendChild(tr);
    });
    wrapper.appendChild(table);box.appendChild(wrapper);
@@ -4216,10 +4220,9 @@ function summaryText(row,data,mod){
  }
  return lines.join('\n');
 }
-/* Compartir directamente sin ventanas intermedias en HIDRANDINA.
-   El navegador no puede detectar ni reutilizar una pestaña de WhatsApp que
-   el usuario haya abierto por su cuenta. Reutilizamos siempre la pestaña
-   denominada que abre este modulo para evitar duplicaciones posteriores. */
+/* WhatsApp solo abre su URL; nunca se redirige ni cierra una pestaña existente.
+   WhatsApp Web puede gestionar sus propias sesiones y advertencias, algo que
+   no puede controlar una web de otro origen. */
 function shareResult(i,mod){
  const selected=resultRows[i];if(!selected)return;
  const data=window.Ampliaciones?.getData?.(mod)||cached[mod];
@@ -4232,14 +4235,68 @@ function shareResult(i,mod){
   // WhatsApp solicita que el usuario seleccione el contacto y confirme Enviar.
   // No incluir un numero inventado ni intentar controlar WhatsApp desde otro sitio.
   const url=mobile?'https://api.whatsapp.com/send?text='+encoded:'https://web.whatsapp.com/send?text='+encoded;
-  const tab=window.open(url,'hdSmartWhatsapp');
-  if(tab){
-   try{tab.focus();}catch(_){/* El navegador puede impedir enfocar ventanas. */}
-   status('Resumen enviado a WhatsApp para elegir el destinatario y confirmar el envío.');
-  }else{
-   status('El navegador bloqueó WhatsApp. Permite las ventanas emergentes de HIDRANDINA y vuelve a pulsar el ícono.',true);
-  }
+  const tab=window.open(url,'_blank','noopener,noreferrer');
+  status('Se solicitó abrir WhatsApp para seleccionar el destinatario y confirmar el envío. Si no se abre, permite las ventanas emergentes de HIDRANDINA.');
  }catch(e){status('No se pudo abrir WhatsApp: '+(e.message||e),true);}
+}
+/* Descargar TODOS los adjuntos vinculados a un expediente, sin cambios al servidor.
+   La lista proviene de amplRead; el contenido se recupera por IDs autorizados
+   desde amplPreview. Si un archivo falla, no se genera un ZIP incompleto. */
+let downloadingSmart=false;
+function safeZipName(x){return String(x??'archivo').replace(/[\\/:*?"<>|\x00-\x1f]/g,'_').trim().slice(0,110)||'archivo';}
+function uniqueZipName(name,used){
+ let result=safeZipName(name),n=2;
+ const dot=result.lastIndexOf('.'),stem=dot>0?result.slice(0,dot):result,ext=dot>0?result.slice(dot):'';
+ while(used.has(result.toLowerCase()))result=stem+' ('+(n++)+')'+ext;
+ used.add(result.toLowerCase());return result;
+}
+function base64Bytes(encoded){
+ const raw=atob(encoded),out=new Uint8Array(raw.length);
+ for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);
+ return out;
+}
+async function smartFetchAttachment(item){
+ const parts=[];let count=null;
+ for(let i=0;count===null||i<count;i++){
+  const r=await window.postGateway({action:'amplPreview',adjuntoId:String(item.id),parte:String(i)},120000);
+  if(count===null){count=Number(r.total);if(!Number.isInteger(count)||count<1||count>120)throw Error('Número de fragmentos inválido.');}
+  if(Number(r.parte)!==i||Number(r.total)!==count||!r.base64)throw Error('El servidor devolvió un fragmento incompleto.');
+  parts.push(base64Bytes(r.base64));
+ }
+ return new Blob(parts,{type:item.mime||'application/octet-stream'});
+}
+async function downloadAttachments(i,mod,button){
+ if(downloadingSmart)return;
+ const selected=resultRows[i];if(!selected)return;
+ const data=window.Ampliaciones?.getData?.(mod)||cached[mod];
+ const rid=String(selected.row.__HD_ID||'');
+ if(!data||!rid){status('No se pudo identificar el expediente para descargar sus archivos.',true);return;}
+ const items=(data.adjuntos||[]).filter(a=>String(a.expedienteId)===rid);
+ if(!items.length){status('Este expediente no tiene documentos adjuntos para descargar.');return;}
+ if(!window.JSZip){status('No se cargó el componente ZIP. Actualiza la página e inténtalo nuevamente.',true);return;}
+ downloadingSmart=true;button.disabled=true;
+ const previous=button.innerHTML;button.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i>';
+ try{
+  const zip=new JSZip(),used=new Set();
+  for(let n=0;n<items.length;n++){
+   const item=items[n];
+   status('Descargando documento '+(n+1)+' de '+items.length+': '+String(item.nombre||'Archivo')+'…');
+   const blob=await smartFetchAttachment(item);
+   // Prefijar campo documental en el ZIP para preservar la relación con la solicitud o memorando.
+   const prefix=safeZipName(item.campo||'Documento');
+   const filename=uniqueZipName(prefix+'__'+String(item.nombre||'adjunto'),used);
+   zip.file(filename,blob);
+  }
+  status('Comprimiendo '+items.length+' documentos…');
+  const output=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:5}});
+  const itemNumber=value(selected.row,data,'Ítem','Item')||rid.slice(0,12);
+  const name='Expediente_'+mod+'_Item_'+safeZipName(itemNumber)+'.zip';
+  const url=URL.createObjectURL(output),anchor=document.createElement('a');
+  anchor.href=url;anchor.download=name;document.body.appendChild(anchor);anchor.click();anchor.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  status('Descarga iniciada: '+items.length+' documentos del expediente '+itemNumber+' en '+name+'.');
+ }catch(e){status('No se pudo completar el ZIP; no se descargó un paquete incompleto. '+(e.message||e),true);}
+ finally{downloadingSmart=false;button.disabled=false;button.innerHTML=previous;}
 }
 function addStageNavigator(mod,rid,active){
  let bar=$('hdSmartStageNavigator');
