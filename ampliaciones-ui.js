@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV62 — Diseño institucional OM5, lógica heredada REV61 intacta. */
+/* HIDRANDINA_VENTAS REV63 — Resumen WhatsApp OM5 y columna Ítem oculta en listado; sin alterar exportaciones. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -187,13 +187,13 @@ function render(mod){
  const n=NAV[mod], source=visible(mod), sub=source.slice(n.page*30,(n.page+1)*30), h=sheet(mod).headers;
  const body=$('amplTableBody'),theader=$('amplTableHead');if(!body||!theader)return;
  if(mod==='OM5'){
-  const columns=OM5_REPORT_HEADERS, report=om5ReportRows({headers:h,registros:sub});
+  const columns=OM5_REPORT_HEADERS.filter(k=>k!=='Ítem'), report=om5ReportRows({headers:h,registros:sub});
   theader.innerHTML='<tr><th class="hd-choose">Seleccionar</th><th class="hd-report-actions">Consultar / Editar</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'</tr>';
   body.innerHTML=report.map((row,i)=>{const original=sub[i],uid=id(original),chosen=n.selected===uid;
     return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td class="hd-choose"><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' aria-label="Seleccionar ítem '+safe(row['Ítem'])+'" onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td>'+
     '<td class="hd-report-actions"><button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td>'+
     columns.map(k=>'<td title="'+safe(row[k]).replace(/\n/g,' / ')+'" class="'+(OM5_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(row[k])+'</td>').join('')+'</tr>';
-  }).join('')||'<tr><td colspan="42">No se encontraron expedientes</td></tr>';
+  }).join('')||'<tr><td colspan="41">No se encontraron expedientes</td></tr>';
  }else{
   // UIA: 18 campos sin la columna duplicada Tipo; Elegir y Acción se conservan.
   const columns=UIA_REPORT_HEADERS,report=uiaReportRows({headers:h,registros:sub});
@@ -812,6 +812,59 @@ function ocrOpen(mod,rid){curso=mod;let sec=$('tab-'+mod.toLowerCase());window.s
 function ocrLocate(mod,rid){window.switchTab(mod.toLowerCase());curso=mod;NAV[mod].filter='';NAV[mod].page=Math.floor(sheet(mod).registros.findIndex(r=>id(r)===rid)/30);NAV[mod].selected=rid;render(mod);}
 // Corrección de arranque: no referenciar funciones inexistentes.
 // Mantener intactas las funciones disponibles de OM5, UIA, guardado y adjuntos.
+// REV63: compartir exclusivamente el resumen del expediente OM5 seleccionado.
+// No envía archivos automáticamente ni cambia el contenido de Google Sheets.
+function shareSelectedOM5(){
+ const mod=curso;
+ if(mod!=='OM5'){update('El resumen por WhatsApp está disponible desde Ampliaciones OM5.');return;}
+ const selectedId=NAV.OM5.selected;
+ if(!selectedId){update('Selecciona primero un expediente OM5 mediante el círculo de selección.');return;}
+ const data=sheet('OM5'),row=data.registros.find(r=>id(r)===selectedId);
+ if(!row){update('El expediente seleccionado ya no está disponible. Pulsa Consultar para actualizar.');return;}
+ const hs=data.headers;
+ const val=(...names)=>String(get(row,hs,...names)||'').trim();
+ const display=(v)=>v||'Sin información';
+ const lines=[
+  '*HIDRANDINA — RESUMEN DE EXPEDIENTE OM5*',
+  'Ítem: '+display(val('Item','Ítem')),
+  'Solicitante: '+display(val('Solicitante')),
+  'Sector: '+display(val('NombreSector')),
+  'Modalidad: '+display(val('Modalidad')),
+  'UUEE: '+display(val('UUEE')),
+  'Ubicación: '+[val('Departamento'),val('Provincia'),val('Distrito')].filter(Boolean).join(' / '),
+  'Suministro: '+display(val('Suministro')),
+  'Tipo de suministro: '+display(val('TipoSuministro')),
+  'Clientes a captar: '+display(val('ClientesCaptar')),
+  '',
+  '*SEGUIMIENTO POR ETAPAS*',
+  'Registro: Terminado',
+  'Revisión de expediente: '+display(val('EstadoExpVentas')),
+  'Inspección de campo: '+display(val('EstadoInspeccionVentas')),
+  'Montaje UMD: '+display(val('EstadoUMD','ESTADO_UMD')),
+  'Gestión de clientes: '+display(val('EstadoCaptacionClientes')),
+  'Clientes captados: '+display(val('ClientesCaptados')),
+  '',
+  '*DOCUMENTOS Y MEMORANDOS*',
+  'Solicitudes: '+(numDocs(row,'OM5')||'Sin solicitudes registradas'),
+  'Resoluciones: '+(numRes(row,'OM5')||'Sin resoluciones registradas'),
+  'Memorando individual GT: '+display(val('MemoEnvioIndividualGT')),
+  'Último memorando masivo GT: '+display(val('MemoEnvioGTmasivo')),
+  '',
+  'Resumen generado desde HIDRANDINA_VENTAS.'
+ ];
+ const message=lines.join('\n');
+ const target='https://api.whatsapp.com/send?text='+encodeURIComponent(message);
+ // Acceso directo por clic: no intervienen operaciones asíncronas ni servicios externos del proyecto.
+ const opened=window.open(target,'_blank');
+ if(opened)try{opened.opener=null;}catch(_ignored){}
+ if(!opened){
+  // Algunos navegadores bloquean ventanas; usar la misma pestaña como alternativa.
+  window.location.href=target;
+  return;
+ }
+ update('WhatsApp abierto con el resumen del expediente. Elige el destinatario y confirma el envío.');
+}
+
 window.Ampliaciones={
   getData:mod=>STORE[mod],
   enter,refresh,select,page,search,open,close,save,switchStage,
@@ -820,7 +873,7 @@ window.Ampliaciones={
   // Estas tres funciones no existen en REV12. No bloquear el arranque.
   excel:()=>{if(typeof window.hdReporteExcel!=='function')return update('El reporte no está disponible.');document.getElementById('hdRepModulo').value=curso;window.hdReporteExcel();},
   summary:()=>{document.getElementById('hdRepModulo').value=curso;window.switchTab('reportes');},
-  share:()=>update('El envío por WhatsApp de ampliaciones no está disponible en esta revisión.'),
+  share:shareSelectedOM5,
   reset:()=>{STORE.OM5=null;STORE.UIA=null;ocrCandidates=[];ocrFile=null;ocrCanceled=true;}
 };
 })();
