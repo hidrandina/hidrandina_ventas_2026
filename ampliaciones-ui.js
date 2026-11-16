@@ -299,6 +299,33 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
   out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell"><span>Número de memorando individual</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
  }
  ui.innerHTML=out.join('');
+ // REV59: Vista previa del memorando AY al cambiar la modalidad en Montaje.
+ // La selección definitiva se vuelve a calcular en el servidor al guardar.
+ if(curso==='OM5'&&editable&&rid&&stage===3){
+  const fields=[...ui.querySelectorAll('[data-k]')];
+  const modalidad=fields.find(el=>key(el.dataset.k)==='modalidad');
+  const memo=fields.find(el=>key(el.dataset.k)==='memoenviogtmasivo');
+  if(modalidad&&memo)modalidad.addEventListener('change',async()=>{
+   const active=registro,chosen=modalidad.value,original=String(active.originalRow[modalidad.dataset.k]||'');
+   if(key(chosen)===key(original)){
+    memo.value=String(active.originalRow[memo.dataset.k]||'');
+    return;
+   }
+   memo.value='';
+   if(!chosen){formAlert('Modalidad sin seleccionar. El memorando masivo quedará vacío al guardar.','info');return;}
+   try{
+    const r=await api('amplMemoRead');
+    if(registro!==active||modalidad.value!==chosen||!ui.contains(memo))return;
+    const memos=(r&&r.memorandos)||[];
+    const latest=memos.find(m=>key(m.modalidad)===key(chosen));
+    memo.value=latest?String(latest.numero||''):'';
+    formAlert(latest?'Memorando masivo de la nueva modalidad: '+memo.value+'. Se actualizará al guardar.':
+      'La nueva modalidad no tiene memorandos masivos vigentes. La columna AY quedará vacía al guardar.','info');
+   }catch(e){
+    if(registro===active)formAlert('No se pudo consultar el último memorando. El servidor verificará la modalidad al guardar: '+e.message,'info');
+   }
+  });
+ }
  if(stage===0||curso==='UIA'){docs('sol',editable);if(curso==='OM5')docs('res',editable);}
  if(curso==='UIA')docs('memo',editable);
  if(curso==='OM5'&&stage===1)docs('obsExp',editable);
