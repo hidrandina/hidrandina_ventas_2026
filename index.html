@@ -4176,7 +4176,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 }
 </style>
 
-<script src="./ampliaciones-ui.js?v=REV62-DISENO-INSTITUCIONAL-20261115"></script>
+<script src="./ampliaciones-ui.js?v=REV63-WHATSAPP-OM5-20261115"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
@@ -4343,7 +4343,7 @@ document.addEventListener('DOMContentLoaded',init);
           </div><div class="hd-ampl-controls">
            <button id="amplNew" class="hd-ampl-primary" onclick="Ampliaciones.open('',0,true)">Nuevo expediente</button>
            <button id="amplDelete" onclick="Ampliaciones.removeExp()">Eliminar seleccionado</button>
-           <button onclick="Ampliaciones.excel()">Exportar Excel</button><button onclick="Ampliaciones.summary()">Reporte / Gráficos</button><button onclick="Ampliaciones.share()">WhatsApp</button>
+           <button onclick="Ampliaciones.excel()">Exportar Excel</button><button type="button" onclick="Ampliaciones.share()" title="Enviar resumen del expediente seleccionado por WhatsApp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> WhatsApp</button>
           </div><div id="amplStages"></div>
           <div class="hd-om5-status-legend" role="group" aria-label="Leyenda de colores de las etapas OM5">
             <strong class="hd-om5-status-legend-title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Leyenda de estados</strong>
