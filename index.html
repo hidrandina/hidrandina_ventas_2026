@@ -55,17 +55,6 @@ main{max-width:1536px!important;padding-top:30px!important;padding-bottom:60px!i
 .hd-title-icon{height:56px;width:56px;display:flex;align-items:center;justify-content:center;border-radius:17px;background:linear-gradient(135deg,#ddecff,#f3f8ff);box-shadow:0 4px 13px #3870c12a;color:#0e5dd6;font-size:25px}
 .hd-title-row h2{font-size:clamp(22px,2vw,28px);font-weight:900;letter-spacing:-.045em;line-height:1.2;color:#111f3e}
 .hd-title-row p{font-size:13px;font-weight:500;color:#526784;margin-top:4px}
-.hd-module-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px;padding:0 0 8px}
-.hd-module-head .hd-title-row{margin-bottom:0;flex:1}
-.hd-module-head .hd-module-close{padding:10px 16px;border:1px solid #bfd0ea;border-radius:14px;background:#fff;color:#14457f;font-weight:800;box-shadow:0 8px 20px rgba(17,60,125,.08)}
-.hd-module-shell{background:#ffffffd9;border:1px solid #d8e3f4;border-radius:24px;padding:22px;box-shadow:0 12px 32px rgba(20,57,114,.08)}
-.hd-module-card{background:#fff;border:1px solid #d9e5f4;border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(22,67,131,.08);margin-bottom:16px}
-.hd-module-card:last-child{margin-bottom:0}
-.hd-module-card .hd-ampl-controls:last-child{margin-bottom:0}
-.hd-module-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-.hd-module-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 8px}
-.hd-module-meta .hd-module-count{font-size:13px;font-weight:800;color:#264778}
-@media(max-width:640px){.hd-module-shell{padding:14px;border-radius:18px}.hd-module-card{padding:14px;border-radius:16px}.hd-module-head{align-items:flex-start}.hd-module-head .hd-module-close{padding:9px 12px;font-size:12px}}
 #tab-documentos>div.hd-title-row+div{gap:15px!important}
 #tab-documentos>div.hd-title-row+div>div{min-height:129px;padding:22px!important;position:relative;overflow:hidden;border:1px solid #c9daf4!important;border-radius:18px!important;box-shadow:0 8px 24px #2a559b1c!important}
 #tab-documentos>div.hd-title-row+div>div:before{content:'';position:absolute;width:145px;height:145px;right:-85px;bottom:-85px;border:22px solid #ffffff58;border-radius:50%;pointer-events:none}
@@ -635,6 +624,48 @@ body[data-hd-auth-state="restore"] #hdSessionRestore {display:flex;}
 body[data-hd-auth-state="app"] #hdSessionRestore,
 body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 </style>
+
+<style id="hdSmartUIAStyle">
+/* Búsqueda inteligente: presentación institucional coherente con Ampliaciones UIA. */
+#tab-ocr.hd-smart-search{background:#f5f8ff;border:1px solid #d6e3f5;border-radius:18px;padding:22px;min-width:0}
+#tab-ocr .hd-smart-heading{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:17px 20px;border-radius:15px;background:linear-gradient(105deg,#092a66,#1454a5);color:#fff;box-shadow:0 6px 16px #093c7c23}
+#tab-ocr .hd-smart-heading-icon{width:49px;height:49px;flex:none;border-radius:13px;display:grid;place-items:center;background:#ffffff22;font-size:22px}
+#tab-ocr .hd-smart-heading h2{color:#fff!important;font-weight:850;line-height:1.25;letter-spacing:.015em;font-size:clamp(18px,2vw,24px);margin:0 0 5px}
+#tab-ocr .hd-smart-heading .hd-smart-help{margin:0;color:#dce9ff;font-size:13px;line-height:1.5}
+#tab-ocr .hd-smart-searchpanel{max-width:none;width:100%;border:1px solid #cadbf2;border-radius:15px;padding:20px 22px;background:#fff;box-shadow:0 5px 18px #1b46851a}
+#tab-ocr .hd-smart-form-grid{display:grid;grid-template-columns:minmax(220px,1fr) minmax(240px,1.25fr) minmax(180px,.75fr);gap:15px;align-items:end}
+#tab-ocr .hd-smart-form-cell{display:flex;flex-direction:column;min-width:0;gap:8px}
+#tab-ocr .hd-smart-form-cell>label,#tab-ocr .hd-smart-field-title{font-size:12px;font-weight:800;color:#234879;margin:0;line-height:1.4}
+#tab-ocr .hd-smart-form-cell input[type=search],#tab-ocr .hd-smart-form-cell select{height:47px;min-height:47px;margin:0;border:1px solid #b8cde9;border-radius:10px;background:#f9fbff;color:#173b70;font-size:13px;font-weight:600;box-sizing:border-box;width:100%}
+#tab-ocr .hd-smart-radios{display:flex;flex-wrap:nowrap;gap:9px}
+#tab-ocr .hd-smart-radios label{display:flex;align-items:center;justify-content:center;flex:1;gap:8px;min-height:47px;padding:9px 10px;border-radius:10px;background:#f7faff;border:1px solid #c5d6ed;color:#23508b;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
+#tab-ocr .hd-smart-radios label:has(input:checked){background:#e7f0ff;border-color:#2868cc;color:#0d4ca8;box-shadow:inset 0 0 0 1px #2868cc}
+#tab-ocr .hd-smart-radios input{width:15px!important;height:15px;flex:none;accent-color:#1455c8}
+#tab-ocr .hd-smart-buttons{margin-top:18px;display:flex;gap:10px;justify-content:flex-start}
+#tab-ocr .hd-smart-buttons button{min-width:125px;min-height:44px;border-radius:10px;font-size:13px}
+#tab-ocr .hd-smart-buttons .hd-smart-primary{background:#1455b8!important;color:#fff!important;border-color:#1455b8!important}
+#tab-ocr #hdSmartStatus{margin:8px 0 0;min-height:0;font-size:12px}
+#tab-ocr .hd-smart-results{max-width:none;margin-top:20px}
+#tab-ocr .hd-smart-result-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+#tab-ocr .hd-smart-result-heading h3{font-size:17px;color:#173d79;font-weight:800;margin:0}
+#tab-ocr .hd-smart-result-count{font-size:12px;font-weight:800;border:1px solid #c4d9f6;background:#e9f2ff;color:#154a96;border-radius:9px;padding:7px 11px}
+#tab-ocr .hd-smart-table-wrap{overflow:auto;max-height:67vh;border:1px solid #c9d9ef;border-radius:13px;background:#fff;overscroll-behavior:contain}
+#tab-ocr .hd-smart-table{width:100%;min-width:790px;border-collapse:separate;border-spacing:0;table-layout:auto}
+#tab-ocr .hd-smart-table th,#tab-ocr .hd-smart-table td{padding:13px 15px;min-width:110px;max-width:340px;text-align:left;vertical-align:top;white-space:normal;overflow-wrap:anywhere;border-bottom:1px solid #dce7f5;font-size:12px;line-height:1.5}
+#tab-ocr .hd-smart-table th{position:sticky;top:0;background:#0b3479;color:#fff;font-weight:800;z-index:3}
+#tab-ocr .hd-smart-table tbody tr:nth-child(even){background:#f5f9ff}
+#tab-ocr .hd-smart-table tbody tr:hover{background:#e8f2ff}
+#tab-ocr .hd-smart-table th:first-child,#tab-ocr .hd-smart-table td:first-child{position:sticky;left:0;min-width:70px;width:80px;z-index:2}
+#tab-ocr .hd-smart-table td:first-child{background:#f4f8ff;font-weight:800;color:#124a96}
+#tab-ocr .hd-smart-table th:first-child{z-index:4;background:#0b3479}
+#tab-ocr .hd-smart-table-actions{min-width:130px}
+#tab-ocr .hd-smart-table-actions button{width:100%;min-width:105px;background:#fff;color:#124da0;border:1px solid #acc5eb;border-radius:8px;padding:7px 10px;font-weight:750}
+#tab-ocr .hd-smart-empty{background:#fff;border:1px solid #d5e2f4;border-radius:12px;padding:17px;color:#456180;font-size:13px}
+#tab-ocr .hd-smart-mobile-photo{margin:0 0 19px;padding:15px;border:1px solid #c9daf2;border-radius:13px;background:#f6faff}
+#tab-ocr .hd-smart-photo-btn{background:#1455b8;color:#fff;border-radius:10px}
+@media(max-width:1050px){#tab-ocr .hd-smart-form-grid{grid-template-columns:1fr 1fr}#tab-ocr .hd-smart-base{grid-column:1/-1}}
+@media(max-width:767px){#tab-ocr.hd-smart-search{padding:12px;border-radius:14px}#tab-ocr .hd-smart-heading{padding:14px;gap:10px}#tab-ocr .hd-smart-heading-icon{width:40px;height:40px;font-size:18px}#tab-ocr .hd-smart-heading h2{font-size:17px}#tab-ocr .hd-smart-heading .hd-smart-help{font-size:11px}#tab-ocr .hd-smart-searchpanel{padding:13px}#tab-ocr .hd-smart-form-grid{grid-template-columns:1fr;gap:13px}#tab-ocr .hd-smart-base{grid-column:auto}#tab-ocr .hd-smart-radios{flex-direction:row;gap:6px}#tab-ocr .hd-smart-radios label{width:auto;font-size:11px;padding:8px 5px;white-space:normal;text-align:center}#tab-ocr .hd-smart-buttons{display:grid;grid-template-columns:1fr 1fr}#tab-ocr .hd-smart-buttons button{width:100%;min-width:0}#tab-ocr .hd-smart-table th,#tab-ocr .hd-smart-table td{padding:11px 10px;font-size:11px}}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -773,8 +804,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
         <section id="tab-om5" class="hidden hd-ampl-section"></section>
         <section id="tab-uia" class="hidden hd-ampl-section"></section>
         <section id="tab-ocr" class="hidden hd-ampl-section hd-smart-search">
-          <h2><i class="fa-solid fa-magnifying-glass"></i> Búsqueda inteligente de expedientes</h2>
-          <p class="hd-smart-help">Consulta expedientes de OM5 o UIA por sus campos de búsqueda. Los resultados se abren en modo de solo lectura.</p>
+          <div class="hd-smart-heading"><div class="hd-smart-heading-icon"><i class="fa-solid fa-magnifying-glass"></i></div><div><h2>BÚSQUEDA INTELIGENTE DE EXPEDIENTES</h2><p class="hd-smart-help">Consulta expedientes de Ampliaciones OM5 y UIA. Los resultados se abren en modo de solo lectura.</p></div></div>
           <div class="hd-smart-grid">
             <div class="hd-smart-searchpanel">
               <div class="hd-smart-mobile-photo">
@@ -784,15 +814,11 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                   <div class="hd-smart-photo-actions"><button type="button" id="hdSmartRead">Leer zona seleccionada</button><button type="button" id="hdSmartReset">Seleccionar otra zona</button></div></div>
                 <p id="hdSmartOCRStatus" role="status" aria-live="polite"></p>
               </div>
-              <label for="hdSmartQuery">Texto o número para buscar</label>
-              <input id="hdSmartQuery" type="search" autocomplete="off" placeholder="Ingresa el número de solicitud, nombre o sector">
-              <label>Base de datos</label>
-              <div class="hd-smart-radios" role="radiogroup" aria-label="Base de datos">
-                <label><input type="radio" name="hdSmartBase" value="OM5" checked> Ampliaciones OM5</label>
-                <label><input type="radio" name="hdSmartBase" value="UIA"> Ampliaciones UIA</label>
+              <div class="hd-smart-form-grid">
+                <div class="hd-smart-form-cell hd-smart-base"><span class="hd-smart-field-title" id="hdSmartBaseTitle">Módulo de ampliaciones</span><div class="hd-smart-radios" role="radiogroup" aria-labelledby="hdSmartBaseTitle"><label><input type="radio" name="hdSmartBase" value="OM5" checked> Ampliaciones OM5</label><label><input type="radio" name="hdSmartBase" value="UIA"> Ampliaciones UIA</label></div></div>
+                <div class="hd-smart-form-cell hd-smart-query"><label for="hdSmartQuery">Texto o número para buscar</label><input id="hdSmartQuery" type="search" autocomplete="off" placeholder="Número de solicitud, nombre o sector"></div>
+                <div class="hd-smart-form-cell hd-smart-field"><label for="hdSmartField">Buscar por</label><select id="hdSmartField"><option value="todos">Todos los campos</option><option value="sol">N.º de solicitud</option><option value="nombre">Solicitante</option><option value="sector">Nombre del sector</option></select></div>
               </div>
-              <label for="hdSmartField">Buscar por</label>
-              <select id="hdSmartField"><option value="todos">Todos</option><option value="sol">N.º de solicitud</option><option value="nombre">Solicitante</option><option value="sector">Nombre del sector</option></select>
               <div class="hd-smart-buttons"><button type="button" id="hdSmartSearchButton" class="hd-smart-primary"><i class="fa-solid fa-search"></i> Buscar</button><button type="button" id="hdSmartClear">Limpiar</button></div>
               <p id="hdSmartStatus" role="status" aria-live="polite"></p>
             </div>
@@ -1272,14 +1298,8 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
     <!-- REV43: Módulo independiente GC → GT; no cambia los formularios OM5/UIA -->
     <div id="hdMemoModal" class="hd-memo-overlay" hidden>
       <div class="hd-memo-panel" role="dialog" aria-modal="true" aria-labelledby="hdMemoTitle">
-        <header class="hd-module-head hd-memo-head">
-          <div class="hd-title-row">
-            <div class="hd-title-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
-            <div><h2 id="hdMemoTitle">Asignación de memorandos masivos</h2><p>Selecciona una modalidad, marca los expedientes y registra el envío de memorandos a la GT.</p></div>
-          </div>
-          <button id="hdMemoClose" type="button" class="hd-module-close">Cerrar ✕</button>
-        </header>
-        <p class="hd-memo-help">Cada expediente admite hasta cuatro memorandos vigentes. El sistema conserva el historial y muestra el memorando más reciente en la base OM5.</p>
+        <header class="hd-memo-toolbar"><h2 id="hdMemoTitle">Control de memorandos masivos GC → GT — OM5</h2><button id="hdMemoClose" type="button">Cerrar ✕</button></header>
+        <p class="hd-memo-help">Selecciona una modalidad, marca los expedientes y registra el envío. Cada expediente admite hasta cuatro memorandos vigentes. La columna AY muestra solo el último. Si un expediente ya tiene un memorando antiguo en AY, se conservará como antecedente al registrar uno nuevo.</p>
         <div class="hd-memo-row"><label>Modalidad <select id="hdMemoModalidad"><option value="">Selecciona una modalidad</option></select></label><button type="button" id="hdMemoRefresh">Actualizar datos</button><span id="hdMemoTotal"></span></div>
         <div class="hd-memo-row"><strong>Expedientes incluidos</strong><button type="button" id="hdMemoAll">Seleccionar todos los disponibles</button><button type="button" id="hdMemoNone">Quitar selección</button><span id="hdMemoPicked">0 seleccionados</span></div>
         <div class="hd-memo-scroller"><table><thead><tr><th>Marcar</th><th>Ítem</th><th>Solicitante</th><th>Nombre del sector</th><th>Memorandos</th><th>Último memorando</th></tr></thead><tbody id="hdMemoItems"></tbody></table></div>
@@ -1297,9 +1317,9 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
     <style>
       .hd-memo-overlay{position:fixed;inset:0;background:#071a3899;z-index:10000;display:flex;justify-content:center;align-items:center;padding:16px}
       .hd-memo-overlay[hidden],#hdMemoPdfPreview[hidden],#hdMemoLocalPreview[hidden],#hdMemoLaunch[hidden]{display:none!important}
-      .hd-memo-panel{background:#f7fbff;width:min(1280px,100%);max-height:94vh;overflow:auto;border-radius:24px;padding:22px;color:#17355d;border:1px solid #d8e4f4;box-shadow:0 18px 40px rgba(7,26,56,.22)}
+      .hd-memo-panel{background:white;width:min(1280px,100%);max-height:94vh;overflow:auto;border-radius:18px;padding:20px;color:#17355d}
       .hd-memo-toolbar,.hd-memo-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}
-      .hd-memo-head{margin-bottom:8px}.hd-memo-head .hd-title-row{padding-left:12px}.hd-memo-head h2{font-size:clamp(22px,2.1vw,30px);font-weight:900;color:#11203d}.hd-memo-head p{font-size:13px;color:#526784}
+      .hd-memo-toolbar{justify-content:space-between}.hd-memo-toolbar h2{font-size:22px;font-weight:800;color:#123875}
       .hd-memo-panel button{background:white;border:1px solid #a9c2e6;border-radius:9px;color:#124584;font-weight:700;padding:9px 13px}
       .hd-memo-panel .hd-memo-primary{background:#1765c9;color:white;border-color:#1765c9}
       .hd-memo-panel input,.hd-memo-panel select{border:1px solid #bad0e8;border-radius:8px;padding:10px;width:100%}
@@ -1343,16 +1363,6 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 .hd-ampl-multi{white-space:pre-line;overflow-wrap:anywhere}
 .hd-ampl-selected{background:#ddedff}
 #amplStages{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}#amplStages button{color:white;border:0}
-/* REV54: Leyenda exclusivamente visual de estados OM5. No cambia valores ni permisos. */
-#tab-om5 .hd-om5-status-legend{display:flex;align-items:center;flex-wrap:wrap;gap:10px 20px;padding:11px 14px;margin:9px 0 12px;border:1px solid #cbdcf2;border-radius:12px;background:#f6f9ff;color:#193c6d;font-size:14px}
-#tab-om5 .hd-om5-status-legend-title{display:inline-flex;gap:8px;align-items:center;font-size:14px;white-space:nowrap}
-#tab-om5 .hd-om5-legend-item{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-weight:600}
-#tab-om5 .hd-om5-legend-dot{display:inline-block;flex:none;width:13px;height:13px;border-radius:4px;border:1px solid #0002}
-#tab-om5 .hd-om5-legend-dot.is-unknown{background:#8c96a6}
-#tab-om5 .hd-om5-legend-dot.is-done{background:#1e67d2}
-#tab-om5 .hd-om5-legend-dot.is-progress{background:#e59624}
-#tab-om5 .hd-om5-legend-dot.is-pending{background:#d64545}
-@media(max-width:600px){#tab-om5 .hd-om5-status-legend{gap:8px 14px;padding:10px;font-size:12px}#tab-om5 .hd-om5-status-legend-title{width:100%}}
 
 .hd-ampl-modal{position:fixed;inset:0;z-index:80;background:#001b3a99;display:flex;align-items:center;justify-content:center;padding:12px}
 .hd-ampl-panel{background:white;width:min(960px,99vw);max-height:94vh;overflow-y:auto;border-radius:19px;padding:18px}
@@ -3865,10 +3875,10 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             const headDoc=document.getElementById('btnNuevoDocHeader');if(headDoc){headDoc.style.display=tabId==='documentos' && currentUser && hdRolDocJS_(currentUser.tipo)!=='Visita' && !hdEsSoloOM5_(currentUser.tipo)?'inline-flex':'none';}
             document.querySelectorAll('[data-mobile-tab]').forEach(btn => btn.classList.toggle('is-active', btn.dataset.mobileTab === tabId));
             if (tabId === 'ejecutivo') hdRenderExecutive();
-            if (['om5','uia'].includes(tabId)) {const work=document.getElementById('amplWorkspace');const target=document.getElementById('tab-'+tabId);if(work&&target&&!target.contains(work)){target.appendChild(work);const ttl=work.querySelector('#amplWorkspaceTitle'); if(ttl) ttl.textContent=tabId==='om5'?'Ampliaciones OM5':'Ampliaciones UIA'; const desc=work.querySelector('#amplWorkspaceDesc'); if(desc) desc.textContent=tabId==='om5'?'Administra, registra y controla los expedientes de ampliación OM5.':'Administra, registra y controla los expedientes de ampliación UIA.';const sel=work.querySelector('#amplField');sel.innerHTML=tabId==='om5'?'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="res">Número de resolución</option><option value="Solicitante">Solicitante</option><option value="NombreSector">Sector</option>':'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="Nombre">Nombre</option><option value="Direccion">Dirección</option>';sel.value='todos';const s=work.querySelector('#amplSearch');s.value='';work.querySelector('#amplStart').value='';work.querySelector('#amplEnd').value='';}}
+            if (['om5','uia'].includes(tabId)) {const work=document.getElementById('amplWorkspace');const target=document.getElementById('tab-'+tabId);if(work&&target&&!target.contains(work)){target.appendChild(work);work.querySelector('h2').textContent=tabId==='om5'?'AMPLIACIONES DE REDES OM5':'AMPLIACIONES UIA';const sel=work.querySelector('#amplField');sel.innerHTML=tabId==='om5'?'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="res">Número de resolución</option><option value="Solicitante">Solicitante</option><option value="NombreSector">Sector</option>':'<option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option><option value="Nombre">Nombre</option><option value="Direccion">Dirección</option>';sel.value='todos';const s=work.querySelector('#amplSearch');s.value='';work.querySelector('#amplStart').value='';work.querySelector('#amplEnd').value='';}}
 
             if (tabId === 'om5') om5Entrar();
-            if (tabId === 'uia') {const ttl=document.querySelector('#tab-uia #amplWorkspaceTitle');if(ttl)ttl.textContent='Ampliaciones UIA'; const desc=document.querySelector('#tab-uia #amplWorkspaceDesc'); if(desc) desc.textContent='Administra, registra y controla los expedientes de ampliación UIA.';Ampliaciones.enter('UIA');}
+            if (tabId === 'uia') {const ttl=document.querySelector('#tab-uia #amplWorkspace h2');if(ttl)ttl.textContent='AMPLIACIONES UIA';Ampliaciones.enter('UIA');}
             if (tabId === 'dashboard') renderStatsAndCharts();
             if (tabId === 'catalogos' || tabId === 'personal') renderCatalogsManagement();
             if (tabId === 'catalogos' && !window.hdAmplCatReady) hdAmplCatCargar();
@@ -4103,14 +4113,23 @@ async function search(){
   const data=await load(mod);if(thisQuery!==queryId)return;
   const allowed=field==='todos'?(mod==='OM5'?['sol','nombre','sector']:['sol','nombre']):[field];
   resultRows=data.registros.map((row,i)=>({row,i,matched:allowed.map(t=>hasMatch(row,data,t,term)).filter(Boolean)})).filter(x=>x.matched.length);
-  const box=$('hdSmartResults');box.innerHTML='<h3>'+resultRows.length+' '+(resultRows.length===1?'expediente encontrado':'expedientes encontrados')+' en '+mod+'</h3>';
-  if(!resultRows.length)box.innerHTML+='<p>No se encontraron coincidencias para «'+esc(term)+'» en los campos seleccionados.</p>';
-  resultRows.forEach((x,idx)=>{
-   const row=x.row,number=value(row,data,'Ítem','Item')||String(idx+1),name=value(row,data,mod==='OM5'?'Solicitante':'Nombre'),place=value(row,data,mod==='OM5'?'NombreSector':'Direccion','Dirección');
-   const div=document.createElement('div');div.className='hd-smart-result';
-   div.innerHTML='<div><strong>Ítem '+esc(number)+' — '+esc(name||'Sin nombre')+'</strong><p>'+esc(place)+'</p><small>Coincidencia en: '+esc(x.matched.join(', '))+'</small></div><button type="button">Consultar expediente</button>';
-   div.querySelector('button').addEventListener('click',()=>openResult(idx,mod));box.appendChild(div);
-  });
+  const box=$('hdSmartResults');
+  const count=resultRows.length+' '+(resultRows.length===1?'expediente encontrado':'expedientes encontrados')+' en '+mod;
+  box.innerHTML='<div class="hd-smart-result-heading"><h3>Resultados de la consulta</h3><span class="hd-smart-result-count">'+esc(count)+'</span></div>';
+  if(!resultRows.length){box.innerHTML+='<p class="hd-smart-empty">No se encontraron coincidencias para «'+esc(term)+'» en los campos seleccionados.</p>';}
+  else {
+   const wrapper=document.createElement('div');wrapper.className='hd-ampl-grid hd-smart-table-wrap';
+   const table=document.createElement('table');table.className='hd-smart-table';
+   table.innerHTML='<thead><tr><th>Ítem</th><th>'+(mod==='OM5'?'Solicitante':'Nombre')+'</th><th>'+(mod==='OM5'?'Sector':'Dirección')+'</th><th>Coincidencia</th><th>Consultar / Editar</th></tr></thead><tbody></tbody>';
+   const tbody=table.querySelector('tbody');
+   resultRows.forEach((x,idx)=>{
+    const row=x.row,number=value(row,data,'Ítem','Item')||String(idx+1),name=value(row,data,mod==='OM5'?'Solicitante':'Nombre'),place=value(row,data,mod==='OM5'?'NombreSector':'Direccion','Dirección');
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+esc(number)+'</td><td>'+esc(name||'Sin nombre')+'</td><td>'+esc(place||'—')+'</td><td>'+esc(x.matched.join(', '))+'</td><td class="hd-smart-table-actions"><button type="button">Consultar</button></td>';
+    tr.querySelector('button').addEventListener('click',()=>openResult(idx,mod));tbody.appendChild(tr);
+   });
+   wrapper.appendChild(table);box.appendChild(wrapper);
+  }
   status('Búsqueda terminada. Puedes consultar cada coincidencia sin modificar los registros.');
  }catch(e){status('No se pudo completar la búsqueda: '+(e.message||e),true);}finally{btn.disabled=false;}
 }
@@ -4211,31 +4230,20 @@ document.addEventListener('DOMContentLoaded',init);
       document.addEventListener('DOMContentLoaded',()=>{
         for(const mod of ['OM5']){
           const section=document.getElementById('tab-'+mod.toLowerCase());if(!section)continue;
-          section.innerHTML=`<div id="amplWorkspace" class="hd-module-shell">
-          <div class="hd-module-head">
-            <div class="hd-title-row">
-              <div class="hd-title-icon"><i class="fa-regular fa-file-lines"></i></div>
-              <div><h2 id="amplWorkspaceTitle">${mod==='OM5'?'Ampliaciones OM5':'Ampliaciones UIA'}</h2><p id="amplWorkspaceDesc">${mod==='OM5'?'Administra, registra y controla los expedientes de ampliación OM5.':'Administra, registra y controla los expedientes de ampliación UIA.'}</p></div>
-            </div>
-          </div>
-          <div class="hd-module-card"><div class="hd-ampl-controls">
+          section.innerHTML=`<div id="amplWorkspace"><h2>${mod==='OM5'?'AMPLIACIONES DE REDES OM5':'AMPLIACIONES UIA'}</h2>
+          <div class="hd-ampl-controls">
            <div class="hd-ampl-queryline"><input id="amplSearch" type="search" placeholder="Buscar por texto" oninput="Ampliaciones.search()" /><button type="button" id="amplConsult" onclick="Ampliaciones.refresh(document.getElementById('tab-uia').contains(document.getElementById('amplWorkspace'))?'UIA':'OM5')">Consultar</button></div>
            <select id="amplField" onchange="Ampliaciones.search()"><option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option>${mod==='OM5'?'<option value="res">Número de resolución</option>':''}<option value="${mod==='OM5'?'Solicitante':'Nombre'}">Solicitante</option><option value="${mod==='OM5'?'NombreSector':'Direccion'}">Sector / Dirección</option></select>
            <label>Desde <input type="date" id="amplStart" onchange="Ampliaciones.search()" /></label><label>Hasta <input type="date" id="amplEnd" onchange="Ampliaciones.search()" /></label>
-          </div></div><div class="hd-module-card"><div class="hd-ampl-controls hd-module-toolbar">
+          </div><div class="hd-ampl-controls">
            <button id="amplNew" class="hd-ampl-primary" onclick="Ampliaciones.open('',0,true)">Nuevo expediente</button>
            <button id="amplDelete" onclick="Ampliaciones.removeExp()">Eliminar seleccionado</button>
            <button onclick="Ampliaciones.excel()">Exportar Excel</button><button onclick="Ampliaciones.summary()">Reporte / Gráficos</button><button onclick="Ampliaciones.share()">WhatsApp</button>
           </div><div id="amplStages"></div>
-          <div class="hd-om5-status-legend" role="group" aria-label="Leyenda de colores de las etapas OM5">
-            <strong class="hd-om5-status-legend-title"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Leyenda de estados</strong>
-            <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-unknown" aria-hidden="true"></span> Sin información</span>
-            <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-done" aria-hidden="true"></span> Terminado</span>
-            <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-progress" aria-hidden="true"></span> En proceso</span>
-            <span class="hd-om5-legend-item"><span class="hd-om5-legend-dot is-pending" aria-hidden="true"></span> Pendiente</span>
-          </div><p id="amplStatus" role="status"></p></div><div class="hd-module-card"><div class="hd-module-meta"><span id="amplCount" class="hd-module-count"></span><div class="hd-ampl-controls" style="margin-bottom:0"><button id="amplPrev" onclick="Ampliaciones.page(-1)">Anterior</button><button id="amplNext" onclick="Ampliaciones.page(1)">Siguiente</button></div></div>
+          <p id="amplStatus" role="status"></p>
           <div class="hd-ampl-grid"><table><thead id="amplTableHead"></thead><tbody id="amplTableBody"></tbody></table></div>
-          <div id="amplExtras"></div></div></div>`;
+          <div class="hd-ampl-controls"><span id="amplCount"></span><button id="amplPrev" onclick="Ampliaciones.page(-1)">Anterior</button><button id="amplNext" onclick="Ampliaciones.page(1)">Siguiente</button></div>
+          <div id="amplExtras"></div></div>`;
           // Una sola interfaz se presenta por vez. La carga dinámica se activa al entrar.
 
         }
