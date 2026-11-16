@@ -215,6 +215,9 @@ function page(delta){let n=NAV[curso];n.page=Math.max(0,n.page+delta);render(cur
 function search(){let n=NAV[curso];n.filter=$('amplSearch').value;n.col=$('amplField').value;n.start=$('amplStart').value;n.end=$('amplEnd').value;n.page=0;render(curso);}
 function valuesOptions(c){let catalog=sheet(curso).catalogos||{},map={Modalidad:'A',TipoSuministro:'B',Departamento:'C',Provincia:'D',Distrito:'E',EstadoExpVentas:'F',EstadoInspeccionVentas:'G',EstadoUMD:'H',EstadoCaptacionClientes:'I',UUEE:'J'};let col=map[Object.keys(map).find(x=>key(x)===key(c))];return col?catalog[col]||[]:[];}
 function fieldInput(h,value,editable){let date=/^fecha/i.test(key(h)),text=/observac|obs|memo/i.test(key(h)),opts=valuesOptions(h);if(key(h)==='estadoactual'&&curso==='UIA')opts=['Pendiente','Atendido'];let disabled=editable?'':'disabled';let val=format(value);
+ if(date&&/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(val)){
+  const [dd,mm,yyyy]=val.split('/');val=yyyy+'-'+mm.padStart(2,'0')+'-'+dd.padStart(2,'0');
+ }
  if(opts.length)return `<select data-k="${safe(h)}" ${disabled}><option value="">Seleccionar...</option>${[...new Set([...opts,val].filter(Boolean))].map(v=>`<option ${v===val?'selected':''} value="${safe(v)}">${safe(v)}</option>`).join('')}</select>`;
  if(text)return `<textarea ${disabled} rows="3" data-k="${safe(h)}">${safe(val)}</textarea>`;
  return `<input ${disabled} data-k="${safe(h)}" type="${date?'date':/^clientes|^redes|^postes/i.test(key(h))?'number':'text'}" ${/^clientes|^redes|^postes/i.test(key(h))?'min="0"':''} value="${safe(date?val.slice(0,10):val)}">`;
@@ -241,13 +244,41 @@ function captureStage(){
  const replaced=new Set(selected.map(x=>key(x.campo)));
  registro.pendingFiles[registro.stage]=previous.filter(x=>!replaced.has(key(x.campo))).concat(selected);
 }
+/* REV60: comparar contra el estado ORIGINAL VISIBLE de cada etapa.
+   Los valores nulos, las fechas y los selectores pueden normalizarse durante
+   el render; eso no constituye un cambio hecho por el usuario. */
+function snapshotStage_(){
+ const data={};
+ const form=$('amplFormBody');
+ if(!form)return data;
+ form.querySelectorAll('[data-k]').forEach(el=>{
+  if(el.closest('[data-doc]')?.hidden)return;
+  const k=el.getAttribute('data-k');
+  if(k)data[k]=String(el.value??'').trim();
+ });
+ return data;
+}
+function hasUnsavedChanges_(){
+ if(!registro?.editable)return false;
+ const modified=Object.entries(registro.drafts||{}).some(([stage,values])=>
+  Object.entries(values||{}).some(([k,v])=>{
+   const baseline=registro.baselines?.[stage]||{};
+   // Si el campo estaba oculto al abrir la etapa, su estado base era vacío
+   // salvo que el dato histórico existiera en la base.
+   const original=Object.prototype.hasOwnProperty.call(baseline,k)
+    ?baseline[k]:String(registro.originalRow?.[k]??'').trim();
+   return String(v??'').trim()!==String(original??'').trim();
+  })
+ );
+ return modified||Object.values(registro.pendingFiles||{}).some(a=>Array.isArray(a)&&a.length>0);
+}
 function switchStage(next){
  if(!registro||registro.mod!=='OM5'||saving)return;
  if(!Number.isInteger(next)||next<0||next>=ETAPAS.length||next===registro.stage)return;
  const old=registro;
  captureStage();
  const scrollPanel=$('amplModal')?.querySelector('.hd-ampl-panel');
- open(old.id,next,old.editable,old.drafts,old.pendingFiles);
+ open(old.id,next,old.editable,old.drafts,old.pendingFiles,old.baselines);
  if(scrollPanel)scrollPanel.scrollTop=0;
 }
 function renderStageTabs(){
@@ -258,16 +289,32 @@ function renderStageTabs(){
 }
 
 /* REV08: formularios compactos según estructura real de Google Sheets. */
-function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
+function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,carriedBaselines=null){
  let row=rid?sheet(curso).registros.find(r=>id(r)===rid):null;
  if(rid&&!row){update('Expediente no disponible.');return;}
  if(editable&&!edit()){update('Sin permisos de edición.');return;}
- const drafts=carriedDrafts||{},pendingFiles=carriedFiles||{};
+ const drafts=carriedDrafts||{},pendingFiles=carriedFiles||{},baselines=carriedBaselines||{};
  const displayRow={...(row||{}),...Object.assign({},...Object.values(drafts))};
- registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles};
+ registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines};
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
  renderStageTabs();
- $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 53';
+ $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 60';
+ // Etiquetas legibles incluso cuando la hoja opcional EtiquetasOM5 no está disponible.
+ const uiLabels={
+  solicitante:'Solicitante',nombresector:'Nombre del sector',suministro:'Suministro',
+  tiposuministro:'Tipo de suministro',iniciativaobra:'N.º de iniciativa de obras',
+  observacionesobras:'Observaciones de obras',uuee:'Unidad empresarial (UUEE)',
+  departamento:'Departamento',provincia:'Provincia',distrito:'Distrito',
+  alimentador:'Alimentador',
+  clientescaptar:'Clientes a captar',memoenviogtmasivo:'Memorando masivo de envío a Gerencia Técnica',
+  modalidad:'Modalidad',fechaprogramadaejecucionumd:'Fecha programada de ejecución UMD',
+  tipoom:'Tipo de orden de montaje',nroom:'N.º de orden de montaje',
+  fechaejecucionumd:'Fecha de ejecución UMD',estadoumd:'Estado UMD',
+  clientescaptados:'Clientes captados',obscaptacionclientes:'Observaciones de captación de clientes',
+  estadocaptacionclientes:'Estado de captación de clientes',
+  estadoexpventas:'Estado del expediente',estadoinspeccionventas:'Estado de inspección de ventas',
+  memoenvioindividualgt:'Memorando individual de envío a Gerencia Técnica'
+ };
  const grouped=new Set();
  // Ocultar solo los campos que se renderizan en filas agrupadas; nunca eliminar sus valores reales.
  if(stage===0||curso==='UIA'){
@@ -286,7 +333,8 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
   if(key(h)==='item'||grouped.has(h))return;
   let value=displayRow[h]??'';
   if(curso==='UIA'&&!rid&&key(h)==='estadoactual')value='Pendiente';
-  out.push(`<label class="hd-ampl-label"><span>${safe(sheet(curso).etiquetas?.[key(h)]||h)}</span>${fieldInput(h,value,editable)}</label>`);
+  const readonlyMemo=curso==='OM5'&&key(h)==='memoenviogtmasivo';
+  out.push(`<label class="hd-ampl-label"><span>${safe(uiLabels[key(h)]||sheet(curso).etiquetas?.[key(h)]||h)}</span>${fieldInput(h,value,editable)}</label>`);
  });
  if(stage===0||curso==='UIA'){
   out.push('<section class="hd-ampl-doc-group"><h4>Solicitudes</h4><div class="hd-ampl-doc-list" id="amplRequests"></div></section>');
@@ -299,6 +347,11 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
   out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell"><span>Número de memorando individual</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
  }
  ui.innerHTML=out.join('');
+ if(curso==='OM5'){
+  const ay=[...ui.querySelectorAll('[data-k]')].find(el=>key(el.dataset.k)==='memoenviogtmasivo');
+  if(ay){ay.readOnly=true;ay.title='Este memorando se actualiza al cambiar de modalidad y guardar el expediente';}
+ }
+
  // REV59: Vista previa del memorando AY al cambiar la modalidad en Montaje.
  // La selección definitiva se vuelve a calcular en el servidor al guardar.
  if(curso==='OM5'&&editable&&rid&&stage===3){
@@ -334,6 +387,10 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null){
  // La sección inferior solo conserva archivos que no tienen ubicación en las etapas
  // y la carga adicional para usuarios con permiso de edición.
  renderAttachments();
+ // Primera apertura de la etapa: capturar los valores reales del formulario.
+ // Al volver a una etapa, NO se sobrescribe su referencia inicial.
+ if(editable&&!Object.prototype.hasOwnProperty.call(registro.baselines,String(stage)))
+  registro.baselines[String(stage)]=snapshotStage_();
  $('amplSave').hidden=!editable;$('amplModal').hidden=false;const note=$('amplFormStatus');if(note){note.textContent='';note.hidden=true;note.dataset.type='info';}if($('amplSave')){$('amplSave').disabled=false;$('amplSave').textContent='Guardar';}
 }
 function docGroup(kind){
@@ -408,9 +465,7 @@ function close(){
  if(saving){formAlert('El guardado todavía está en curso. No cierres el formulario.','info');return;}
  if(registro?.editable){
   captureStage();
-  const changed=Object.values(registro.drafts).some(obj=>Object.entries(obj).some(([k,v])=>String(registro.originalRow[k]??'').trim()!==v));
-  const attached=Object.values(registro.pendingFiles).some(arr=>arr.length>0);
-  if((changed||attached)&&!confirm('Hay cambios sin guardar. ¿Cerrar y descartarlos?'))return;
+  if(hasUnsavedChanges_()&&!confirm('Hay cambios sin guardar. ¿Cerrar y descartarlos?'))return;
  }
  $('amplModal').hidden=true;registro=null;
 }
@@ -503,11 +558,10 @@ function renderAttachments(){
  ).join(''):'';
  // No mostrar una segunda lista de Solicitudes, Resoluciones o Memorandos:
  // su consulta, descarga y eliminación ya están disponibles junto al campo.
- const fields=sheet(registro.mod).headers.filter(h=>/^nro(solicitud|resoluc)|^memo/i.test(key(h)));
- const uploadHtml=registro.editable&&registro.id&&fields.length?
-  '<div class="hd-ampl-extra-upload"><h4>Vincular archivo adicional</h4><p>Los documentos guardados se consultan junto a su número o memorando, en la etapa correspondiente.</p><label>Campo del documento <select id="amplAttachmentField">'+fields.map(h=>'<option value="'+safe(h)+'">'+safe(h)+'</option>').join('')+'</select></label><input type="file" id="amplUploadInput" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,.gif"><div id="amplExtraPreviews" class="hd-ampl-local-actions"></div><button type="button" onclick="Ampliaciones.upload()">Subir adjuntos</button></div>':'';
- box.innerHTML=otherHtml+uploadHtml;
- const show=Boolean(otherHtml||uploadHtml);
+ // Adjuntar documentos se realiza desde el campo correspondiente.
+ // El listado inferior solo se utiliza para archivos heredados u otros campos.
+ box.innerHTML=otherHtml;
+ const show=Boolean(otherHtml);
  box.hidden=!show;
  if(divider)divider.hidden=!show;
 }
