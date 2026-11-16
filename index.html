@@ -662,13 +662,27 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #tab-ocr .hd-smart-action-buttons{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
 #tab-ocr .hd-smart-table-actions button{min-width:105px;background:#fff;color:#124da0;border:1px solid #acc5eb;border-radius:8px;padding:7px 10px;font-weight:750}
 #tab-ocr .hd-smart-open-btn{flex:1 1 auto}
-#tab-ocr .hd-smart-wa-btn{flex:0 0 44px;min-width:44px;width:44px;padding:7px 0;background:#ecfdf3;color:#15803d;border-color:#9ad0ab}
+#tab-ocr .hd-smart-table-actions button.hd-smart-wa-btn{flex:0 0 44px;min-width:44px;width:44px;padding:7px 0;background:#ecfdf3;color:#15803d;border-color:#9ad0ab}
 #tab-ocr .hd-smart-wa-btn i{font-size:15px}
 #tab-ocr .hd-smart-empty{background:#fff;border:1px solid #d5e2f4;border-radius:12px;padding:17px;color:#456180;font-size:13px}
 #tab-ocr .hd-smart-mobile-photo{margin:0 0 19px;padding:15px;border:1px solid #c9daf2;border-radius:13px;background:#f6faff}
 #tab-ocr .hd-smart-photo-btn{background:#1455b8;color:#fff;border-radius:10px}
 @media(max-width:1050px){#tab-ocr .hd-smart-form-grid{grid-template-columns:1fr 1fr}#tab-ocr .hd-smart-base{grid-column:1/-1}}
 @media(max-width:767px){#tab-ocr.hd-smart-search{padding:12px;border-radius:14px}#tab-ocr .hd-smart-heading{padding:14px;gap:10px}#tab-ocr .hd-smart-heading-icon{width:40px;height:40px;font-size:18px}#tab-ocr .hd-smart-heading h2{font-size:17px}#tab-ocr .hd-smart-heading .hd-smart-help{font-size:11px}#tab-ocr .hd-smart-searchpanel{padding:13px}#tab-ocr .hd-smart-form-grid{grid-template-columns:1fr;gap:13px}#tab-ocr .hd-smart-base{grid-column:auto}#tab-ocr .hd-smart-radios{flex-direction:row;gap:6px}#tab-ocr .hd-smart-radios label{width:auto;font-size:11px;padding:8px 5px;white-space:normal;text-align:center}#tab-ocr .hd-smart-buttons{display:grid;grid-template-columns:1fr 1fr}#tab-ocr .hd-smart-buttons button{width:100%;min-width:0}#tab-ocr .hd-smart-table th,#tab-ocr .hd-smart-table td{padding:11px 10px;font-size:11px}}
+
+/* WhatsApp en Búsqueda Inteligente: preparar el mensaje sin abrir otra sesión. */
+#hdSmartShareModal[hidden]{display:none!important}
+#hdSmartShareModal{position:fixed;inset:0;z-index:100100;display:flex;align-items:center;justify-content:center;padding:12px;background:#081a3cb8}
+#hdSmartShareModal .hd-smart-share-panel{width:min(620px,100%);max-height:94dvh;overflow:auto;background:#fff;border:1px solid #c7d9f0;border-radius:18px;padding:21px;box-shadow:0 18px 65px #061e4563;color:#18345e}
+#hdSmartShareModal .hd-smart-share-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}
+#hdSmartShareModal h3{font-size:18px;font-weight:850;color:#123c78}
+#hdSmartShareModal .hd-smart-share-note{font-size:12px;line-height:1.55;color:#465c7b;margin:8px 0 11px}
+#hdSmartShareModal textarea{width:100%;min-height:210px;max-height:44dvh;border:1px solid #c8daf0;background:#f7faff;border-radius:10px;padding:12px;font-size:13px;line-height:1.5;color:#18345e;resize:vertical}
+#hdSmartShareModal .hd-smart-share-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#hdSmartShareModal button{min-height:41px;border-radius:9px;border:1px solid #bfd0e9;padding:9px 13px;font-weight:750;background:#fff;color:#13458c}
+#hdSmartShareModal .hd-smart-share-copy{background:#16834c;color:#fff;border-color:#16834c}
+#hdSmartShareModal #hdSmartShareStatus{font-size:12px;color:#175c42;font-weight:750;margin:9px 0 0;min-height:16px;white-space:pre-line}
+@media(max-width:600px){#hdSmartShareModal .hd-smart-share-panel{padding:15px}#hdSmartShareModal .hd-smart-share-buttons button{flex:1 1 auto}}
 </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
@@ -4214,26 +4228,46 @@ function summaryText(row,data,mod){
  }
  return lines.join('\n');
 }
-function openWhatsAppText(text){
- const encoded=encodeURIComponent(text);
- const ua=String(navigator.userAgent||'');
- const mobile=Boolean(navigator.userAgentData?.mobile)||/Android.*Mobile|iPhone|iPod|Windows Phone|Mobile.*Firefox/i.test(ua);
- if(mobile){
-  window.location.href='whatsapp://send?text='+encoded;
-  status('Se intentó abrir WhatsApp para compartir el resumen del expediente.');
- }else{
-  const url='https://web.whatsapp.com/send?text='+encoded;
-  const tab=window.open(url,'_blank','noopener,noreferrer');
-  if(!tab)window.location.href=url;
-  status('Se abrió WhatsApp Web para compartir el resumen del expediente.');
- }
+function sharePanel(){
+ let modal=$('hdSmartShareModal');if(modal)return modal;
+ modal=document.createElement('div');modal.id='hdSmartShareModal';modal.hidden=true;
+ modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','hdSmartShareTitle');
+ modal.innerHTML='<div class="hd-smart-share-panel"><div class="hd-smart-share-head"><h3 id="hdSmartShareTitle"><i class="fa-brands fa-whatsapp" style="color:#16834c"></i> Compartir resumen del expediente</h3><button type="button" id="hdSmartShareClose" aria-label="Cerrar ventana">✕</button></div><p class="hd-smart-share-note">Revisa el resumen. Pulsa <b>Copiar resumen</b>, vuelve a la pestaña de WhatsApp que ya tienes abierta, elige el contacto y pega el mensaje. Así no se abre una segunda sesión de WhatsApp ni se cierra Hidrandina.</p><textarea id="hdSmartShareText" readonly aria-label="Resumen del expediente para WhatsApp"></textarea><div class="hd-smart-share-buttons"><button type="button" class="hd-smart-share-copy" id="hdSmartShareCopy"><i class="fa-regular fa-copy"></i> Copiar resumen</button><button type="button" id="hdSmartShareOpen">Abrir WhatsApp Web (opcional)</button><button type="button" id="hdSmartShareCancel">Cerrar</button></div><p id="hdSmartShareStatus" role="status" aria-live="polite"></p></div>';
+ document.body.appendChild(modal);
+ const close=()=>{modal.hidden=true;};
+ $('hdSmartShareClose').addEventListener('click',close);
+ $('hdSmartShareCancel').addEventListener('click',close);
+ modal.addEventListener('click',e=>{if(e.target===modal)close();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close();});
+ $('hdSmartShareCopy').addEventListener('click',async()=>{
+  const area=$('hdSmartShareText'),text=area.value,info=$('hdSmartShareStatus');
+  try{
+   if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(text);}
+   else {area.focus();area.select();if(!document.execCommand('copy'))throw Error('Copia automática no disponible');}
+   info.textContent='Resumen copiado. Pégalo en el chat de WhatsApp que ya tienes abierto.';
+  }catch(_){area.focus();area.select();info.textContent='Selecciona y copia el texto manualmente (Ctrl+C o Copiar).';}
+ });
+ $('hdSmartShareOpen').addEventListener('click',()=>{
+  // Acción OPCIONAL: no crear ventanas al pulsar el icono de exportación.
+  // Nunca reemplazar la pestaña de Hidrandina si el navegador bloquea la ventana.
+  const info=$('hdSmartShareStatus');
+  const tab=window.open('https://web.whatsapp.com/','hdSmartWhatsapp','');
+  info.textContent=tab?'WhatsApp Web abierto. Selecciona un chat y pega el resumen copiado.':'El navegador bloqueó la ventana. Usa WhatsApp Web que ya esté abierto y pega el resumen.';
+ });
+ return modal;
 }
 function shareResult(i,mod){
  const selected=resultRows[i];if(!selected)return;
  const data=window.Ampliaciones?.getData?.(mod)||cached[mod];
  if(!data){status('No se encontró la información necesaria para generar el resumen.',true);return;}
- try{openWhatsAppText(summaryText(selected.row,data,mod));}
- catch(e){status('No se pudo preparar el resumen para WhatsApp: '+(e.message||e),true);}
+ try{
+  const modal=sharePanel();
+  $('hdSmartShareText').value=summaryText(selected.row,data,mod);
+  $('hdSmartShareStatus').textContent='';
+  modal.hidden=false;
+  $('hdSmartShareCopy').focus();
+  status('Resumen preparado. Puedes copiarlo y enviarlo desde tu WhatsApp abierto.');
+ }catch(e){status('No se pudo preparar el resumen para WhatsApp: '+(e.message||e),true);}
 }
 function addStageNavigator(mod,rid,active){
  let bar=$('hdSmartStageNavigator');
