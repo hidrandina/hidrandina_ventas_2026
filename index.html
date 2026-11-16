@@ -4263,7 +4263,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 }
 </style>
 
-<script src="./ampliaciones-ui.js?v=REV63-WHATSAPP-OM5-20261115"></script>
+<script src="./ampliaciones-ui.js?v=REV65-UIA-PRESENTACION-20261115"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
@@ -4694,5 +4694,43 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.hdAmplCatAgregar=()=>mutate('agregar');
 })();
 </script>
+
+<style id="hdUIARev65">
+/* REV65: presentación exclusiva para el listado UIA; OM5, reportes y formularios no se alteran. */
+#tab-uia .hd-om5-status-legend{display:none!important}
+#tab-uia #amplStages:empty{display:none!important;margin:0!important;padding:0!important}
+#tab-uia #amplWorkspace{background:linear-gradient(180deg,#f5f9ff 0%,#eff5fe 100%);border:1px solid #d9e6f8;border-radius:20px;padding:22px 23px 25px}
+#tab-uia #amplWorkspace>h2{background:linear-gradient(105deg,#092e6c,#155bb5);color:#fff!important;padding:17px 20px;border-radius:14px;box-shadow:0 8px 20px #0a367528;margin:0 0 16px;font-weight:850;letter-spacing:.015em;font-size:clamp(21px,2vw,28px)}
+#tab-uia .hd-ampl-controls{background:#fff;padding:15px 17px;border:1px solid #d5e3f7;border-radius:13px;box-shadow:0 5px 14px #153b7020;gap:11px;margin-bottom:13px;align-items:end}
+#tab-uia .hd-ampl-queryline{display:flex;align-items:center;gap:12px;width:100%}
+#tab-uia #amplSearch{flex:1;min-width:0;min-height:47px}
+#tab-uia #amplConsult{background:#175ab9;color:white;border:1px solid #175ab9;min-height:47px;white-space:nowrap;padding:9px 19px}
+#tab-uia #amplField{min-height:45px}
+#tab-uia .hd-ampl-controls label{color:#1a3769;font-weight:650;font-size:13px}
+#tab-uia .hd-ampl-controls label input{margin-top:5px;min-height:45px}
+#tab-uia #amplNew{background:#1b5abd;color:#fff;border-color:#1b5abd}
+#tab-uia #amplDelete{color:#b13030;border-color:#e7b9b9;background:#fff6f6}
+#tab-uia .hd-ampl-controls button{min-height:42px;transition:background-color .15s ease, box-shadow .15s ease}
+#tab-uia .hd-ampl-controls button:hover{box-shadow:0 3px 9px #103d7925}
+#tab-uia #amplStatus{margin:7px 0 11px;color:#345985;font-size:13px;font-weight:600}
+#tab-uia .hd-ampl-grid{border:1px solid #c5d8f3;border-radius:15px;box-shadow:0 8px 22px #16396d15;background:#fff;max-height:67vh}
+#tab-uia .hd-ampl-grid th{background:#103b80!important;color:#fff!important;padding:13px 12px;border-bottom:0;font-weight:800;font-size:12px}
+#tab-uia .hd-ampl-grid td{padding:13px 12px;border-bottom:1px solid #e2eaf6;line-height:1.55}
+#tab-uia .hd-ampl-grid tbody tr:hover td{background:#e9f2ff!important}
+#tab-uia .hd-ampl-grid tbody tr.hd-ampl-selected td{background:#deebff!important}
+#tab-uia .hd-ampl-grid .hd-report-actions button{border-color:#b4c9ea;background:#fff;color:#1453a8;border-radius:8px}
+#tab-uia .hd-ampl-grid .hd-report-actions button:hover{background:#e8f2ff}
+#tab-uia .hd-ampl-grid td.hd-choose,#tab-uia .hd-ampl-grid th.hd-choose{width:84px!important;min-width:84px!important;max-width:84px!important}
+#tab-uia .hd-ampl-grid td:nth-child(2),#tab-uia .hd-ampl-grid th:nth-child(2){width:145px!important;min-width:145px!important;max-width:145px!important;left:84px!important}
+#tab-uia .hd-ampl-grid input[type="radio"]{accent-color:#1764d0;cursor:pointer;width:auto;min-width:16px;height:16px}
+@media(max-width:767px){
+ #tab-uia #amplWorkspace{padding:13px 10px;border-radius:15px}
+ #tab-uia #amplWorkspace>h2{padding:14px;font-size:21px}
+ #tab-uia .hd-ampl-controls{padding:12px;gap:9px}
+ #tab-uia .hd-ampl-queryline{gap:7px}
+ #tab-uia #amplConsult{padding:9px 11px;font-size:12px}
+ #tab-uia .hd-ampl-grid td:nth-child(2),#tab-uia .hd-ampl-grid th:nth-child(2){width:112px!important;min-width:112px!important;max-width:112px!important}
+}
+</style>
 </body>
 </html>
