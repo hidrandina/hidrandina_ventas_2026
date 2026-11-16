@@ -658,8 +658,12 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #tab-ocr .hd-smart-table th:first-child,#tab-ocr .hd-smart-table td:first-child{position:sticky;left:0;min-width:70px;width:80px;z-index:2}
 #tab-ocr .hd-smart-table td:first-child{background:#f4f8ff;font-weight:800;color:#124a96}
 #tab-ocr .hd-smart-table th:first-child{z-index:4;background:#0b3479}
-#tab-ocr .hd-smart-table-actions{min-width:130px}
-#tab-ocr .hd-smart-table-actions button{width:100%;min-width:105px;background:#fff;color:#124da0;border:1px solid #acc5eb;border-radius:8px;padding:7px 10px;font-weight:750}
+#tab-ocr .hd-smart-table-actions{min-width:185px}
+#tab-ocr .hd-smart-action-buttons{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+#tab-ocr .hd-smart-table-actions button{min-width:105px;background:#fff;color:#124da0;border:1px solid #acc5eb;border-radius:8px;padding:7px 10px;font-weight:750}
+#tab-ocr .hd-smart-open-btn{flex:1 1 auto}
+#tab-ocr .hd-smart-wa-btn{flex:0 0 44px;min-width:44px;width:44px;padding:7px 0;background:#ecfdf3;color:#15803d;border-color:#9ad0ab}
+#tab-ocr .hd-smart-wa-btn i{font-size:15px}
 #tab-ocr .hd-smart-empty{background:#fff;border:1px solid #d5e2f4;border-radius:12px;padding:17px;color:#456180;font-size:13px}
 #tab-ocr .hd-smart-mobile-photo{margin:0 0 19px;padding:15px;border:1px solid #c9daf2;border-radius:13px;background:#f6faff}
 #tab-ocr .hd-smart-photo-btn{background:#1455b8;color:#fff;border-radius:10px}
@@ -4120,13 +4124,16 @@ async function search(){
   else {
    const wrapper=document.createElement('div');wrapper.className='hd-ampl-grid hd-smart-table-wrap';
    const table=document.createElement('table');table.className='hd-smart-table';
-   table.innerHTML='<thead><tr><th>Ítem</th><th>'+(mod==='OM5'?'Solicitante':'Nombre')+'</th><th>'+(mod==='OM5'?'Sector':'Dirección')+'</th><th>Coincidencia</th><th>Consultar / Editar</th></tr></thead><tbody></tbody>';
+   table.innerHTML='<thead><tr><th>Ítem</th><th>'+(mod==='OM5'?'Solicitante':'Nombre')+'</th><th>'+(mod==='OM5'?'Sector':'Dirección')+'</th><th>Coincidencia</th><th>Acciones</th></tr></thead><tbody></tbody>';
    const tbody=table.querySelector('tbody');
    resultRows.forEach((x,idx)=>{
     const row=x.row,number=value(row,data,'Ítem','Item')||String(idx+1),name=value(row,data,mod==='OM5'?'Solicitante':'Nombre'),place=value(row,data,mod==='OM5'?'NombreSector':'Direccion','Dirección');
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+esc(number)+'</td><td>'+esc(name||'Sin nombre')+'</td><td>'+esc(place||'—')+'</td><td>'+esc(x.matched.join(', '))+'</td><td class="hd-smart-table-actions"><button type="button">Consultar</button></td>';
-    tr.querySelector('button').addEventListener('click',()=>openResult(idx,mod));tbody.appendChild(tr);
+    tr.innerHTML='<td>'+esc(number)+'</td><td>'+esc(name||'Sin nombre')+'</td><td>'+esc(place||'—')+'</td><td>'+esc(x.matched.join(', '))+'</td><td class="hd-smart-table-actions"><div class="hd-smart-action-buttons"><button type="button" class="hd-smart-open-btn">Consultar</button><button type="button" class="hd-smart-wa-btn" title="Enviar resumen por WhatsApp" aria-label="Enviar resumen por WhatsApp"><i class="fa-brands fa-whatsapp"></i></button></div></td>';
+    const buttons=tr.querySelectorAll('button');
+    buttons[0].addEventListener('click',()=>openResult(idx,mod));
+    buttons[1].addEventListener('click',()=>shareResult(idx,mod));
+    tbody.appendChild(tr);
    });
    wrapper.appendChild(table);box.appendChild(wrapper);
   }
@@ -4146,6 +4153,87 @@ async function openResult(i,mod){
   fromSearch=true;
   status('Puedes cerrar la ficha para volver a los resultados.');
  }catch(e){fromSearch=false;window.switchTab('ocr');status('No se pudo abrir la consulta: '+(e.message||e),true);}
+}
+
+function pickSeries(row,data,numberPrefix,datePrefix,max){
+ const values=[];
+ for(let i=1;i<=max;i++){
+  const number=value(row,data,numberPrefix+i),date=datePrefix?value(row,data,datePrefix+i):'';
+  if(number||date)values.push(String(number||'').trim()+(date?' · '+String(date).trim():''));
+ }
+ return values.join(' | ');
+}
+function memoSeries(row,data,max){
+ const values=[];
+ for(let i=1;i<=max;i++){
+  const memo=value(row,data,'MemorandoGC'+i);
+  if(memo)values.push(String(memo).trim());
+ }
+ return values.join(' | ');
+}
+function summaryText(row,data,mod){
+ const lines=[
+  'HIDRANDINA — Resumen de expediente',
+  'Módulo: '+(mod==='OM5'?'Ampliaciones OM5':'Ampliaciones UIA')
+ ];
+ const add=(label,val)=>{const v=String(val??'').trim();if(v)lines.push(label+': '+v);};
+ add('Ítem',value(row,data,'Ítem','Item'));
+ if(mod==='OM5'){
+  add('Solicitante',value(row,data,'Solicitante'));
+  add('Sector',value(row,data,'NombreSector'));
+  add('Solicitudes',pickSeries(row,data,'NroSolicitud','FechaSolicitud',6));
+  add('Resoluciones',pickSeries(row,data,'NroResolución','FechaResolucion',2));
+  add('Modalidad',value(row,data,'Modalidad'));
+  add('UUEE',value(row,data,'UUEE'));
+  add('Alimentador',value(row,data,'Alimentador'));
+  add('Departamento',value(row,data,'Departamento'));
+  add('Provincia',value(row,data,'Provincia'));
+  add('Distrito',value(row,data,'Distrito'));
+  add('Clientes a captar',value(row,data,'ClientesCaptar'));
+  add('Estado expediente ventas',value(row,data,'EstadoExpVentas'));
+  add('Estado inspección ventas',value(row,data,'EstadoInspeccionVentas'));
+  add('Estado UMD',value(row,data,'EstadoUMD'));
+  add('Estado captación de clientes',value(row,data,'EstadoCaptacionClientes'));
+ }else{
+  add('Nombre',value(row,data,'Nombre'));
+  add('Dirección',value(row,data,'Direccion','Dirección'));
+  add('Solicitudes',pickSeries(row,data,'NroSolicitud','FechaSolicitud',3));
+  add('Memorandos GC',memoSeries(row,data,5));
+  add('Departamento',value(row,data,'Departamento'));
+  add('Provincia',value(row,data,'Provincia'));
+  add('Distrito',value(row,data,'Distrito'));
+  add('SED Referencia',value(row,data,'SED Referencia','SEDReferencia'));
+  add('N° Clientes',value(row,data,'N° Clientes','NClientes','NroClientes','NumeroClientes'));
+  add('Tipo de OM',value(row,data,'Tipo de OM','TipoOM'));
+  add('Nro OM',value(row,data,'Nro OM','NroOM'));
+  add('Fecha ejecutado UMD',value(row,data,'FechaEjecutadoUMD','FechaEjecutacionUMD'));
+  add('Estado actual',value(row,data,'Estado Actual','EstadoActual'));
+  add('Clientes captados',value(row,data,'Clentes Captados','Clientes Captados','ClientesCaptados'));
+  add('Estado captación clientes',value(row,data,'Estado Captación Clientes','EstadoCaptacionClientes'));
+  add('Observación captación clientes',value(row,data,'Observación Captación Clientes','Observacion Captacion Clientes','ObsCaptacionClientes'));
+ }
+ return lines.join('\n');
+}
+function openWhatsAppText(text){
+ const encoded=encodeURIComponent(text);
+ const ua=String(navigator.userAgent||'');
+ const mobile=Boolean(navigator.userAgentData?.mobile)||/Android.*Mobile|iPhone|iPod|Windows Phone|Mobile.*Firefox/i.test(ua);
+ if(mobile){
+  window.location.href='whatsapp://send?text='+encoded;
+  status('Se intentó abrir WhatsApp para compartir el resumen del expediente.');
+ }else{
+  const url='https://web.whatsapp.com/send?text='+encoded;
+  const tab=window.open(url,'_blank','noopener,noreferrer');
+  if(!tab)window.location.href=url;
+  status('Se abrió WhatsApp Web para compartir el resumen del expediente.');
+ }
+}
+function shareResult(i,mod){
+ const selected=resultRows[i];if(!selected)return;
+ const data=window.Ampliaciones?.getData?.(mod)||cached[mod];
+ if(!data){status('No se encontró la información necesaria para generar el resumen.',true);return;}
+ try{openWhatsAppText(summaryText(selected.row,data,mod));}
+ catch(e){status('No se pudo preparar el resumen para WhatsApp: '+(e.message||e),true);}
 }
 function addStageNavigator(mod,rid,active){
  let bar=$('hdSmartStageNavigator');
