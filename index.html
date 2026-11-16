@@ -1561,6 +1561,20 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #amplFormBody .hd-ampl-doc-heading{font-size:13px}
 #amplFormBody .hd-ampl-doc-cell input[type="date"]{max-width:100%}
 @media(max-width:800px){#amplFormBody .hd-ampl-doc-footer{align-items:flex-start;flex-direction:column}}
+
+/* REV60: ficha OM5/UIA consistente con la interfaz institucional. */
+#amplModal .hd-ampl-panel{background:#fff;border:1px solid #d5e3f6;border-radius:19px;box-shadow:0 22px 70px #061d4155}
+#amplModal #amplFormTitle{font-size:clamp(19px,2vw,24px);font-weight:850;color:#103a77;letter-spacing:-.025em}
+#amplModal #amplFormBody{column-gap:16px;row-gap:12px}
+#amplModal .hd-ampl-label>span{color:#234a7b;font-size:12px;font-weight:800;letter-spacing:.005em}
+#amplModal .hd-ampl-label input,#amplModal .hd-ampl-label select,#amplModal .hd-ampl-label textarea{border:1px solid #bfd3ef;background:#fbfdff;border-radius:10px;min-height:45px;color:#143968;padding:10px 12px;max-width:100%;box-sizing:border-box}
+#amplModal [data-k][readonly]{background:#f0f5fc!important;color:#24476e!important;cursor:default}
+#amplModal #amplFormBody .hd-ampl-doc-group{padding:15px;border-radius:15px;margin:6px 0 9px;background:#f4f8ff}
+#amplModal #amplFormBody .hd-ampl-doc{align-items:start;gap:10px}
+#amplModal #amplFormBody .hd-ampl-doc-heading{margin-bottom:1px}
+#amplModal .hd-ampl-controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+#amplModal .hd-ampl-controls button{border-radius:10px;min-height:41px;padding:9px 14px;font-weight:800}
+@media(max-width:767px){#amplModal #amplFormBody{grid-template-columns:1fr!important}#amplModal #amplFormBody .hd-ampl-doc{grid-template-columns:1fr!important}#amplModal .hd-ampl-label input,#amplModal .hd-ampl-label select{width:100%}}
 </style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
@@ -4212,7 +4226,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV59-MODALIDAD-MEMO-20261116"></script>
+<script src="./ampliaciones-ui.js?v=REV60-ESTABILIDAD-20261116"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
