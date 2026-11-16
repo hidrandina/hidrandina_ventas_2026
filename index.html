@@ -146,16 +146,18 @@ html, body { max-width:100%; }
   #tab-documentos tbody tr td:nth-child(3) {grid-column:1 / -1;grid-row:2;font-size:12px!important;white-space:normal!important;overflow:visible!important;text-overflow:unset!important;}
   #tab-documentos tbody tr td:nth-child(4) {grid-column:1;grid-row:3;font-size:11px!important;color:#59708f;}
   #tab-documentos tbody tr td:nth-child(4):before {content:'Ingreso: ';font-weight:800;color:#365b91;}
-  #tab-documentos tbody tr td:nth-child(5),
+  /* Fecha de vencimiento visible exclusivamente en las tarjetas móviles. */
+  #tab-documentos tbody tr td:nth-child(5) {display:block!important;grid-column:1 / -1;grid-row:4;font-size:11px!important;color:#59708f;}
+  #tab-documentos tbody tr td:nth-child(5):before {content:'Vencimiento: ';font-weight:800;color:#365b91;}
   #tab-documentos tbody tr td:nth-child(6),
   #tab-documentos tbody tr td:nth-child(7),
   #tab-documentos tbody tr td:nth-child(8),
   #tab-documentos tbody tr td:nth-child(11) {display:none!important;}
-  #tab-documentos tbody tr td:nth-child(9) {grid-column:1 / -1;grid-row:4;font-size:11px!important;color:#59708f;}
+  #tab-documentos tbody tr td:nth-child(9) {grid-column:1 / -1;grid-row:5;font-size:11px!important;color:#59708f;}
   #tab-documentos tbody tr td:nth-child(9):before {content:'Responsable: ';font-weight:800;color:#365b91;}
   #tab-documentos tbody tr td:nth-child(10) {grid-column:2;grid-row:3;justify-self:end;}
   #tab-documentos tbody tr td:nth-child(10)>span {font-size:10px!important;padding:5px 8px!important;}
-  #tab-documentos tbody tr td:nth-child(12) {grid-column:1 / -1;grid-row:5;text-align:right!important;border-top:1px solid #e6eefb!important;padding-top:9px!important;display:flex!important;justify-content:flex-end;gap:7px;}
+  #tab-documentos tbody tr td:nth-child(12) {grid-column:1 / -1;grid-row:6;text-align:right!important;border-top:1px solid #e6eefb!important;padding-top:9px!important;display:flex!important;justify-content:flex-end;gap:7px;}
   #tab-documentos tbody tr td:nth-child(12) button {width:39px;height:39px;min-width:39px;border-radius:10px!important;}
   #tab-documentos tbody tr:has(td[colspan]) {display:block!important;text-align:center;}
   #tab-documentos tbody tr:has(td[colspan]) td {display:block!important;padding:18px!important;}
