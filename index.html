@@ -674,6 +674,12 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 @media(max-width:767px){#tab-ocr.hd-smart-search{padding:12px;border-radius:14px}#tab-ocr .hd-smart-heading{padding:14px;gap:10px}#tab-ocr .hd-smart-heading-icon{width:40px;height:40px;font-size:18px}#tab-ocr .hd-smart-heading h2{font-size:17px}#tab-ocr .hd-smart-heading .hd-smart-help{font-size:11px}#tab-ocr .hd-smart-searchpanel{padding:13px}#tab-ocr .hd-smart-form-grid{grid-template-columns:1fr;gap:13px}#tab-ocr .hd-smart-base{grid-column:auto}#tab-ocr .hd-smart-radios{flex-direction:row;gap:6px}#tab-ocr .hd-smart-radios label{width:auto;font-size:11px;padding:8px 5px;white-space:normal;text-align:center}#tab-ocr .hd-smart-buttons{display:grid;grid-template-columns:1fr 1fr}#tab-ocr .hd-smart-buttons button{width:100%;min-width:0}#tab-ocr .hd-smart-table th,#tab-ocr .hd-smart-table td{padding:11px 10px;font-size:11px}}
 
 /* WhatsApp en Búsqueda Inteligente: preparar el mensaje sin abrir otra sesión. */
+/* HIDRANDINA REV58: Ocultar Ítem únicamente en las tablas de expedientes OM5/UIA.
+   Mantener en Google Sheets, fichas y exportaciones; Seleccionar y Acciones visibles. */
+#tab-om5 #amplWorkspace .hd-ampl-grid table > thead > tr > th:nth-child(3),
+#tab-om5 #amplWorkspace .hd-ampl-grid table > tbody > tr > td:nth-child(3),
+#tab-uia #amplWorkspace .hd-ampl-grid table > thead > tr > th:nth-child(3),
+#tab-uia #amplWorkspace .hd-ampl-grid table > tbody > tr > td:nth-child(3) { display:none!important; }
 </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
