@@ -1373,22 +1373,40 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 
     <style>.hd-ampl-queryline{display:flex;align-items:center;gap:10px;flex:1 1 430px;min-width:230px}.hd-ampl-queryline #amplSearch{flex:1;min-width:0}.hd-ampl-queryline #amplConsult{flex:none;background:#155fc4;color:white;font-weight:800;padding:10px 17px}@media(max-width:540px){.hd-ampl-queryline{flex-basis:100%}.hd-ampl-queryline #amplConsult{padding:10px}}</style>
     <!-- REV43: Módulo independiente GC → GT; no cambia los formularios OM5/UIA -->
+    <!-- MEMORANDOS GC → GT | Panel ejecutivo OM5, misma lógica y controles -->
     <div id="hdMemoModal" class="hd-memo-overlay" hidden>
-      <div class="hd-memo-panel" role="dialog" aria-modal="true" aria-labelledby="hdMemoTitle">
-        <header class="hd-memo-toolbar"><h2 id="hdMemoTitle">Control de memorandos masivos GC → GT — OM5</h2><button id="hdMemoClose" type="button">Cerrar ✕</button></header>
-        <p class="hd-memo-help">Selecciona una modalidad, marca los expedientes y registra el envío. Cada expediente admite hasta cuatro memorandos vigentes. La columna AY muestra solo el último. Si un expediente ya tiene un memorando antiguo en AY, se conservará como antecedente al registrar uno nuevo.</p>
-        <div class="hd-memo-row"><label>Modalidad <select id="hdMemoModalidad"><option value="">Selecciona una modalidad</option></select></label><button type="button" id="hdMemoRefresh">Actualizar datos</button><span id="hdMemoTotal"></span></div>
-        <div class="hd-memo-row"><strong>Expedientes incluidos</strong><button type="button" id="hdMemoAll">Seleccionar todos los disponibles</button><button type="button" id="hdMemoNone">Quitar selección</button><span id="hdMemoPicked">0 seleccionados</span></div>
-        <div class="hd-memo-scroller"><table><thead><tr><th>Marcar</th><th>Ítem</th><th>Solicitante</th><th>Nombre del sector</th><th>Memorandos</th><th>Último memorando</th></tr></thead><tbody id="hdMemoItems"></tbody></table></div>
-        <h3>Registrar / editar memorando</h3><p id="hdMemoEditNote" class="hd-memo-help"></p>
-        <div class="hd-memo-form"><label>Número de memorando <input id="hdMemoNumber" maxlength="180" placeholder="Ej. MEM-001-2026-GC" required></label><label>Fecha de envío <input type="date" id="hdMemoDate" required></label><label>Asunto (opcional) <input id="hdMemoSubject" maxlength="600"></label><label>Adjuntar PDF o imagen (opcional, máx. 10 MB) <input type="file" id="hdMemoPdf" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"></label></div>
-        <div class="hd-memo-row"><label id="hdMemoCameraBox" style="display:none;flex:0 1 auto;min-width:205px" hidden>Tomar foto (celular) <input id="hdMemoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label><button type="button" id="hdMemoLocalOpen">Ver archivo seleccionado</button><span class="hd-memo-help" id="hdMemoFileHelp">Puedes adjuntar un PDF o una imagen. Solo se adjunta un archivo por memorando.</span></div>
-        <div id="hdMemoLocalPreview" hidden><div class="hd-memo-row"><strong>Archivo seleccionado (aún no guardado)</strong><a id="hdMemoLocalDownload" href="#" download>Descargar</a><button type="button" id="hdMemoLocalClose">Cerrar vista previa</button></div><iframe id="hdMemoLocalFrame" title="Vista previa del documento seleccionado"></iframe><img id="hdMemoLocalImage" alt="Imagen seleccionada" hidden></div>
-        <div class="hd-memo-row"><button type="button" id="hdMemoSave" class="hd-memo-primary">Grabar memorando para seleccionados</button><button type="button" id="hdMemoNew">Nuevo memorando</button></div>
-        <p id="hdMemoStatus" role="status" aria-live="polite" class="hd-memo-status"></p>
-        <div class="hd-memo-row"><h3>Historial de memorandos de la modalidad</h3><p id="hdMemoCount"></p><button type="button" id="hdMemoExport" class="hd-memo-primary">Descargar Excel</button></div>
-        <div class="hd-memo-scroller"><table><thead><tr><th>Memorando</th><th>Fecha</th><th>Expedientes</th><th>Asunto</th><th>Acciones</th></tr></thead><tbody id="hdMemoHistory"></tbody></table></div>
-        <div id="hdMemoPdfPreview" hidden><div class="hd-memo-row"><strong>Vista previa del archivo</strong><a id="hdMemoPdfDownload" href="#" download="memorando.pdf">Descargar archivo</a><button type="button" id="hdMemoPdfClose">Cerrar vista previa</button></div><iframe id="hdMemoPdfFrame" title="Documento del memorando" loading="lazy"></iframe><img id="hdMemoServerImage" alt="Imagen del memorando" hidden></div>
+      <div class="hd-memo-panel hd-memo-executive" role="dialog" aria-modal="true" aria-labelledby="hdMemoTitle">
+        <header class="hd-memo-toolbar hd-memo-hero">
+          <div class="hd-memo-hero-ident"><div class="hd-memo-hero-icon"><i class="fa-solid fa-envelope-open-text"></i></div><div><span class="hd-memo-eyebrow">HIDRANDINA · GESTIÓN COMERCIAL</span><h2 id="hdMemoTitle">Memorandos masivos GC → GT</h2><p>Control de envíos y seguimiento de ampliaciones OM5</p></div></div>
+          <button id="hdMemoClose" type="button" aria-label="Cerrar panel de memorandos"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+        </header>
+        <div class="hd-memo-body">
+          <div class="hd-memo-overview">
+            <div class="hd-memo-metric"><span class="hd-memo-metric-icon"><i class="fa-solid fa-folder-open"></i></span><div><small>Expedientes de la modalidad</small><strong id="hdMemoTotal">0 expedientes</strong></div></div>
+            <div class="hd-memo-metric"><span class="hd-memo-metric-icon"><i class="fa-solid fa-list-check"></i></span><div><small>Expedientes seleccionados</small><strong id="hdMemoPicked">0 seleccionados</strong></div></div>
+            <div class="hd-memo-metric"><span class="hd-memo-metric-icon"><i class="fa-solid fa-file-signature"></i></span><div><small>Memorandos registrados</small><strong id="hdMemoCount">0 memorandos</strong></div></div>
+          </div>
+          <section class="hd-memo-section hd-memo-section-top" aria-labelledby="hdMemoSectionSelect">
+            <div class="hd-memo-section-heading"><div><span class="hd-memo-section-step">01</span><h3 id="hdMemoSectionSelect">Seleccionar expedientes</h3><p>Escoge la modalidad y los registros destinatarios del memorando.</p></div></div>
+            <div class="hd-memo-row hd-memo-selector-row"><label>Modalidad <select id="hdMemoModalidad"><option value="">Selecciona una modalidad</option></select></label><button type="button" id="hdMemoRefresh"><i class="fa-solid fa-rotate"></i> Actualizar datos</button></div>
+            <div class="hd-memo-row hd-memo-selection-tools"><strong>Expedientes incluidos</strong><button type="button" id="hdMemoAll"><i class="fa-regular fa-square-check"></i> Seleccionar disponibles</button><button type="button" id="hdMemoNone"><i class="fa-solid fa-xmark"></i> Quitar selección</button></div>
+            <div class="hd-memo-scroller"><table><thead><tr><th>Marcar</th><th>Ítem</th><th>Solicitante</th><th>Nombre del sector</th><th>Memorandos</th><th>Último memorando</th></tr></thead><tbody id="hdMemoItems"></tbody></table></div>
+          </section>
+          <section class="hd-memo-section" aria-labelledby="hdMemoSectionForm">
+            <div class="hd-memo-section-heading"><div><span class="hd-memo-section-step">02</span><h3 id="hdMemoSectionForm">Registrar o editar memorando</h3><p id="hdMemoEditNote" class="hd-memo-help">Selecciona los expedientes para registrar el memorando.</p></div></div>
+            <div class="hd-memo-form"><label>Número de memorando <input id="hdMemoNumber" maxlength="180" placeholder="Ej. MEM-001-2026-GC" required></label><label>Fecha de envío <input type="date" id="hdMemoDate" required></label><label>Asunto (opcional) <input id="hdMemoSubject" maxlength="600" placeholder="Asunto del memorando"></label><label>Adjuntar PDF o imagen (máx. 10 MB) <input type="file" id="hdMemoPdf" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"></label></div>
+            <div class="hd-memo-row hd-memo-file-tools"><label id="hdMemoCameraBox" style="display:none;flex:0 1 auto;min-width:205px" hidden>Tomar foto (celular) <input id="hdMemoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label><button type="button" id="hdMemoLocalOpen"><i class="fa-regular fa-eye"></i> Ver archivo seleccionado</button><span class="hd-memo-help" id="hdMemoFileHelp">Puedes adjuntar un PDF o una imagen. Solo se adjunta un archivo por memorando.</span></div>
+            <div id="hdMemoLocalPreview" hidden><div class="hd-memo-row"><strong>Archivo seleccionado (aún no guardado)</strong><a id="hdMemoLocalDownload" href="#" download>Descargar</a><button type="button" id="hdMemoLocalClose">Cerrar vista previa</button></div><iframe id="hdMemoLocalFrame" title="Vista previa del documento seleccionado"></iframe><img id="hdMemoLocalImage" alt="Imagen seleccionada" hidden></div>
+            <div class="hd-memo-row hd-memo-save-tools"><button type="button" id="hdMemoSave" class="hd-memo-primary"><i class="fa-solid fa-floppy-disk"></i> Grabar memorando para seleccionados</button><button type="button" id="hdMemoNew"><i class="fa-solid fa-plus"></i> Nuevo memorando</button></div>
+            <p id="hdMemoStatus" role="status" aria-live="polite" class="hd-memo-status"></p>
+          </section>
+          <section class="hd-memo-section" aria-labelledby="hdMemoSectionHistory">
+            <div class="hd-memo-section-heading hd-memo-history-heading"><div><span class="hd-memo-section-step">03</span><h3 id="hdMemoSectionHistory">Historial de memorandos</h3><p>Consulta los envíos registrados para la modalidad seleccionada.</p></div><button type="button" id="hdMemoExport" class="hd-memo-primary"><i class="fa-solid fa-file-excel"></i> Descargar Excel</button></div>
+            <div class="hd-memo-scroller"><table><thead><tr><th>Memorando</th><th>Fecha</th><th>Expedientes</th><th>Asunto</th><th>Acciones</th></tr></thead><tbody id="hdMemoHistory"></tbody></table></div>
+            <div id="hdMemoPdfPreview" hidden><div class="hd-memo-row"><strong>Vista previa del archivo</strong><a id="hdMemoPdfDownload" href="#" download="memorando.pdf">Descargar archivo</a><button type="button" id="hdMemoPdfClose">Cerrar vista previa</button></div><iframe id="hdMemoPdfFrame" title="Documento del memorando" loading="lazy"></iframe><img id="hdMemoServerImage" alt="Imagen del memorando" hidden></div>
+          </section>
+          <p class="hd-memo-footer-info"><i class="fa-solid fa-circle-info"></i> Cada expediente admite hasta cuatro memorandos vigentes. La columna AY muestra el último; los anteriores se conservan como antecedentes.</p>
+        </div>
       </div>
     </div>
     <style>
@@ -1411,6 +1429,61 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
       .hd-memo-scroller input[type=checkbox]{width:19px;height:19px}
       .hd-memo-report-panel{display:flex;align-items:end;flex-wrap:wrap;gap:12px;padding:14px;background:#f2f6fd;border:1px solid #d3e0f3;border-radius:12px;margin:12px 0}.hd-memo-report-panel label{flex:1 1 330px}.hd-memo-report-panel select{max-width:780px}.hd-memo-actions{white-space:nowrap}.hd-memo-actions button{font-size:12px;padding:5px 7px;margin:2px}
       #hdMemoPdfFrame,#hdMemoLocalFrame{width:100%;height:55vh;border:1px solid #d3e0f3}#hdMemoLocalImage,#hdMemoServerImage{max-width:100%;max-height:65vh;object-fit:contain;margin:12px auto;border:1px solid #d3e0f3}#hdMemoLocalImage[hidden],#hdMemoServerImage[hidden]{display:none!important}
+    </style>
+    <style id="hdMemoExecutiveStyles">
+      /* Rediseño de presentación; se preservan todos los IDs y eventos del módulo. */
+      #hdMemoModal{padding:14px;background:rgba(5,17,40,.76);backdrop-filter:blur(3px)}
+      #hdMemoModal .hd-memo-executive{padding:0;width:min(1370px,100%);max-height:95dvh;overflow-y:auto;overflow-x:hidden;border:1px solid #c5d5ea;border-radius:22px;box-shadow:0 24px 75px #05152d78;background:#f3f7fd;color:#17335c;scrollbar-color:#a6b7ce transparent}
+      #hdMemoModal .hd-memo-hero{position:sticky;top:0;z-index:15;display:flex;align-items:center;justify-content:space-between;gap:15px;margin:0;padding:22px 26px;background:linear-gradient(115deg,#061b44 0%,#0b3476 52%,#1461ad 100%);color:#fff;border-bottom:1px solid #8bb6e855}
+      #hdMemoModal .hd-memo-hero-ident{display:flex;gap:15px;align-items:center;min-width:0}
+      #hdMemoModal .hd-memo-hero-icon{display:grid;place-items:center;width:58px;height:58px;flex-shrink:0;background:#ffffff23;border:1px solid #ffffff35;border-radius:16px;font-size:26px}
+      #hdMemoModal .hd-memo-eyebrow{display:block;font-size:10px;font-weight:850;letter-spacing:.12em;color:#bbd8ff;margin-bottom:4px}
+      #hdMemoModal .hd-memo-hero h2{color:#fff!important;font-size:clamp(20px,2.2vw,29px);line-height:1.2;letter-spacing:-.025em}
+      #hdMemoModal .hd-memo-hero p{color:#deebff;font-size:12px;margin-top:5px}
+      #hdMemoModal #hdMemoClose{background:#ffffff19;color:#fff;border-color:#ffffff60;flex-shrink:0}
+      #hdMemoModal #hdMemoClose:hover{background:#ffffff35}
+      #hdMemoModal .hd-memo-body{padding:20px 24px 24px}
+      #hdMemoModal .hd-memo-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+      #hdMemoModal .hd-memo-metric{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid #cdddf2;border-radius:15px;padding:15px 17px;box-shadow:0 4px 12px #1243850c;min-width:0}
+      #hdMemoModal .hd-memo-metric-icon{display:grid;place-items:center;width:43px;height:43px;border-radius:12px;background:#eaf2ff;color:#1559b4;font-size:19px;flex:none}
+      #hdMemoModal .hd-memo-metric small{display:block;color:#647895;font-weight:700;font-size:11px;margin-bottom:4px}
+      #hdMemoModal .hd-memo-metric strong{display:block;font-size:17px;color:#123970;font-weight:850;line-height:1.25;overflow-wrap:anywhere}
+      #hdMemoModal .hd-memo-section{background:#fff;border:1px solid #d0dff3;border-radius:17px;padding:18px;margin:0 0 17px;box-shadow:0 5px 17px #16417c0d}
+      #hdMemoModal .hd-memo-section-heading{display:flex;align-items:center;gap:12px;margin-bottom:15px;padding-bottom:12px;border-bottom:1px solid #e3ebf6}
+      #hdMemoModal .hd-memo-section-heading>div{min-width:0;flex:1}
+      #hdMemoModal .hd-memo-section-step{float:left;display:grid;place-items:center;margin:1px 12px 0 0;width:36px;height:36px;border-radius:10px;background:#e5efff;color:#1456a7;font-size:14px;font-weight:900}
+      #hdMemoModal .hd-memo-section-heading h3{color:#153e7e;font-size:18px;font-weight:850;margin:0}
+      #hdMemoModal .hd-memo-section-heading p{font-size:12px;color:#697c99;margin:2px 0 0}
+      #hdMemoModal .hd-memo-selector-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;margin:4px 0 14px}
+      #hdMemoModal .hd-memo-selector-row label{min-width:0}
+      #hdMemoModal .hd-memo-selection-tools{margin:0 0 12px;gap:9px}
+      #hdMemoModal .hd-memo-selection-tools strong{margin-right:auto;color:#173b6d}
+      #hdMemoModal .hd-memo-panel button{border-radius:10px;padding:10px 13px;transition:background-color .15s,border-color .15s,transform .15s}
+      #hdMemoModal .hd-memo-panel button:hover:not(:disabled){border-color:#2b70d6;background:#edf5ff}
+      #hdMemoModal .hd-memo-panel .hd-memo-primary{background:linear-gradient(120deg,#1263cb,#1652b1);color:#fff;border-color:#1764ca;box-shadow:0 3px 8px #1b5aba26}
+      #hdMemoModal .hd-memo-panel .hd-memo-primary:hover:not(:disabled){background:#0c4eaa;color:#fff}
+      #hdMemoModal .hd-memo-panel button:disabled{opacity:.52;cursor:not-allowed}
+      #hdMemoModal .hd-memo-panel input:not([type=checkbox]),#hdMemoModal .hd-memo-panel select{background:#f9fbff;border:1px solid #bed1e9;border-radius:10px;min-height:43px;color:#163761;font-size:13px}
+      #hdMemoModal .hd-memo-panel input:focus,#hdMemoModal .hd-memo-panel select:focus{outline:2px solid #a7c8fb;border-color:#2872d4}
+      #hdMemoModal .hd-memo-form{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+      #hdMemoModal .hd-memo-form label{min-width:0;font-size:12px;color:#284b7d}
+      #hdMemoModal .hd-memo-form input[type=file]{padding:7px;font-size:11px;min-width:0}
+      #hdMemoModal .hd-memo-file-tools{padding:10px 0;gap:10px}
+      #hdMemoModal .hd-memo-save-tools{display:flex;justify-content:flex-end;margin:15px 0 0;border-top:1px solid #e1eaf5;padding-top:15px}
+      #hdMemoModal #hdMemoSave{min-width:270px}
+      #hdMemoModal .hd-memo-status{margin:8px 0 0;padding:8px 11px;background:#f1f6ff;border-radius:9px;font-size:12px;min-height:0}
+      #hdMemoModal .hd-memo-status:empty{display:none}
+      #hdMemoModal .hd-memo-status[data-kind=error]{background:#fff0ed;color:#a52229}
+      #hdMemoModal .hd-memo-status[data-kind=success]{background:#ebf9f1;color:#087647}
+      #hdMemoModal .hd-memo-history-heading{justify-content:space-between}
+      #hdMemoModal .hd-memo-scroller{max-height:270px;border:1px solid #d5e2f4;border-radius:12px}
+      #hdMemoModal .hd-memo-scroller th{background:#113b7b;color:white;padding:12px 13px;font-size:12px;white-space:nowrap}
+      #hdMemoModal .hd-memo-scroller td{padding:10px 13px}
+      #hdMemoModal .hd-memo-scroller tbody tr:nth-child(even){background:#f6f9ff}
+      #hdMemoModal .hd-memo-scroller tbody tr:hover{background:#eaf3ff}
+      #hdMemoModal .hd-memo-footer-info{padding:0 4px 5px;color:#677b99;font-size:11px;line-height:1.6}
+      @media(max-width:1000px){#hdMemoModal .hd-memo-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+      @media(max-width:670px){#hdMemoModal{padding:4px}#hdMemoModal .hd-memo-executive{max-height:99dvh;border-radius:13px}#hdMemoModal .hd-memo-hero{padding:14px;gap:9px}#hdMemoModal .hd-memo-hero-icon{width:42px;height:42px;font-size:19px}#hdMemoModal .hd-memo-hero h2{font-size:17px}#hdMemoModal .hd-memo-hero p{font-size:10px}#hdMemoModal #hdMemoClose{font-size:12px;padding:9px}#hdMemoModal .hd-memo-body{padding:10px}#hdMemoModal .hd-memo-overview{grid-template-columns:1fr;gap:7px;margin-bottom:11px}#hdMemoModal .hd-memo-metric{padding:9px 12px}#hdMemoModal .hd-memo-metric-icon{width:34px;height:34px;font-size:15px}#hdMemoModal .hd-memo-metric strong{font-size:14px}#hdMemoModal .hd-memo-section{padding:12px;margin-bottom:10px}#hdMemoModal .hd-memo-selector-row{grid-template-columns:1fr}#hdMemoModal .hd-memo-form{grid-template-columns:1fr}#hdMemoModal .hd-memo-selection-tools{align-items:stretch}#hdMemoModal .hd-memo-selection-tools strong{width:100%}#hdMemoModal .hd-memo-save-tools{flex-direction:column}#hdMemoModal #hdMemoSave{min-width:0;width:100%}#hdMemoModal .hd-memo-save-tools button{width:100%}#hdMemoModal .hd-memo-history-heading{flex-wrap:wrap}#hdMemoModal .hd-memo-history-heading button{width:100%}}
     </style>
     <!-- Menú exclusivo para pantallas pequeñas: utiliza las funciones originales -->
     <nav class="mobile-bottom-nav" aria-label="Navegación móvil">
