@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV63 — Resumen WhatsApp OM5 y columna Ítem oculta en listado; sin alterar exportaciones. */
+/* HIDRANDINA_VENTAS REV65 — Resumen WhatsApp OM5 y columna Ítem oculta en listado; sin alterar exportaciones. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -196,16 +196,17 @@ function render(mod){
   }).join('')||'<tr><td colspan="41">No se encontraron expedientes</td></tr>';
  }else{
   // UIA: 18 campos sin la columna duplicada Tipo; Elegir y Acción se conservan.
-  const columns=UIA_REPORT_HEADERS,report=uiaReportRows({headers:h,registros:sub});
+  const columns=UIA_REPORT_HEADERS.filter(k=>k!=='Item'),report=uiaReportRows({headers:h,registros:sub});
   theader.innerHTML='<tr><th class="hd-choose">Seleccionar</th><th class="hd-report-actions">Consultar / Editar</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'</tr>';
   body.innerHTML=report.map((r,i)=>{
    const original=sub[i],uid=id(original),chosen=n.selected===uid;
    return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td class="hd-choose"><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' aria-label="Seleccionar ítem '+safe(r['Item'])+'" onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td>'+
     '<td class="hd-report-actions"><button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td>'+
     columns.map(k=>'<td title="'+safe(r[k]).replace(/\n/g,' / ')+'" class="'+(UIA_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(r[k])+'</td>').join('')+'</tr>';
-  }).join('')||'<tr><td colspan="20">No se encontraron expedientes UIA</td></tr>';
+  }).join('')||'<tr><td colspan="19">No se encontraron expedientes UIA</td></tr>';
  }
  $('amplCount').textContent=source.length+' expedientes; página '+(n.page+1)+' de '+Math.max(1,Math.ceil(source.length/30));
+ if(mod==='UIA' && activeAmplModule()==='UIA') $('amplStatus').textContent='UIA: '+source.length+' expedientes disponibles.';
  $('amplPrev').disabled=n.page===0;$('amplNext').disabled=(n.page+1)*30>=source.length;
  const buttons=$('amplStages');
  if(buttons){
@@ -219,7 +220,7 @@ function render(mod){
    const color=i===0?(selected?'#1e67d2':'#8c96a6'):estadoColor(state);
    const label=i===0?(selected?'Terminado':'Sin información'):(String(state||'').trim()||'Sin información');
    return '<button type="button" style="background:'+color+'" title="'+safe(et[0]+': '+label)+'" '+(selected?'':'disabled')+' onclick="Ampliaciones.open(\''+safe(n.selected)+'\','+i+',false)">'+safe(et[0])+'</button>';
-  }).join(''):'<span class="hd-ampl-muted">UIA no utiliza etapas</span>';
+  }).join(''):'';
  }
  $('amplNew').hidden=!edit();$('amplDelete').hidden=!edit()||!(adm()||asis()||oper());
 }
