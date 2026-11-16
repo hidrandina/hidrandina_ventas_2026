@@ -2913,7 +2913,47 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 ['Observaciones',getProp(doc,['Observaciones',10])]
             ];
             const adj=adjuntos.map((a,i)=>`<li>${escapeHtmlSustento(String(getProp(a,['Tipo_Sustento',2]))==='Atencion'?'Descargo / atención':'Sustento')} — ${escapeHtmlSustento((i+1)+'_'+nombreSeguroExpediente_(getProp(a,['Nombre_Archivo',3])||'Archivo'))}</li>`).join('');
-            return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resumen del expediente</title><style>body{font:15px system-ui,sans-serif;max-width:780px;margin:auto;padding:24px;color:#17335e}h1{color:#0b3678}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #cbd5e1;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{width:34%;background:#eef5ff}li{margin:7px 0}.nota{font-size:12px;color:#526581}</style></head><body><h1>HIDRANDINA — Atención de Documentos</h1><h2>Resumen del expediente</h2><table>${filas.map(x=>campo(...x)).join('')}</table><h2>Archivos adjuntos</h2>${adj?'<ol>'+adj+'</ol>':'<p>Este expediente no tiene adjuntos.</p>'}<p class="nota">Los archivos originales se incluyen en las carpetas Sustentos y Atencion de este ZIP. Documento generado por un usuario autorizado.</p></body></html>`;
+            return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resumen del expediente</title><style>body{font:15px system-ui,sans-serif;max-width:780px;margin:auto;padding:24px;color:#17335e}h1{color:#0b3678}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #cbd5e1;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{width:34%;background:#eef5ff}li{margin:7px 0}.nota{font-size:12px;color:#526581}</style></head><body><h1>HIDRANDINA — Atención de Documentos</h1><h2>Resumen del expediente</h2><table>${filas.map(x=>campo(...x)).join('')}</table><h2>Archivos adjuntos</h2>${adj?'<ol>'+adj+'</ol>':'<p>Este expediente no tiene adjuntos.</p>'}<p class="nota">Los archivos originales se incluyen en las carpetas Sustentos y Atencion de este ZIP. Documento generado por un usuario autorizado.</p>
+<style id="hdOM5Rev66">
+/* REV66: OM5 adopta la misma línea visual de UIA, conservando sus etapas y lógica funcional. */
+#tab-om5 .hd-om5-status-legend{display:none!important}
+#tab-om5 #amplWorkspace{background:linear-gradient(180deg,#f5f9ff 0%,#eff5fe 100%);border:1px solid #d9e6f8;border-radius:20px;padding:22px 23px 25px}
+#tab-om5 #amplWorkspace>h2{background:linear-gradient(105deg,#092e6c,#155bb5);color:#fff!important;padding:17px 20px;border-radius:14px;box-shadow:0 8px 20px #0a367528;margin:0 0 16px;font-weight:850;letter-spacing:.015em;font-size:clamp(21px,2vw,28px)}
+#tab-om5 .hd-ampl-controls{background:#fff;padding:15px 17px;border:1px solid #d5e3f7;border-radius:13px;box-shadow:0 5px 14px #153b7020;gap:11px;margin-bottom:13px;align-items:end}
+#tab-om5 .hd-ampl-queryline{display:flex;align-items:center;gap:12px;width:100%}
+#tab-om5 #amplSearch{flex:1;min-width:0;min-height:47px}
+#tab-om5 #amplConsult{background:#175ab9;color:white;border:1px solid #175ab9;min-height:47px;white-space:nowrap;padding:9px 19px}
+#tab-om5 #amplField{min-height:45px}
+#tab-om5 .hd-ampl-controls label{color:#1a3769;font-weight:650;font-size:13px}
+#tab-om5 .hd-ampl-controls label input{margin-top:5px;min-height:45px}
+#tab-om5 #amplNew{background:#1b5abd;color:#fff;border-color:#1b5abd}
+#tab-om5 #amplDelete{color:#b13030;border-color:#e7b9b9;background:#fff6f6}
+#tab-om5 .hd-ampl-controls button{min-height:42px;transition:background-color .15s ease, box-shadow .15s ease}
+#tab-om5 .hd-ampl-controls button:hover{box-shadow:0 3px 9px #103d7925}
+#tab-om5 #amplStages{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px;padding:0}
+#tab-om5 #amplStages button{border-radius:11px!important;padding:11px 14px!important;font-weight:800!important;box-shadow:0 4px 10px #16396d12}
+#tab-om5 #amplStatus{margin:7px 0 11px;color:#345985;font-size:13px;font-weight:600}
+#tab-om5 .hd-ampl-grid{border:1px solid #c5d8f3;border-radius:15px;box-shadow:0 8px 22px #16396d15;background:#fff;max-height:67vh}
+#tab-om5 .hd-ampl-grid th{background:#103b80!important;color:#fff!important;padding:13px 12px;border-bottom:0;font-weight:800;font-size:12px}
+#tab-om5 .hd-ampl-grid td{padding:13px 12px;border-bottom:1px solid #e2eaf6;line-height:1.55}
+#tab-om5 .hd-ampl-grid tbody tr:hover td{background:#e9f2ff!important}
+#tab-om5 .hd-ampl-grid tbody tr.hd-ampl-selected td{background:#deebff!important}
+#tab-om5 .hd-ampl-grid .hd-report-actions button{border-color:#b4c9ea;background:#fff;color:#1453a8;border-radius:8px}
+#tab-om5 .hd-ampl-grid .hd-report-actions button:hover{background:#e8f2ff}
+#tab-om5 .hd-ampl-grid td.hd-choose,#tab-om5 .hd-ampl-grid th.hd-choose{width:84px!important;min-width:84px!important;max-width:84px!important}
+#tab-om5 .hd-ampl-grid td:nth-child(2),#tab-om5 .hd-ampl-grid th:nth-child(2){width:145px!important;min-width:145px!important;max-width:145px!important;left:84px!important}
+#tab-om5 .hd-ampl-grid input[type="radio"]{accent-color:#1764d0;cursor:pointer;width:auto;min-width:16px;height:16px}
+@media(max-width:767px){
+ #tab-om5 #amplWorkspace{padding:13px 10px;border-radius:15px}
+ #tab-om5 #amplWorkspace>h2{padding:14px;font-size:21px}
+ #tab-om5 .hd-ampl-controls{padding:12px;gap:9px}
+ #tab-om5 .hd-ampl-queryline{gap:7px}
+ #tab-om5 #amplConsult{padding:9px 11px;font-size:12px}
+ #tab-om5 .hd-ampl-grid td:nth-child(2),#tab-om5 .hd-ampl-grid th:nth-child(2){width:112px!important;min-width:112px!important;max-width:112px!important}
+}
+</style>
+
+</body></html>`;
         }
         async function compartirExpedienteConsulta() {
             const idx=expedienteConsultaIndice;
@@ -4732,5 +4772,45 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  #tab-uia .hd-ampl-grid td:nth-child(2),#tab-uia .hd-ampl-grid th:nth-child(2){width:112px!important;min-width:112px!important;max-width:112px!important}
 }
 </style>
+
+<style id="hdOM5Rev66">
+/* REV66: OM5 adopta la misma línea visual de UIA, conservando sus etapas y lógica funcional. */
+#tab-om5 .hd-om5-status-legend{display:none!important}
+#tab-om5 #amplWorkspace{background:linear-gradient(180deg,#f5f9ff 0%,#eff5fe 100%);border:1px solid #d9e6f8;border-radius:20px;padding:22px 23px 25px}
+#tab-om5 #amplWorkspace>h2{background:linear-gradient(105deg,#092e6c,#155bb5);color:#fff!important;padding:17px 20px;border-radius:14px;box-shadow:0 8px 20px #0a367528;margin:0 0 16px;font-weight:850;letter-spacing:.015em;font-size:clamp(21px,2vw,28px)}
+#tab-om5 .hd-ampl-controls{background:#fff;padding:15px 17px;border:1px solid #d5e3f7;border-radius:13px;box-shadow:0 5px 14px #153b7020;gap:11px;margin-bottom:13px;align-items:end}
+#tab-om5 .hd-ampl-queryline{display:flex;align-items:center;gap:12px;width:100%}
+#tab-om5 #amplSearch{flex:1;min-width:0;min-height:47px}
+#tab-om5 #amplConsult{background:#175ab9;color:white;border:1px solid #175ab9;min-height:47px;white-space:nowrap;padding:9px 19px}
+#tab-om5 #amplField{min-height:45px}
+#tab-om5 .hd-ampl-controls label{color:#1a3769;font-weight:650;font-size:13px}
+#tab-om5 .hd-ampl-controls label input{margin-top:5px;min-height:45px}
+#tab-om5 #amplNew{background:#1b5abd;color:#fff;border-color:#1b5abd}
+#tab-om5 #amplDelete{color:#b13030;border-color:#e7b9b9;background:#fff6f6}
+#tab-om5 .hd-ampl-controls button{min-height:42px;transition:background-color .15s ease, box-shadow .15s ease}
+#tab-om5 .hd-ampl-controls button:hover{box-shadow:0 3px 9px #103d7925}
+#tab-om5 #amplStages{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 14px;padding:0}
+#tab-om5 #amplStages button{border-radius:11px!important;padding:11px 14px!important;font-weight:800!important;box-shadow:0 4px 10px #16396d12}
+#tab-om5 #amplStatus{margin:7px 0 11px;color:#345985;font-size:13px;font-weight:600}
+#tab-om5 .hd-ampl-grid{border:1px solid #c5d8f3;border-radius:15px;box-shadow:0 8px 22px #16396d15;background:#fff;max-height:67vh}
+#tab-om5 .hd-ampl-grid th{background:#103b80!important;color:#fff!important;padding:13px 12px;border-bottom:0;font-weight:800;font-size:12px}
+#tab-om5 .hd-ampl-grid td{padding:13px 12px;border-bottom:1px solid #e2eaf6;line-height:1.55}
+#tab-om5 .hd-ampl-grid tbody tr:hover td{background:#e9f2ff!important}
+#tab-om5 .hd-ampl-grid tbody tr.hd-ampl-selected td{background:#deebff!important}
+#tab-om5 .hd-ampl-grid .hd-report-actions button{border-color:#b4c9ea;background:#fff;color:#1453a8;border-radius:8px}
+#tab-om5 .hd-ampl-grid .hd-report-actions button:hover{background:#e8f2ff}
+#tab-om5 .hd-ampl-grid td.hd-choose,#tab-om5 .hd-ampl-grid th.hd-choose{width:84px!important;min-width:84px!important;max-width:84px!important}
+#tab-om5 .hd-ampl-grid td:nth-child(2),#tab-om5 .hd-ampl-grid th:nth-child(2){width:145px!important;min-width:145px!important;max-width:145px!important;left:84px!important}
+#tab-om5 .hd-ampl-grid input[type="radio"]{accent-color:#1764d0;cursor:pointer;width:auto;min-width:16px;height:16px}
+@media(max-width:767px){
+ #tab-om5 #amplWorkspace{padding:13px 10px;border-radius:15px}
+ #tab-om5 #amplWorkspace>h2{padding:14px;font-size:21px}
+ #tab-om5 .hd-ampl-controls{padding:12px;gap:9px}
+ #tab-om5 .hd-ampl-queryline{gap:7px}
+ #tab-om5 #amplConsult{padding:9px 11px;font-size:12px}
+ #tab-om5 .hd-ampl-grid td:nth-child(2),#tab-om5 .hd-ampl-grid th:nth-child(2){width:112px!important;min-width:112px!important;max-width:112px!important}
+}
+</style>
+
 </body>
 </html>
