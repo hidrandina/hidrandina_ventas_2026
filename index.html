@@ -1562,6 +1562,39 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #amplFormBody .hd-ampl-doc-cell input[type="date"]{max-width:100%}
 @media(max-width:800px){#amplFormBody .hd-ampl-doc-footer{align-items:flex-start;flex-direction:column}}
 
+/* REV61 | Nuevo expediente OM5: formulario ejecutivo compacto y resoluciones opcionales.
+   Solo se aplica en Registro de un expediente nuevo. OM5 existente y UIA no se modifican. */
+#amplModal.hd-om5-entry .hd-ampl-panel{width:min(1120px,97vw);padding:19px 22px 15px}
+#amplModal.hd-om5-entry #amplFormTitle{font-size:clamp(20px,2vw,25px);font-weight:900;color:#113a78}
+#amplModal.hd-om5-entry #amplFormBody{grid-template-columns:1fr!important;gap:12px}
+#amplModal.hd-om5-entry .hd-om5-form-section{min-width:0;border:1px solid #d7e4f5;border-radius:14px;background:#fff;padding:14px 16px;grid-column:1/-1}
+#amplModal.hd-om5-entry .hd-om5-form-section h3{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:850;color:#143e7c;margin:0 0 12px}
+#amplModal.hd-om5-entry .hd-om5-form-section h3 i{color:#2367c3}
+#amplModal.hd-om5-entry .hd-om5-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;align-items:start}
+#amplModal.hd-om5-entry .hd-om5-form-section:nth-of-type(2) .hd-om5-field-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#amplModal.hd-om5-entry .hd-ampl-label{gap:5px;min-width:0}
+#amplModal.hd-om5-entry .hd-ampl-label input,#amplModal.hd-om5-entry .hd-ampl-label select,#amplModal.hd-om5-entry .hd-ampl-label textarea{min-height:42px;padding:9px 11px;font-size:13px}
+#amplModal.hd-om5-entry .hd-ampl-label textarea{min-height:43px;max-height:95px;resize:vertical}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-group{grid-column:1/-1;margin:0;padding:14px 16px;background:#f6f9ff;border-radius:14px}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-group>h4{margin-bottom:10px}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc{grid-template-columns:minmax(0,1.4fr) minmax(0,.8fr) minmax(220px,1.2fr)!important;align-items:center!important;padding:11px 13px;gap:9px 12px}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-heading{grid-column:1/-1;margin:0;min-height:20px}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-cell{align-self:start}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-cell input{min-height:40px}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-inline-attachment{min-height:0;gap:5px;padding:8px 10px;align-self:start}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-inline-attachment input{font-size:11px}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-inline-attachment small{font-size:10px;line-height:1.3}
+#amplModal.hd-om5-entry .hd-om5-section-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+#amplModal.hd-om5-entry .hd-om5-section-head h4{font-size:16px;font-weight:850;color:#173b78;margin:0}
+#amplModal.hd-om5-entry .hd-om5-section-head span{font-size:11px;color:#577091;font-weight:700}
+#amplModal.hd-om5-entry .hd-om5-optional-note{font-size:12px;color:#56708f;line-height:1.5;margin:0 0 10px}
+#amplModal.hd-om5-entry .hd-ampl-doc-footer{margin-top:9px}
+#amplModal.hd-om5-entry .hd-ampl-add{font-size:12px;padding:9px 12px}
+#amplModal.hd-om5-entry .hd-ampl-panel>.hd-ampl-controls:last-child{position:sticky;bottom:-15px;z-index:5;background:#fffffff5;border-top:1px solid #e1eaf6;margin:14px -8px -8px;padding:12px 8px 8px;backdrop-filter:blur(9px)}
+#amplModal.hd-om5-entry #amplSave{background:#1557b4;color:white}
+@media(max-width:900px){#amplModal.hd-om5-entry .hd-om5-form-section:nth-of-type(2) .hd-om5-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){#amplModal.hd-om5-entry .hd-ampl-panel{width:100%;padding:12px}#amplModal.hd-om5-entry .hd-om5-form-section{padding:11px}#amplModal.hd-om5-entry .hd-om5-field-grid,#amplModal.hd-om5-entry .hd-om5-form-section:nth-of-type(2) .hd-om5-field-grid{grid-template-columns:1fr}#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc{grid-template-columns:1fr!important}#amplModal.hd-om5-entry .hd-ampl-panel>.hd-ampl-controls:last-child{bottom:-12px}}
+
 /* REV60: ficha OM5/UIA consistente con la interfaz institucional. */
 #amplModal .hd-ampl-panel{background:#fff;border:1px solid #d5e3f6;border-radius:19px;box-shadow:0 22px 70px #061d4155}
 #amplModal #amplFormTitle{font-size:clamp(19px,2vw,24px);font-weight:850;color:#103a77;letter-spacing:-.025em}
@@ -4226,7 +4259,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV60-ESTABILIDAD-20261116"></script>
+<script src="./ampliaciones-ui.js?v=REV61-INGRESO-20261116"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
