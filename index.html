@@ -1810,6 +1810,49 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   }
   #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment{grid-column:1!important}
 }
+
+/* REV69. Ajuste consistente de las cinco etapas de OM5, sin alterar los datos.
+   Este estilo es intencionalmente el último del documento para tener prioridad
+   frente a las reglas de las REV61–REV68. */
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-group{padding:9px 11px!important;margin:0!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-list{gap:6px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc:has(.hd-ampl-note){
+ display:grid!important;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr) minmax(0,1.1fr)!important;
+ gap:8px!important;align-items:end!important;padding:9px 11px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc[hidden]{display:none!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell{align-self:end!important;min-width:0;gap:4px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell input,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell textarea{
+ height:41px!important;min-height:41px!important;margin:0!important;padding:7px 9px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment{
+ align-self:end!important;justify-content:center!important;min-height:0!important;
+ padding:5px 8px!important;gap:3px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment .hd-ampl-no-attachment,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment>small{display:none!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment .hd-ampl-choose-file{gap:3px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment input[type=file]{width:100%;min-width:0;max-width:100%;font-size:11px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-footer{margin-top:6px!important}
+/* Montaje: memorando individual = un campo + un adjunto, no deja casillas en blanco. */
+#amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplFormBody .hd-ampl-memo-individual .hd-ampl-single-doc{
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+}
+/* No reducir la anchura del único estado en la etapa de Revisión. */
+#amplModal.hd-om5-consolidated #amplFormBody .hd-om5-stage-section .hd-om5-field-grid:has(> :only-child){grid-template-columns:1fr!important}
+@media(max-width:850px){
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc,
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc:has(.hd-ampl-note){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment{grid-column:1/-1!important}
+}
+@media(max-width:600px){
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc,
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc:has(.hd-ampl-note),
+ #amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplFormBody .hd-ampl-memo-individual .hd-ampl-single-doc{grid-template-columns:1fr!important}
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment{grid-column:auto!important}
+}
 </style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
@@ -4461,7 +4504,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV61-INGRESO-20261116"></script>
+<script src="./ampliaciones-ui.js?v=REV69-CONSOLIDADO-20261116"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
