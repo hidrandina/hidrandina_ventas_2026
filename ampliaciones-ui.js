@@ -559,16 +559,20 @@ function docs(kind,editable){
  const optionalEmptyRes=kind==='res'&&curso==='OM5'&&!registro.id&&registro.stage===0;
  const maxShown=optionalEmptyRes?0:Math.max(1,...g.rows.filter(x=>x.v||x.f||x.obs||attachmentsFor(x.num).length).map(x=>x.i));
  const rows=g.rows.map(r=>{
-  const numberLabel=(kind==='obsExp'||kind==='obsInsp')?'N.º de memorando GC':'Número de '+g.label.toLowerCase();
+  // REV67: numerar el campo, sin repetir un título encima de cada documento.
+  // Se conserva el botón de eliminación para documentos ya registrados.
+  const numberLabel=(kind==='obsExp'||kind==='obsInsp')
+   ?'N.º de memorando GC '+r.i
+   :'Número de '+g.label.toLowerCase()+' '+r.i;
   const noteCell=r.note?`<label class="hd-ampl-doc-cell hd-ampl-note"><span>Observación ${r.i}</span>${fieldInput(r.note,r.obs,editable)}</label>`:'';
   const dateCell=r.date?`<label class="hd-ampl-doc-cell hd-ampl-date"><span>Fecha</span>${fieldInput(r.date,r.f,editable)}</label>`:'';
   const remove=registro.id&&editable&&r.v&&['sol','res'].includes(kind)?`<button type="button" class="hd-ampl-remove" onclick="Ampliaciones.deleteDocField('${safe(r.num)}')">Eliminar documento y adjuntos</button>`:'';
   return `<div class="hd-ampl-doc" data-doc="${safe(kind)}" data-num="${r.i}" ${r.i>maxShown?'hidden':''}>
-   <div class="hd-ampl-doc-heading"><strong>${safe(g.label)} ${r.i}</strong>${remove}</div>
    ${noteCell}
    <label class="hd-ampl-doc-cell"><span>${safe(numberLabel)}</span>${compactNumberInput(r.num,r.v,editable)}</label>
    ${dateCell}
    ${inlineUpload(r.num,editable)}
+   ${remove?'<div class="hd-ampl-doc-heading hd-ampl-doc-remove-only">'+remove+'</div>':''}
   </div>`;
  }).join('');
  const visibleCount=Math.min(maxShown,g.rows.length);
