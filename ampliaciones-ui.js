@@ -1,4 +1,4 @@
-/* HIDRANDINA_VENTAS REV39 - Pestañas de etapas OM5 y acciones iniciales. */
+/* HIDRANDINA_VENTAS REV62 - Corrección de encabezados OM5 sobre REV61; no modifica backend. */
 (function(){
 'use strict';
 const MODS={OM5:{titulo:'AMPLIACIONES DE REDES OM5',sol:6,res:2},UIA:{titulo:'AMPLIACIONES UIA',sol:3,res:0}};
@@ -32,6 +32,10 @@ function validateBeforeSave(payload,mod,isNew){
  // Las reglas existentes de edición histórica se conservan. Solo exigir
  // datos base en expedientes nuevos; las solicitudes nuevas siempre llevan fecha.
  const hs=sheet(mod).headers;
+ if(mod==='OM5'&&isNew){
+  const missing=om5MissingColumns_();
+  if(missing.length)return {message:'No se permite guardar: faltan campos reales de la base OM5 ('+missing.slice(0,6).join(', ')+(missing.length>6?'…':'')+'). Revisa la versión publicada de Apps Script y la estructura de datos. No se ha modificado la base.',field:''};
+ }
  const lookup=(name)=>Object.keys(payload).find(h=>key(h)===key(name));
  if(isNew){
   const required=mod==='OM5'?['Solicitante','NombreSector','Departamento','Provincia','Distrito','UUEE','ClientesCaptar']:['Nombre','Direccion','Departamento','Provincia','Distrito'];
@@ -62,9 +66,51 @@ function validateBeforeSave(payload,mod,isNew){
 }
 const api=async(action,data={})=>{let res=await window.postGateway({action,...data},110000);return res;};
 function sheet(mod){return STORE[mod]||{headers:[],registros:[],adjuntos:[],catalogos:{}};}
+/* REV62. La respuesta de algunas implementaciones contiene los registros pero
+   omite o entrega incompletos los encabezados. Recuperarlos de las CLAVES
+   ORIGINALES de los registros, sin inventar ni renombrar columnas de Sheets. */
+function normalizeReadData_(mod,data){
+ if(!data||!Array.isArray(data.registros))return data;
+ const supplied=Array.isArray(data.headers)?data.headers.filter(h=>typeof h==='string'&&h&&!h.startsWith('__')):[];
+ const rows=data.registros;
+ const discovered=[];
+ const present=new Set();
+ for(const row of rows.slice(0,Math.min(8,rows.length))){
+  if(!row||typeof row!=='object')continue;
+  for(const h of Object.keys(row)){
+   if(h.startsWith('__')||!h||present.has(key(h)))continue;
+   present.add(key(h));discovered.push(h);
+  }
+ }
+ const actual=new Map(discovered.map(h=>[key(h),h]));
+ // Priorizar los nombres que efectivamente aparecen en los registros: son los
+ // mismos identificadores que acepta amplSave en el servidor.
+ const normalized=supplied.map(h=>actual.get(key(h))||h);
+ const seen=new Set(normalized.map(key));
+ for(const h of discovered)if(!seen.has(key(h))){normalized.push(h);seen.add(key(h));}
+ return {...data,headers:normalized,registros:rows};
+}
+function om5MissingColumns_(){
+ const hs=sheet('OM5').headers;
+ const required=['Solicitante','NombreSector','Suministro','TipoSuministro','IniciativaObra','ObservacionesObras','UUEE','Departamento','Provincia','Distrito','Alimentador','ClientesCaptar'];
+ for(let i=1;i<=6;i++)required.push('NroSolicitud'+i,'FechaSolicitud'+i);
+ for(let i=1;i<=2;i++)required.push('NroResolución'+i,'FechaResolucion'+i);
+ return required.filter(name=>!head(hs,name));
+}
 function section(){return $('tab-'+curso.toLowerCase());}
 function format(v){if(v===null||v===undefined)return '';if(typeof v==='object')return '';return String(v);}
-function fieldsByStage(mod,stage){let hs=sheet(mod).headers;if(mod==='UIA')return hs.filter(h=>!h.startsWith('__')&&key(h)!=='tipo');return hs.slice(ETAPAS[stage][1],ETAPAS[stage][2]).filter(h=>!h.startsWith('__'));}
+function fieldsByStage(mod,stage){
+ const hs=sheet(mod).headers;
+ if(mod==='UIA')return hs.filter(h=>!h.startsWith('__')&&key(h)!=='tipo');
+ if(stage===0){
+  // Nunca depender de índices fijos si la hoja agregó o reordenó columnas.
+  const names=['Solicitante','NombreSector','Suministro','TipoSuministro','IniciativaObra','ObservacionesObras','UUEE','Departamento','Provincia','Distrito','Alimentador','ClientesCaptar'];
+  for(let i=1;i<=6;i++)names.push('NroSolicitud'+i,'FechaSolicitud'+i);
+  for(let i=1;i<=2;i++)names.push('NroResolución'+i,'FechaResolucion'+i);
+  return names.map(name=>head(hs,name)).filter(Boolean);
+ }
+ return hs.slice(ETAPAS[stage][1],ETAPAS[stage][2]).filter(h=>!h.startsWith('__'));
+}
 function rolesReady(){return typeof currentUser !== 'undefined' && !!currentUser && view();}
 function activeAmplModule(){const parent=$('amplWorkspace')?.parentElement?.id;return parent==='tab-uia'?'UIA':parent==='tab-om5'?'OM5':null;}
 async function enter(mod){
@@ -82,7 +128,7 @@ async function refresh(mod){
  try{
   const data=await api('amplRead',{modulo:mod});
   if(!data||!Array.isArray(data.registros))throw Error('Respuesta de '+mod+' sin registros válidos.');
-  STORE[mod]=data;
+  STORE[mod]=normalizeReadData_(mod,data);
   // Una consulta atrasada NO puede sobrescribir la vista del otro módulo.
   if(activeAmplModule()!==mod)return;
   curso=mod;render(mod);
@@ -405,6 +451,15 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   });
  }
  if(stage===0||curso==='UIA'){docs('sol',editable);if(curso==='OM5')docs('res',editable);}
+ if(isNewOM5Entry){
+  const missing=om5MissingColumns_();
+  if(missing.length){
+   const warning=document.createElement('div');
+   warning.className='hd-ampl-schema-warning';warning.setAttribute('role','alert');
+   warning.textContent='No se puede registrar todavía: la respuesta de Apps Script no incluye los campos necesarios ('+missing.slice(0,8).join(', ')+(missing.length>8?'…':'')+'). Se ha bloqueado Guardar para proteger los expedientes. No cambies nombres de columnas en Google Sheets.';
+   ui.prepend(warning);
+  }
+ }
  if(curso==='UIA')docs('memo',editable);
  if(curso==='OM5'&&stage===1)docs('obsExp',editable);
  if(curso==='OM5'&&stage===2)docs('obsInsp',editable);
@@ -416,7 +471,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  // Al volver a una etapa, NO se sobrescribe su referencia inicial.
  if(editable&&!Object.prototype.hasOwnProperty.call(registro.baselines,String(stage)))
   registro.baselines[String(stage)]=snapshotStage_();
- $('amplSave').hidden=!editable;$('amplModal').hidden=false;const note=$('amplFormStatus');if(note){note.textContent='';note.hidden=true;note.dataset.type='info';}if($('amplSave')){$('amplSave').disabled=false;$('amplSave').textContent='Guardar';}
+ $('amplSave').hidden=!editable;$('amplModal').hidden=false;const note=$('amplFormStatus');if(note){note.textContent='';note.hidden=true;note.dataset.type='info';}if($('amplSave')){$('amplSave').disabled=!!(isNewOM5Entry&&om5MissingColumns_().length);$('amplSave').textContent='Guardar';}
 }
 function docGroup(kind){
  let h=sheet(curso).headers;
@@ -534,7 +589,7 @@ async function save(){
   try{
    const fresh=await api('amplRead',{modulo:mod});
    if(!fresh||!Array.isArray(fresh.registros))throw Error('No se pudo actualizar la lista.');
-   STORE[mod]=fresh;refreshed=true;
+   STORE[mod]=normalizeReadData_(mod,fresh);refreshed=true;
    NAV[mod].selected=r.expedienteId;
    if(activeAmplModule()===mod){curso=mod;render(mod);}
   }catch(e){
@@ -834,7 +889,7 @@ function matchDetail(row,mod,c){
  return {score:Math.max(sim(s,c.value),...s.split(/[,;]+/).map(v=>sim(v,c.value))),where:c.type==='sector'?'Sector / localidad':'Nombre'};
 }
 function match(row,mod,c){return matchDetail(row,mod,c).score;}
-async function searchOCR(){let candidates=selectedCandidates();if(!candidates.length)return ocrMessage('Selecciona al menos un dato.');try{await Promise.all(['OM5','UIA'].filter(m=>!STORE[m]).map(async m=>{let d=await api('amplRead',{modulo:m});if(!d||!Array.isArray(d.registros))throw Error('No se pudieron consultar los registros de '+m);STORE[m]=d;}));let container=$('amplOCRResults');let html='';for(let mod of ['OM5','UIA']){let items=sheet(mod).registros.map(r=>{let matched=candidates.map(c=>({c,...matchDetail(r,mod,c)})).filter(x=>x.score>=.70);return {r,matched,score:Math.max(0,...matched.map(x=>x.score))};}).filter(x=>x.matched.length).sort((a,b)=>b.score-a.score);html+=`<h3>${mod} (${items.length})</h3>`+(items.length?'':'<p>No se encontraron coincidencias.</p>')+items.map(x=>`<div class="hd-ampl-result"><b>Ítem ${safe(get(x.r,sheet(mod).headers,'Item','Ítem'))}</b><p>${safe(get(x.r,sheet(mod).headers,'Solicitante','Nombre'))}</p><small>${x.matched.map(z=>safe(z.c.value)+' — '+safe(z.where)+' ('+(z.score===1?'exacta':'aproximada')+')').join(', ')}</small><div><button onclick="Ampliaciones.ocrOpen('${mod}','${safe(id(x.r))}')">Abrir ficha</button><button onclick="Ampliaciones.ocrLocate('${mod}','${safe(id(x.r))}')">Localizar en lista</button></div></div>`).join('');}container.innerHTML=html;ocrMessage('Búsqueda realizada en OM5 y UIA.');}catch(e){ocrMessage('Error: '+e.message)}}
+async function searchOCR(){let candidates=selectedCandidates();if(!candidates.length)return ocrMessage('Selecciona al menos un dato.');try{await Promise.all(['OM5','UIA'].filter(m=>!STORE[m]).map(async m=>{let d=await api('amplRead',{modulo:m});if(!d||!Array.isArray(d.registros))throw Error('No se pudieron consultar los registros de '+m);STORE[m]=normalizeReadData_(m,d);}));let container=$('amplOCRResults');let html='';for(let mod of ['OM5','UIA']){let items=sheet(mod).registros.map(r=>{let matched=candidates.map(c=>({c,...matchDetail(r,mod,c)})).filter(x=>x.score>=.70);return {r,matched,score:Math.max(0,...matched.map(x=>x.score))};}).filter(x=>x.matched.length).sort((a,b)=>b.score-a.score);html+=`<h3>${mod} (${items.length})</h3>`+(items.length?'':'<p>No se encontraron coincidencias.</p>')+items.map(x=>`<div class="hd-ampl-result"><b>Ítem ${safe(get(x.r,sheet(mod).headers,'Item','Ítem'))}</b><p>${safe(get(x.r,sheet(mod).headers,'Solicitante','Nombre'))}</p><small>${x.matched.map(z=>safe(z.c.value)+' — '+safe(z.where)+' ('+(z.score===1?'exacta':'aproximada')+')').join(', ')}</small><div><button onclick="Ampliaciones.ocrOpen('${mod}','${safe(id(x.r))}')">Abrir ficha</button><button onclick="Ampliaciones.ocrLocate('${mod}','${safe(id(x.r))}')">Localizar en lista</button></div></div>`).join('');}container.innerHTML=html;ocrMessage('Búsqueda realizada en OM5 y UIA.');}catch(e){ocrMessage('Error: '+e.message)}}
 function ocrOpen(mod,rid){curso=mod;let sec=$('tab-'+mod.toLowerCase());window.switchTab(mod.toLowerCase());NAV[mod].selected=rid;open(rid,0,false);}
 function ocrLocate(mod,rid){window.switchTab(mod.toLowerCase());curso=mod;NAV[mod].filter='';NAV[mod].page=Math.floor(sheet(mod).registros.findIndex(r=>id(r)===rid)/30);NAV[mod].selected=rid;render(mod);}
 // Corrección de arranque: no referenciar funciones inexistentes.
