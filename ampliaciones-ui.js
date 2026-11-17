@@ -296,9 +296,11 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  const drafts=carriedDrafts||{},pendingFiles=carriedFiles||{},baselines=carriedBaselines||{};
  const displayRow={...(row||{}),...Object.assign({},...Object.values(drafts))};
  registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines};
+ const isNewOM5Entry=curso==='OM5'&&!rid&&stage===0;
+ $('amplModal')?.classList.toggle('hd-om5-entry',isNewOM5Entry);
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
  renderStageTabs();
- $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 60';
+ $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 61';
  // Etiquetas legibles incluso cuando la hoja opcional EtiquetasOM5 no está disponible.
  const uiLabels={
   solicitante:'Solicitante',nombresector:'Nombre del sector',suministro:'Suministro',
@@ -338,7 +340,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  });
  if(stage===0||curso==='UIA'){
   out.push('<section class="hd-ampl-doc-group"><h4>Solicitudes</h4><div class="hd-ampl-doc-list" id="amplRequests"></div></section>');
-  if(curso==='OM5')out.push('<section class="hd-ampl-doc-group"><h4>Resoluciones</h4><div class="hd-ampl-doc-list" id="amplResolutions"></div></section>');
+  if(curso==='OM5')out.push('<section class="hd-ampl-doc-group hd-om5-resolutions"><div class="hd-om5-section-head"><h4>Resoluciones</h4><span>Opcional · Máximo 2</span></div><div class="hd-ampl-doc-list" id="amplResolutions"></div></section>');
  }
  if(curso==='UIA')out.push('<section class="hd-ampl-doc-group"><h4>Memorandos GC — sin fecha</h4><div class="hd-ampl-doc-list" id="amplMemosGC"></div></section>');
  if(curso==='OM5'&&stage===1)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones de expediente y memorandos GC</h4><div class="hd-ampl-doc-list" id="amplObsExp"></div></section>');
@@ -347,6 +349,29 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell"><span>Número de memorando individual</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
  }
  ui.innerHTML=out.join('');
+ // REV61: ingreso OM5: agrupar los campos ya existentes sin clonar inputs,
+ // sin cambiar nombres de columna, datos, validaciones ni guardado.
+ if(isNewOM5Entry){
+  const groups=[
+   {title:'Datos generales del expediente',icon:'fa-clipboard-list',fields:['Solicitante','NombreSector','Suministro','TipoSuministro','IniciativaObra','ObservacionesObras']},
+   {title:'Ubicación y datos comerciales',icon:'fa-location-dot',fields:['UUEE','Departamento','Provincia','Distrito','Alimentador','ClientesCaptar']}
+  ];
+  const firstLabel=ui.querySelector('.hd-ampl-label');
+  for(const group of groups){
+   const sectionEl=document.createElement('section');sectionEl.className='hd-om5-form-section';
+   sectionEl.innerHTML='<h3><i class="fa-solid '+group.icon+'" aria-hidden="true"></i> '+group.title+'</h3><div class="hd-om5-field-grid"></div>';
+   const dest=sectionEl.querySelector('.hd-om5-field-grid');
+   for(const wanted of group.fields){
+    const label=[...ui.querySelectorAll(':scope > .hd-ampl-label')].find(el=>key(el.querySelector('[data-k]')?.dataset.k)===key(wanted));
+    if(label)dest.appendChild(label);
+   }
+   if(dest.children.length){
+    if(group===groups[0])ui.insertBefore(sectionEl,ui.firstElementChild);
+    else{const requests=ui.querySelector('#amplRequests')?.closest('.hd-ampl-doc-group');if(requests)ui.insertBefore(sectionEl,requests);else ui.appendChild(sectionEl);}
+   }
+  }
+ }
+
  if(curso==='OM5'){
   const ay=[...ui.querySelectorAll('[data-k]')].find(el=>key(el.dataset.k)==='memoenviogtmasivo');
   if(ay){ay.readOnly=true;ay.title='Este memorando se actualiza al cambiar de modalidad y guardar el expediente';}
@@ -436,7 +461,10 @@ function inlineUpload(fieldName,editable){
 function docs(kind,editable){
  const g=docGroup(kind),container=g?$(g.id):null;if(!g||!container)return;
  if(!g.rows.length){container.innerHTML='<p class="hd-ampl-schema-warning">La estructura de columnas recibida no contiene los campos esperados para '+safe(g.label)+'. No se ha cambiado ni borrado información. Comprueba que la aplicación lea la base correcta.</p>';return;}
- const maxShown=Math.max(1,...g.rows.filter(x=>x.v||x.f||x.obs||attachmentsFor(x.num).length).map(x=>x.i));
+ // En un expediente nuevo OM5 no se solicita una resolución por defecto.
+ // En edición se muestran las resoluciones ya existentes; no se pierden datos.
+ const optionalEmptyRes=kind==='res'&&curso==='OM5'&&!registro.id&&registro.stage===0;
+ const maxShown=optionalEmptyRes?0:Math.max(1,...g.rows.filter(x=>x.v||x.f||x.obs||attachmentsFor(x.num).length).map(x=>x.i));
  const rows=g.rows.map(r=>{
   const numberLabel=(kind==='obsExp'||kind==='obsInsp')?'N.º de memorando GC':'Número de '+g.label.toLowerCase();
   const noteCell=r.note?`<label class="hd-ampl-doc-cell hd-ampl-note"><span>Observación ${r.i}</span>${fieldInput(r.note,r.obs,editable)}</label>`:'';
@@ -451,12 +479,14 @@ function docs(kind,editable){
   </div>`;
  }).join('');
  const visibleCount=Math.min(maxShown,g.rows.length);
- container.innerHTML=rows+(editable?`<div class="hd-ampl-doc-footer"><button type="button" class="hd-ampl-add" onclick="Ampliaciones.addDoc('${safe(kind)}')" ${visibleCount>=g.max?'disabled':''}>+ Agregar ${safe(g.label.toLowerCase())}</button><small>Máximo ${g.max}</small></div>`:'');
+ const emptyHint=optionalEmptyRes?'<p class="hd-om5-optional-note" id="amplResEmptyHint">No es necesario registrar resoluciones. Utiliza «Agregar resolución» solo cuando corresponda.</p>':'';
+ container.innerHTML=emptyHint+rows+(editable?`<div class="hd-ampl-doc-footer"><button type="button" class="hd-ampl-add" onclick="Ampliaciones.addDoc('${safe(kind)}')" ${visibleCount>=g.max?'disabled':''}>+ Agregar ${safe(g.label.toLowerCase())}</button><small>Máximo ${g.max}</small></div>`:'');
 }
 function addDoc(kind){
  let rows=[...document.querySelectorAll('[data-doc="'+kind+'"]')],next=rows.find(e=>e.hidden);
  if(!next){update('Se alcanzó el máximo permitido para este tipo.');return;}
  next.hidden=false;
+ if(kind==='res'){$('amplResEmptyHint')?.remove();}
  const btn=next.parentElement.querySelector('.hd-ampl-add');if(btn)btn.disabled=!rows.some(e=>e.hidden);
  next.querySelector('input[data-k],textarea[data-k]')?.focus();
 }
