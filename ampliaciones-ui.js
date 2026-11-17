@@ -546,9 +546,9 @@ function inlineUpload(fieldName,editable){
  const pendingHtml=pending.length?'<div class="hd-ampl-pending">Pendiente de guardar: '+pending.map(x=>safe(x.file.name)).join(', ')+'</div>':'';
  const saved=files.length?'<div class="hd-ampl-attached-files"><strong>Archivos guardados ('+files.length+')</strong>'+files.map(x=>
   '<div class="hd-ampl-file-line"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+'</span><div class="hd-ampl-file-actions"><button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+(editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':'')+'</div></div>').join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
- if(!editable)return '<div class="hd-ampl-inline-attachment"><span>Documento vinculado</span>'+saved+'</div>';
+ if(!editable)return '<div class="hd-ampl-inline-attachment">'+saved+'</div>';
  const camera=isPhoneCamera()?'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'';
- return '<div class="hd-ampl-inline-attachment"><span>Documento vinculado</span>'+saved+'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>'+camera+pendingHtml+'<small>Hasta 10 MB. Puedes ver el archivo antes de guardar. Los adjuntos anteriores no se eliminan automáticamente.</small><span class="hd-ampl-local-actions" data-preview-files></span></div>';
+ return '<div class="hd-ampl-inline-attachment">'+saved+'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>'+camera+pendingHtml+'<small>Hasta 10 MB. Puedes ver el archivo antes de guardar. Los adjuntos anteriores no se eliminan automáticamente.</small><span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
 
 function docs(kind,editable){
