@@ -1695,6 +1695,31 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #amplModal.hd-om5-entry #amplFormBody #amplResolutions > .hd-ampl-doc[hidden]{
   display:none!important;
 }
+
+/* Consolidado OM5: cinco etapas con una misma presentación institucional.
+   Clases propias de OM5: no afecta UIA ni Gestión de Documentos. */
+#amplModal.hd-om5-consolidated .hd-ampl-panel{width:min(1120px,96vw);padding:16px 20px}
+#amplModal.hd-om5-consolidated #amplFormTitle{font-size:clamp(20px,2vw,25px);font-weight:900;color:#113a78;letter-spacing:-.025em}
+#amplModal.hd-om5-consolidated #amplFormBody{display:grid;grid-template-columns:1fr!important;gap:11px;align-items:start}
+#amplModal.hd-om5-consolidated .hd-om5-form-section{grid-column:1/-1;min-width:0;background:#fff;border:1px solid #d7e4f5;border-radius:13px;padding:13px 15px;margin:0}
+#amplModal.hd-om5-consolidated .hd-om5-form-section h3{font-size:15px;font-weight:850;color:#143e7c;margin:0 0 10px;line-height:1.4}
+#amplModal.hd-om5-consolidated .hd-om5-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;align-items:start}
+#amplModal.hd-om5-consolidated .hd-om5-form-section:nth-of-type(2) .hd-om5-field-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#amplModal.hd-om5-consolidated .hd-om5-stage-section .hd-om5-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#amplModal.hd-om5-consolidated .hd-ampl-label{min-width:0;gap:4px}
+#amplModal.hd-om5-consolidated .hd-ampl-label>span{font-size:12px;line-height:1.35}
+#amplModal.hd-om5-consolidated .hd-ampl-label input,#amplModal.hd-om5-consolidated .hd-ampl-label select,#amplModal.hd-om5-consolidated .hd-ampl-label textarea{min-height:40px;padding:8px 10px;font-size:13px;margin:0}
+#amplModal.hd-om5-consolidated .hd-ampl-label textarea{min-height:42px;max-height:115px;resize:vertical}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-group{grid-column:1/-1;margin:0!important;padding:11px 13px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-list{gap:7px}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc{grid-template-columns:minmax(160px,1.5fr) minmax(145px,.8fr) minmax(210px,1.2fr);align-items:end;gap:7px 12px;padding:10px 12px}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc[hidden]{display:none!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-heading{margin:0;min-height:0}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment{min-height:0;padding:7px 9px;gap:4px}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment small{font-size:10px;line-height:1.25}
+#amplModal.hd-om5-consolidated .hd-ampl-panel>.hd-ampl-controls:last-child{position:sticky;bottom:-16px;z-index:5;background:#fff;border-top:1px solid #e1eaf6;margin:12px -4px -10px;padding:11px 4px 8px}
+@media(max-width:850px){#amplModal.hd-om5-consolidated .hd-om5-form-section:nth-of-type(2) .hd-om5-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){#amplModal.hd-om5-consolidated .hd-ampl-panel{padding:11px}#amplModal.hd-om5-consolidated .hd-om5-form-section{padding:11px}#amplModal.hd-om5-consolidated .hd-om5-field-grid,#amplModal.hd-om5-consolidated .hd-om5-form-section:nth-of-type(2) .hd-om5-field-grid,#amplModal.hd-om5-consolidated .hd-om5-stage-section .hd-om5-field-grid{grid-template-columns:1fr}#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc{grid-template-columns:1fr!important}}
 </style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
