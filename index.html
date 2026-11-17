@@ -1720,6 +1720,96 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #amplModal.hd-om5-consolidated .hd-ampl-panel>.hd-ampl-controls:last-child{position:sticky;bottom:-16px;z-index:5;background:#fff;border-top:1px solid #e1eaf6;margin:12px -4px -10px;padding:11px 4px 8px}
 @media(max-width:850px){#amplModal.hd-om5-consolidated .hd-om5-form-section:nth-of-type(2) .hd-om5-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){#amplModal.hd-om5-consolidated .hd-ampl-panel{padding:11px}#amplModal.hd-om5-consolidated .hd-om5-form-section{padding:11px}#amplModal.hd-om5-consolidated .hd-om5-field-grid,#amplModal.hd-om5-consolidated .hd-om5-form-section:nth-of-type(2) .hd-om5-field-grid,#amplModal.hd-om5-consolidated .hd-om5-stage-section .hd-om5-field-grid{grid-template-columns:1fr}#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc{grid-template-columns:1fr!important}}
+
+/* REV66 — Única base REV65. Compactación visual de las 5 etapas OM5.
+   No se clonan controles, no se renombran campos, no cambia el guardado. */
+#amplModal.hd-om5-consolidated .hd-ampl-panel{padding:13px 16px!important}
+#amplModal.hd-om5-consolidated #amplFormBody{gap:8px!important}
+#amplModal.hd-om5-consolidated .hd-om5-form-section{
+  padding:10px 12px!important;border-radius:12px!important;
+}
+#amplModal.hd-om5-consolidated .hd-om5-form-section h3{
+  font-size:14px!important;margin:0 0 7px!important;
+}
+#amplModal.hd-om5-consolidated .hd-om5-field-grid{gap:7px 11px!important}
+#amplModal.hd-om5-consolidated .hd-ampl-label{gap:3px!important}
+#amplModal.hd-om5-consolidated .hd-ampl-label input,
+#amplModal.hd-om5-consolidated .hd-ampl-label select,
+#amplModal.hd-om5-consolidated .hd-ampl-label textarea{
+  min-height:39px!important;padding:7px 9px!important;
+}
+#amplModal.hd-om5-consolidated .hd-ampl-label textarea{
+  height:43px!important;min-height:43px!important;resize:vertical;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-group{
+  margin:0!important;padding:9px 12px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-list{gap:6px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc:has(.hd-ampl-note){
+  display:grid;grid-template-columns:minmax(190px,1.35fr) minmax(150px,.8fr) minmax(235px,1.15fr)!important;
+  gap:5px 10px!important;align-items:end!important;
+  padding:8px 10px!important;border-radius:10px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc[hidden]{display:none!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-heading{
+  grid-column:1/-1!important;margin:0 0 2px!important;min-height:0!important;
+  font-size:12px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell{
+  min-width:0!important;min-height:0!important;gap:3px!important;
+  align-self:end!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell textarea{
+  height:40px!important;min-height:40px!important;resize:vertical;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell input{
+  height:40px!important;min-height:40px!important;padding:7px 9px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment{
+  align-self:end!important;min-height:0!important;
+  gap:3px!important;padding:6px 8px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment .hd-ampl-no-attachment{display:none!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment>small{
+  display:none!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment>span:first-child{
+  font-size:11px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment input[type=file]{
+  font-size:11px!important;min-height:0!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-footer{margin-top:4px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-add{padding:7px 11px!important;font-size:12px!important}
+/* Montaje: memorando individual usa dos celdas reales, nunca una tercera vacía. */
+#amplModal.hd-om5-stage-3 #amplFormBody .hd-ampl-memo-individual .hd-ampl-single-doc{
+  grid-template-columns:minmax(0,1fr) minmax(250px,1fr)!important;
+}
+/* No se desperdicia una mitad de la pantalla cuando el estado es un único campo. */
+#amplModal.hd-om5-stage-4 #amplFormBody .hd-om5-stage-section .hd-om5-field-grid:has(> :only-child),
+#amplModal.hd-om5-stage-1 #amplFormBody .hd-om5-stage-section .hd-om5-field-grid:has(> :only-child),
+#amplModal.hd-om5-stage-2 #amplFormBody .hd-om5-stage-section .hd-om5-field-grid:has(> :only-child){
+  grid-template-columns:minmax(0,1fr)!important;
+}
+@media(max-width:850px){
+  #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc,
+  #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc:has(.hd-ampl-note){
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment{
+    grid-column:1/-1!important;
+  }
+}
+@media(max-width:600px){
+  #amplModal.hd-om5-consolidated .hd-ampl-panel{padding:9px!important}
+  #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc,
+  #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc:has(.hd-ampl-note),
+  #amplModal.hd-om5-stage-3 #amplFormBody .hd-ampl-memo-individual .hd-ampl-single-doc{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment{grid-column:1!important}
+}
 </style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
