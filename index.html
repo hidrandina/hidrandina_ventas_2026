@@ -1608,6 +1608,85 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #amplModal .hd-ampl-controls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 #amplModal .hd-ampl-controls button{border-radius:10px;min-height:41px;padding:9px 14px;font-weight:800}
 @media(max-width:767px){#amplModal #amplFormBody{grid-template-columns:1fr!important}#amplModal #amplFormBody .hd-ampl-doc{grid-template-columns:1fr!important}#amplModal .hd-ampl-label input,#amplModal .hd-ampl-label select{width:100%}}
+
+/* REV63 — Compactación visual exclusivamente de Nuevo expediente OM5.
+   No altera campos, adjuntos, datos, validaciones ni acciones del formulario. */
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-group{
+  padding:11px 13px!important;
+  margin:0!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-group>h4{
+  margin:0 0 7px!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc{
+  display:grid!important;
+  grid-template-columns:minmax(180px,1.5fr) minmax(150px,.75fr) minmax(230px,1.2fr)!important;
+  align-items:end!important;
+  gap:6px 12px!important;
+  padding:9px 11px!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-heading{
+  min-height:0!important;
+  padding:0!important;
+  margin:0 0 1px!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-cell{
+  align-self:end!important;
+  margin:0!important;
+  gap:4px!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-cell input{
+  min-height:39px!important;
+  height:39px!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-inline-attachment{
+  align-self:end!important;
+  justify-content:center!important;
+  min-height:0!important;
+  padding:5px 8px!important;
+  gap:3px!important;
+  border:1px solid #d3e1f3!important;
+  background:#f9fbff!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-inline-attachment>span:first-child,
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-inline-attachment>.hd-ampl-no-attachment,
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-inline-attachment>small{
+  display:none!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-choose-file{
+  gap:2px!important;
+  font-size:11px!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-choose-file input{
+  max-width:100%!important;
+  font-size:11px!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-footer{
+  margin-top:6px!important;
+  gap:8px!important;
+}
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-list{
+  gap:7px!important;
+}
+@media(max-width:800px){
+  #amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:end!important;
+  }
+  #amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-heading,
+  #amplModal.hd-om5-entry #amplFormBody .hd-ampl-inline-attachment{
+    grid-column:1/-1!important;
+  }
+}
+@media(max-width:480px){
+  #amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc{
+    grid-template-columns:1fr!important;
+  }
+  #amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc-heading,
+  #amplModal.hd-om5-entry #amplFormBody .hd-ampl-inline-attachment{
+    grid-column:1!important;
+  }
+}
 </style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
