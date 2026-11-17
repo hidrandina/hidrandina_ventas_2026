@@ -345,6 +345,8 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  const isNewOM5Entry=curso==='OM5'&&!rid&&stage===0;
  $('amplModal')?.classList.toggle('hd-om5-entry',isNewOM5Entry);
  $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
+ // REV66: identificar la etapa para compactar únicamente el formulario OM5.
+ for(let i=0;i<5;i++)$('amplModal')?.classList.toggle('hd-om5-stage-'+i,curso==='OM5'&&stage===i);
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
  renderStageTabs();
  $('amplFormTitle').textContent=rid?(editable?'Editar expediente':'Consultar expediente'):'Nuevo expediente';
@@ -390,8 +392,8 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   if(curso==='OM5')out.push('<section class="hd-ampl-doc-group hd-om5-resolutions"><div class="hd-om5-section-head"><h4>Resoluciones</h4><span>Opcional · Máximo 2</span></div><div class="hd-ampl-doc-list" id="amplResolutions"></div></section>');
  }
  if(curso==='UIA')out.push('<section class="hd-ampl-doc-group"><h4>Memorandos GC — sin fecha</h4><div class="hd-ampl-doc-list" id="amplMemosGC"></div></section>');
- if(curso==='OM5'&&stage===1)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones de expediente y memorandos GC</h4><div class="hd-ampl-doc-list" id="amplObsExp"></div></section>');
- if(curso==='OM5'&&stage===2)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones de inspección y memorandos GC</h4><div class="hd-ampl-doc-list" id="amplObsInsp"></div></section>');
+ if(curso==='OM5'&&stage===1)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones y memorandos GC — Revisión</h4><div class="hd-ampl-doc-list" id="amplObsExp"></div></section>');
+ if(curso==='OM5'&&stage===2)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones y memorandos GC — Inspección</h4><div class="hd-ampl-doc-list" id="amplObsInsp"></div></section>');
  if(memoIndividual){
   out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell"><span>Número de memorando individual</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
  }
