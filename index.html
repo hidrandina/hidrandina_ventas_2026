@@ -1687,6 +1687,14 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
     grid-column:1!important;
   }
 }
+/* REV64 — Respeta la visibilidad real de filas dinámicas.
+   REV63 utilizaba display:grid!important y anulaba el atributo hidden,
+   haciendo aparecer 6 solicitudes y las resoluciones opcionales. */
+#amplModal.hd-om5-entry #amplFormBody .hd-ampl-doc[hidden],
+#amplModal.hd-om5-entry #amplFormBody #amplRequests > .hd-ampl-doc[hidden],
+#amplModal.hd-om5-entry #amplFormBody #amplResolutions > .hd-ampl-doc[hidden]{
+  display:none!important;
+}
 </style>
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
