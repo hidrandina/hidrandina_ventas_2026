@@ -344,9 +344,10 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines};
  const isNewOM5Entry=curso==='OM5'&&!rid&&stage===0;
  $('amplModal')?.classList.toggle('hd-om5-entry',isNewOM5Entry);
+ $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
  renderStageTabs();
- $('amplFormTitle').textContent=(rid?'Ítem '+get(row,all,'Item','Ítem'):'Nuevo expediente')+' — '+(curso==='OM5'?ETAPAS[stage][0]:'UIA')+' · Rev. 61';
+ $('amplFormTitle').textContent=rid?(editable?'Editar expediente':'Consultar expediente'):'Nuevo expediente';
  // Etiquetas legibles incluso cuando la hoja opcional EtiquetasOM5 no está disponible.
  const uiLabels={
   solicitante:'Solicitante',nombresector:'Nombre del sector',suministro:'Suministro',
@@ -415,6 +416,41 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
     if(group===groups[0])ui.insertBefore(sectionEl,ui.firstElementChild);
     else{const requests=ui.querySelector('#amplRequests')?.closest('.hd-ampl-doc-group');if(requests)ui.insertBefore(sectionEl,requests);else ui.appendChild(sectionEl);}
    }
+  }
+ }
+
+
+ // Consolidación visual de las cuatro etapas restantes: mover los mismos
+ // inputs (conservar data-k y listeners) a tarjetas, sin duplicar ni alterar datos.
+ if(curso==='OM5' && stage>0){
+  const specs={
+   1:{primary:'Evaluación del expediente',secondary:'Observaciones y seguimiento'},
+   2:{primary:'Inspección de campo',secondary:'Observaciones y seguimiento'},
+   3:{primary:'Programación y montaje',secondary:'Memorandos y estado de gestión'},
+   4:{primary:'Gestión y captación de clientes',secondary:'Estado y observaciones'}
+  };
+  const conf=specs[stage];
+  const originalLabels=[...ui.querySelectorAll(':scope > .hd-ampl-label')];
+  const primary=[],secondary=[];
+  function secondaryField(name){
+   const k=key(name);
+   if(stage===1||stage===2)return /estado|observ|memo|coment|motivo/.test(k);
+   if(stage===3)return /estado|memo|modalidad|observ/.test(k);
+   return /estado|observ|coment|motivo/.test(k);
+  }
+  originalLabels.forEach(label=>{
+   const name=label.querySelector('[data-k]')?.getAttribute('data-k')||'';
+   (secondaryField(name)?secondary:primary).push(label);
+  });
+  for(const [title,fields] of [[conf.primary,primary],[conf.secondary,secondary]]){
+   if(!fields.length)continue;
+   const sectionEl=document.createElement('section');
+   sectionEl.className='hd-om5-form-section hd-om5-stage-section';
+   const heading=document.createElement('h3');heading.textContent=title;
+   const grid=document.createElement('div');grid.className='hd-om5-field-grid';
+   fields.forEach(label=>grid.appendChild(label));
+   sectionEl.append(heading,grid);
+   ui.insertBefore(sectionEl,ui.querySelector('.hd-ampl-doc-group'));
   }
  }
 
