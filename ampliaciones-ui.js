@@ -359,9 +359,9 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   departamento:'Departamento',provincia:'Provincia',distrito:'Distrito',
   alimentador:'Alimentador',
   clientescaptar:'Clientes a captar',memoenviogtmasivo:'Memorando masivo de envío a Gerencia Técnica',
-  modalidad:'Modalidad',fechaprogramadaejecucionumd:'Fecha programada de ejecución UMD',
+  modalidad:'Modalidad',fechaprogramadaejecucionumd:'Fecha programada',
   tipoom:'Tipo de orden de montaje',nroom:'N.º de orden de montaje',
-  fechaejecucionumd:'Fecha de ejecución UMD',estadoumd:'Estado UMD',
+  fechaejecucionumd:'Fecha de ejecución UMD',fechaejecutacionumd:'Fecha de ejecución UMD',estadoumd:'Estado UMD',
   clientescaptados:'Clientes captados',obscaptacionclientes:'Observaciones de captación de clientes',
   estadocaptacionclientes:'Estado de captación de clientes',
   estadoexpventas:'Estado del expediente',estadoinspeccionventas:'Estado de inspección de ventas',
@@ -468,10 +468,15 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
    if(individual)rendered.push(individual);
    section('Memorandos a Gerencia Técnica','fa-envelope',
     take('MemoEnvioGTmasivo','Modalidad'),3);
+   // Etapa 4: cuatro campos en una sola fila, conservando sus columnas reales.
+   // La base vigente usa 'FechaEjecutacionUMD' (ortografía histórica).
+   // Se aceptan ambas denominaciones sin cambiar los datos de Sheets.
+   const programa=take('FechaProgramadaEjecucionUMD','TipoOM','NroOM');
+   const ejecucion=take('FechaEjecutacionUMD','FechaEjecucionUMD');
    section('Programación y orden de montaje','fa-calendar-days',
-    take('FechaProgramadaEjecucionUMD','TipoOM','NroOM'),3);
+    [...programa,...ejecucion],4);
    section('Ejecución y estado UMD','fa-screwdriver-wrench',
-    take('FechaEjecucionUMD','EstadoUMD'),2);
+    take('EstadoUMD'),1);
   }else if(stage===4){
    section('Captación de clientes','fa-users',take('ClientesCaptados'),1);
    section('Observaciones de captación','fa-pen-to-square',take('ObsCaptacionClientes'),1);
