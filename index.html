@@ -4870,7 +4870,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV92-CONSULTA-OM5-LECTURA-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV93-CONSULTA-SOLO-SALIR-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
@@ -5968,6 +5968,22 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   margin:0!important; padding:0!important; text-align:left!important;
   width:auto!important; flex:0 0 auto!important;
 }
+</style>
+
+<style id="hd-om5-consulta-rev93-footer">
+/* REV93: exclusivamente consulta OM5, desde tabla principal y Búsqueda Inteligente. */
+#amplModal.hd-om5-consolidated.hd-om5-consulta .hd-ampl-panel > .hd-ampl-controls:last-child #amplSave {
+  display:none!important;visibility:hidden!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-consulta .hd-ampl-panel > .hd-ampl-controls:last-child {
+  display:flex!important;justify-content:flex-end!important;align-items:center!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-consulta .hd-ampl-panel > .hd-ampl-controls:last-child .hd-ampl-cancel {
+  display:inline-flex!important;flex:0 0 auto!important;width:auto!important;min-width:100px!important;
+  align-items:center!important;justify-content:center!important;gap:7px!important;
+  background:#1557b4!important;border:1px solid #1557b4!important;color:white!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-consulta #amplFormStatus{display:none!important;}
 </style>
 </body>
 </html>
