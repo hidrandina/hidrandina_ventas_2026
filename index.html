@@ -2097,6 +2097,38 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 </style>
 
 
+
+<style id="hd-om5-orden-etapas-rev76">
+/* REV76: exclusivo etapas 2-5; Registro se conserva sin cambios */
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody {gap:8px!important}
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-om5-ordered-section,
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-ampl-doc-group {
+  margin:0!important;padding:0!important;border:1px solid #d3dfed!important;
+  border-radius:9px!important;overflow:hidden!important;background:#fff!important;
+}
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-om5-ordered-section>h3,
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-ampl-doc-group>h4 {
+  display:flex!important;align-items:center!important;gap:7px!important;margin:0!important;
+  padding:7px 11px!important;min-height:32px!important;
+  background:#3578C5!important;color:#fff!important;font-size:12px!important;
+  font-weight:750!important;line-height:1.2!important;border:0!important;border-radius:0!important;
+}
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-om5-ordered-section>h3>i{color:#fff!important}
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-om5-ordered-section>.hd-om5-field-grid{
+  display:grid!important;grid-template-columns:repeat(var(--hd-om5-stage-cols,3),minmax(0,1fr))!important;
+  gap:7px 10px!important;padding:8px 10px!important;align-items:end!important;
+}
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-ampl-doc-group>.hd-ampl-doc-list{padding:8px 10px!important}
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody .hd-ampl-doc[hidden]{display:none!important}
+#amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-om5-ordered-section .hd-ampl-label{min-width:0!important}
+@media(max-width:850px){
+ #amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-om5-ordered-section>.hd-om5-field-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:600px){
+ #amplModal.hd-om5-consolidated:not(.hd-om5-stage-0) #amplFormBody>.hd-om5-ordered-section>.hd-om5-field-grid{grid-template-columns:1fr!important}
+}
+</style>
+
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzYsQr2mOkJouXeq0pDo--9ZVGhQIgy34YCDg4YsyCrwidEwjdnWcmjXGnJQBbOicG3/exec";
@@ -4747,7 +4779,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV75-EJECUTIVO-COMPACTO-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV76-ETAPAS-ORDEN-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
