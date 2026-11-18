@@ -20,7 +20,7 @@ const asis=()=>['Asistente OM5','Asistente Documentos/OM5/UIA'].includes((typeof
 const oper=()=>['Operador OM5','Operador Documentos/OM5/UIA'].includes((typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : ''));
 const view=()=>adm()||asis()||oper()||['Visitante OM5','Visitante Total'].includes((typeof currentUser !== 'undefined' && currentUser ? currentUser.tipo : ''));
 const edit=()=>adm()||asis()||oper();
-const update=(txt,type='info')=>{let e=$('amplStatus');if(e)e.textContent=txt;let m=$('amplFormStatus');if(m&&!$('amplModal')?.hidden){m.textContent=txt;m.dataset.type=type;m.hidden=!txt;}};
+const update=(txt,type='info')=>{let e=$('amplStatus');if(e)e.textContent=txt;let m=$('amplFormStatus');if(m&&!$('amplModal')?.hidden&&registro?.editable){m.textContent=txt;m.dataset.type=type;m.hidden=!txt;}};
 let saving=false;
 function formAlert(message,type='error',fieldName=''){
  const t=String(message||'No se pudo completar la operación.');update(t,type);
@@ -561,11 +561,24 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  // Los campos se generan deshabilitados en fieldInput/compactNumberInput; no hay
  // Guardar, Agregar, Eliminar, Adjuntar ni llamadas de escritura en esta ruta.
  // Mantener únicamente las vistas previas y descargas de documentos guardados.
- const closeButton=$('amplModal')?.querySelector('.hd-ampl-panel > .hd-ampl-controls:last-child .hd-ampl-cancel');
+ const panel=$('amplModal')?.querySelector('.hd-ampl-panel');
+ const footer=panel?.querySelector(':scope > .hd-ampl-controls:last-child');
+ const closeButton=footer?.querySelector('.hd-ampl-cancel');
+ const saveButton=$('amplSave');
  if(closeButton){
-  closeButton.innerHTML=editable?'<i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar':'<i class="fa-solid fa-xmark" aria-hidden="true"></i> Cerrar';
+  closeButton.innerHTML=editable?'<i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar':'<i class="fa-solid fa-xmark" aria-hidden="true"></i> Salir';
+  closeButton.setAttribute('aria-label',editable?'Cancelar edición':'Salir de la consulta');
  }
- $('amplSave').hidden=!editable;$('amplModal').hidden=false;const note=$('amplFormStatus');if(note){note.textContent='';note.hidden=true;note.dataset.type='info';}if($('amplSave')){$('amplSave').disabled=!!(editable&&isNewOM5Entry&&om5MissingColumns_().length);$('amplSave').textContent='Guardar';}
+ if(saveButton){
+  saveButton.hidden=!editable;
+  saveButton.style.setProperty('display',editable?'':'none',editable?'':'important');
+  saveButton.disabled=!!(editable&&isNewOM5Entry&&om5MissingColumns_().length);
+  saveButton.textContent='Guardar';
+ }
+ if(footer)footer.classList.toggle('hd-om5-readonly-footer',isOM5Consulta);
+ $('amplModal').hidden=false;
+ const note=$('amplFormStatus');if(note){note.textContent='';note.hidden=true;note.dataset.type='info';}
+
 }
 function docGroup(kind){
  let h=sheet(curso).headers;
@@ -670,7 +683,7 @@ function collect(){let result={};$('amplFormBody').querySelectorAll('[data-k]').
 /* REV41: guardar conserva abierto el editor y actualiza su versión antes de otro guardado. */
 async function save(){
  if(saving)return;
- if(!registro?.editable){formAlert('No hay un expediente editable abierto.');return;}
+ if(!registro?.editable)return; // Consulta de solo lectura: no ejecutar guardado ni mostrar errores de edición.
  const button=$('amplSave');
  let savedOnServer=false,serverResult=null;
  try{
