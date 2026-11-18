@@ -505,6 +505,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  // La sección inferior solo conserva archivos que no tienen ubicación en las etapas
  // y la carga adicional para usuarios con permiso de edición.
  renderAttachments();
+ if(editable)queueMicrotask(refreshInlinePreviews);
  // Primera apertura de la etapa: capturar los valores reales del formulario.
  // Al volver a una etapa, NO se sobrescribe su referencia inicial.
  if(editable&&!Object.prototype.hasOwnProperty.call(registro.baselines,String(stage)))
@@ -548,7 +549,7 @@ function inlineUpload(fieldName,editable){
   '<div class="hd-ampl-file-line"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+'</span><div class="hd-ampl-file-actions"><button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+(editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':'')+'</div></div>').join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
  if(!editable)return '<div class="hd-ampl-inline-attachment">'+saved+'</div>';
  const camera=isPhoneCamera()?'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'';
- return '<div class="hd-ampl-inline-attachment">'+saved+'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>'+camera+pendingHtml+'<small>Hasta 10 MB. Puedes ver el archivo antes de guardar. Los adjuntos anteriores no se eliminan automáticamente.</small><span class="hd-ampl-local-actions" data-preview-files></span></div>';
+ return '<div class="hd-ampl-inline-attachment">'+saved+'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>'+camera+pendingHtml+'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo">👁 Ver archivo</button><span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
 
 function docs(kind,editable){
@@ -578,6 +579,7 @@ function docs(kind,editable){
  const visibleCount=Math.min(maxShown,g.rows.length);
  const emptyHint=optionalEmptyRes?'<p class="hd-om5-optional-note" id="amplResEmptyHint">No es necesario registrar resoluciones. Utiliza «Agregar resolución» solo cuando corresponda.</p>':'';
  container.innerHTML=emptyHint+rows+(editable?`<div class="hd-ampl-doc-footer"><button type="button" class="hd-ampl-add" onclick="Ampliaciones.addDoc('${safe(kind)}')" ${visibleCount>=g.max?'disabled':''}>+ Agregar ${safe(g.label.toLowerCase())}</button><small>Máximo ${g.max}</small></div>`:'');
+ if(editable)container.querySelectorAll('.hd-ampl-inline-attachment').forEach(syncInlinePreview);
 }
 function addDoc(kind){
  let rows=[...document.querySelectorAll('[data-doc="'+kind+'"]')],next=rows.find(e=>e.hidden);
@@ -786,15 +788,47 @@ async function drawPreviewPdfPage(n,generation){
  await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
  if(generation!==previewGeneration||previewPage!==n)return;holder.replaceChildren(canvas);
 }
-function renderPendingFilePreviews(input){
- const parent=input.closest('.hd-ampl-inline-attachment');const target=parent?.querySelector('[data-preview-files]')||(input.id==='amplUploadInput'?$('amplExtraPreviews'):null);
- if(!target)return;target.replaceChildren();
- [...input.files].forEach((file,i)=>{
-  const b=document.createElement('button');b.type='button';b.className='hd-ampl-file-preview-btn';b.textContent='👁 Vista previa: '+file.name;
-  b.onclick=()=>localPreview(file);target.appendChild(b);
- });
+/* REV71: vista previa visible del archivo elegido ANTES de guardar.
+   Funciona en cualquier etapa; también recupera selecciones pendientes al volver
+   a una etapa, sin confundirlas con los adjuntos ya guardados. */
+function selectedFileFor(fieldName,container){
+ const inputs=[...(container?.querySelectorAll('input[data-ampl-upload]')||[])];
+ for(const input of inputs){if(input.files?.length)return input.files[0];}
+ const pending=(registro?.pendingFiles?.[registro.stage]||[]).find(x=>key(x.campo)===key(fieldName));
+ return pending?.file||null;
 }
-document.addEventListener('change',e=>{if(e.target.matches('input[data-ampl-upload],#amplUploadInput'))renderPendingFilePreviews(e.target);});
+function syncInlinePreview(container){
+ if(!container)return;
+ const button=container.querySelector('.hd-ampl-view-selected');if(!button)return;
+ const fieldName=button.getAttribute('data-hd-view-field');
+ const file=selectedFileFor(fieldName,container);
+ button.disabled=!file;
+ button.textContent=file?'👁 Ver archivo: '+file.name:'👁 Ver archivo';
+ button.title=file?'Vista previa del archivo elegido antes de guardar':'Selecciona un PDF o imagen para visualizarlo';
+}
+function renderPendingFilePreviews(input){
+ const parent=input.closest('.hd-ampl-inline-attachment');
+ if(parent){syncInlinePreview(parent);return;}
+ const target=input.id==='amplUploadInput'?$('amplExtraPreviews'):null;
+ if(!target)return;
+ target.replaceChildren();
+ for(const file of [...(input.files||[])]){
+  const button=document.createElement('button');button.type='button';button.className='hd-ampl-file-preview-btn';
+  button.textContent='👁 Ver archivo: '+file.name;
+  button.onclick=()=>localPreview(file);target.appendChild(button);
+ }
+}
+function refreshInlinePreviews(){
+ $('amplFormBody')?.querySelectorAll('.hd-ampl-inline-attachment').forEach(syncInlinePreview);
+}
+document.addEventListener('change',e=>{
+ if(e.target.matches('input[data-ampl-upload],#amplUploadInput'))renderPendingFilePreviews(e.target);
+});
+document.addEventListener('click',e=>{
+ const button=e.target.closest('button[data-hd-view-field]');if(!button)return;
+ const file=selectedFileFor(button.getAttribute('data-hd-view-field'),button.closest('.hd-ampl-inline-attachment'));
+ if(file)localPreview(file);
+});
 // REV16: OCR conservador. Sin franjas con whitelist: causaban cifras inventadas.
 function ocrMessage(message){const e=$('amplOCRStatus');if(e)e.textContent=message;}
 let tesseractLoading=null;
