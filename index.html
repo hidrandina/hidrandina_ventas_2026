@@ -936,6 +936,42 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  display:none!important;
 }
 </style>
+
+<style>
+/* REV96: en Editar OM5 los iconos de adjuntos deben ir en una sola fila horizontal. */
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  width:auto!important;
+  max-width:none!important;
+  min-height:34px!important;
+  padding:4px 6px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact > *{
+  flex:0 0 auto!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-choose-file,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-view-selected,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-edit-extra-eye,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-edit-trash{
+  display:inline-flex!important;
+  width:34px!important;
+  min-width:34px!important;
+  max-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  margin:0!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact [data-preview-files],
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-local-actions{
+  display:none!important;
+}
+</style>
+
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -3582,7 +3618,43 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 ['Observaciones',getProp(doc,['Observaciones',10])]
             ];
             const adj=adjuntos.map((a,i)=>`<li>${escapeHtmlSustento(String(getProp(a,['Tipo_Sustento',2]))==='Atencion'?'Descargo / atención':'Sustento')} — ${escapeHtmlSustento((i+1)+'_'+nombreSeguroExpediente_(getProp(a,['Nombre_Archivo',3])||'Archivo'))}</li>`).join('');
-            return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resumen del expediente</title><style>body{font:15px system-ui,sans-serif;max-width:780px;margin:auto;padding:24px;color:#17335e}h1{color:#0b3678}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #cbd5e1;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{width:34%;background:#eef5ff}li{margin:7px 0}.nota{font-size:12px;color:#526581}</style></head><body><h1>HIDRANDINA — Atención de Documentos</h1><h2>Resumen del expediente</h2><table>${filas.map(x=>campo(...x)).join('')}</table><h2>Archivos adjuntos</h2>${adj?'<ol>'+adj+'</ol>':'<p>Este expediente no tiene adjuntos.</p>'}<p class="nota">Los archivos originales se incluyen en las carpetas Sustentos y Atencion de este ZIP. Documento generado por un usuario autorizado.</p></body></html>`;
+            return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resumen del expediente</title><style>body{font:15px system-ui,sans-serif;max-width:780px;margin:auto;padding:24px;color:#17335e}h1{color:#0b3678}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #cbd5e1;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{width:34%;background:#eef5ff}li{margin:7px 0}.nota{font-size:12px;color:#526581}</style>
+<style>
+/* REV96: en Editar OM5 los iconos de adjuntos deben ir en una sola fila horizontal. */
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  width:auto!important;
+  max-width:none!important;
+  min-height:34px!important;
+  padding:4px 6px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact > *{
+  flex:0 0 auto!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-choose-file,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-view-selected,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-edit-extra-eye,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-edit-trash{
+  display:inline-flex!important;
+  width:34px!important;
+  min-width:34px!important;
+  max-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  margin:0!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact [data-preview-files],
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-local-actions{
+  display:none!important;
+}
+</style>
+
+</head><body><h1>HIDRANDINA — Atención de Documentos</h1><h2>Resumen del expediente</h2><table>${filas.map(x=>campo(...x)).join('')}</table><h2>Archivos adjuntos</h2>${adj?'<ol>'+adj+'</ol>':'<p>Este expediente no tiene adjuntos.</p>'}<p class="nota">Los archivos originales se incluyen en las carpetas Sustentos y Atencion de este ZIP. Documento generado por un usuario autorizado.</p></body></html>`;
         }
         async function compartirExpedienteConsulta() {
             const idx=expedienteConsultaIndice;
@@ -5648,7 +5720,43 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function repaint(){const start=$('hdDaStart').value,end=$('hdDaEnd').value;if(start&&end&&start>end){$('hdDashEstado').textContent='La fecha inicial no puede superar la fecha final.';return;}filtered.OM5=kept(stores.OM5?.registros||[],'OM5');filtered.UIA=kept(stores.UIA?.registros||[],'UIA');$('hdDashContenido').innerHTML=metrics().join('');chartsFor();attention();$('hdDashEstado').textContent='Datos reales consultados · OM5: '+filtered.OM5.length+' expedientes · UIA: '+filtered.UIA.length+' expedientes. Las fechas filtran expedientes que contienen al menos una fecha registrada dentro del período.';}
  function exportData(){const result=[];for(const m of ['OM5','UIA']){if(mod==='OM5'&&m==='UIA'||mod==='UIA'&&m==='OM5')continue;for(const r of filtered[m])result.push({Módulo:m,'Ítem':get(r,'Ítem','Item'),'Nombre / solicitante':get(r,m==='OM5'?'Solicitante':'Nombre'),'Sector / dirección':get(r,m==='OM5'?'NombreSector':'Direccion','Dirección'),Departamento:get(r,'Departamento'),Provincia:get(r,'Provincia'),Distrito:get(r,'Distrito'),Modalidad:m==='OM5'?get(r,'Modalidad'):'','Estado principal':get(r,m==='OM5'?'EstadoExpVentas':'Estado Actual'),'Estado de captación':get(r,m==='OM5'?'EstadoCaptacionClientes':'Estado Captación Clientes'),'Clientes previstos':get(r,m==='OM5'?'ClientesCaptar':'N° Clientes'),'Clientes captados':get(r,m==='OM5'?'ClientesCaptados':'Clentes Captados','Clientes Captados')});}return result;}
  function excel(){if(!window.XLSX){$('hdDashEstado').textContent='El exportador de Excel no está disponible.';return;}const r=exportData();if(!r.length){$('hdDashEstado').textContent='No existen expedientes para exportar con los filtros actuales.';return;}try{const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(r);ws['!cols']=Object.keys(r[0]).map(k=>({wch:Math.min(42,Math.max(16,k.length+5))}));XLSX.utils.book_append_sheet(wb,ws,'Expedientes');const metas=[['Reporte','Dashboard Ampliaciones '+mod],['Fecha de generación',new Date().toLocaleString('es-PE')],['Fecha inicial',$('hdDaStart').value||'Todas'],['Fecha final',$('hdDaEnd').value||'Todas'],['Modalidad',$('hdDaModalidad').value||'Todas'],['Departamento',$('hdDaDept').value||'Todos'],['Provincia',$('hdDaProv').value||'Todas'],['Distrito',$('hdDaDist').value||'Todos'],['Expedientes exportados',r.length]];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(metas),'Filtros');XLSX.writeFile(wb,'Dashboard_Ampliaciones_'+mod+'_'+new Date().toISOString().slice(0,10)+'.xlsx');$('hdDashEstado').textContent='Excel preparado con '+r.length+' expedientes y los filtros aplicados.';}catch(e){$('hdDashEstado').textContent='No se pudo exportar Excel: '+e.message;}}
- function printReport(){const rows=exportData();const kp=document.querySelector('#hdDashContenido')?.innerText||'';const head=['Módulo','Ítem','Nombre / solicitante','Sector / dirección','Estado principal','Clientes previstos','Clientes captados'];const safeRows=rows.map(r=>'<tr>'+head.map(k=>'<td>'+escape(r[k])+'</td>').join('')+'</tr>').join('');const html='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Dashboard Ampliaciones</title><style>body{font:12px Arial,sans-serif;color:#183b69;padding:22px}h1{background:#113d80;color:white;padding:16px;font-size:19px}p{white-space:pre-line}table{border-collapse:collapse;width:100%;font-size:10px}th{background:#173d7d;color:#fff}td,th{border:1px solid #c8d6ec;padding:7px;text-align:left}@page{size:A4 landscape;margin:12mm}</style></head><body><h1>HIDRANDINA · DASHBOARD AMPLIACIONES '+escape(mod)+'</h1><p>Generado: '+escape(new Date().toLocaleString('es-PE'))+' · Registros: '+rows.length+'</p><h2>Indicadores</h2><p>'+escape(kp)+'</p><h2>Expedientes filtrados</h2><table><thead><tr>'+head.map(k=>'<th>'+escape(k)+'</th>').join('')+'</tr></thead><tbody>'+safeRows+'</tbody></table></body></html>';
+ function printReport(){const rows=exportData();const kp=document.querySelector('#hdDashContenido')?.innerText||'';const head=['Módulo','Ítem','Nombre / solicitante','Sector / dirección','Estado principal','Clientes previstos','Clientes captados'];const safeRows=rows.map(r=>'<tr>'+head.map(k=>'<td>'+escape(r[k])+'</td>').join('')+'</tr>').join('');const html='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Dashboard Ampliaciones</title><style>body{font:12px Arial,sans-serif;color:#183b69;padding:22px}h1{background:#113d80;color:white;padding:16px;font-size:19px}p{white-space:pre-line}table{border-collapse:collapse;width:100%;font-size:10px}th{background:#173d7d;color:#fff}td,th{border:1px solid #c8d6ec;padding:7px;text-align:left}@page{size:A4 landscape;margin:12mm}</style>
+<style>
+/* REV96: en Editar OM5 los iconos de adjuntos deben ir en una sola fila horizontal. */
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:6px!important;
+  width:auto!important;
+  max-width:none!important;
+  min-height:34px!important;
+  padding:4px 6px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact > *{
+  flex:0 0 auto!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-choose-file,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-view-selected,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-edit-extra-eye,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-edit-trash{
+  display:inline-flex!important;
+  width:34px!important;
+  min-width:34px!important;
+  max-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  margin:0!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact [data-preview-files],
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc .hd-ampl-inline-attachment.hd-ampl-edit-compact .hd-ampl-local-actions{
+  display:none!important;
+}
+</style>
+
+</head><body><h1>HIDRANDINA · DASHBOARD AMPLIACIONES '+escape(mod)+'</h1><p>Generado: '+escape(new Date().toLocaleString('es-PE'))+' · Registros: '+rows.length+'</p><h2>Indicadores</h2><p>'+escape(kp)+'</p><h2>Expedientes filtrados</h2><table><thead><tr>'+head.map(k=>'<th>'+escape(k)+'</th>').join('')+'</tr></thead><tbody>'+safeRows+'</tbody></table></body></html>';
  const w=window.open('','_blank');if(!w){$('hdDashEstado').textContent='El navegador bloqueó la ventana del reporte. Permite las ventanas emergentes para imprimir o guardar como PDF.';return;}w.document.open();w.document.write(html);w.document.close();w.focus();w.print();}
  function whatsapp(){const rows=exportData();const lines=['HIDRANDINA - Dashboard de Ampliaciones '+mod,'Expedientes filtrados: '+rows.length];if(mod!=='UIA')lines.push('OM5: '+filtered.OM5.length+' expedientes · Clientes a captar: '+sum(filtered.OM5,['ClientesCaptar'])+' · Captados: '+sum(filtered.OM5,['ClientesCaptados']));if(mod!=='OM5')lines.push('UIA: '+filtered.UIA.length+' expedientes · Clientes captados: '+sum(filtered.UIA,['Clentes Captados','Clientes Captados']));lines.push('Generado: '+new Date().toLocaleString('es-PE'));const url='https://web.whatsapp.com/send?text='+encodeURIComponent(lines.join('\n'));const w=window.open(url,'_blank');if(!w)$('hdDashEstado').textContent='El navegador bloqueó WhatsApp Web; permite las ventanas emergentes. HIDRANDINA permanece abierta.';}
  async function show(){const token=++runId;try{init();$('hdDashEstado').textContent='Consultando bases OM5 y UIA...';const result=await Promise.all(['OM5','UIA'].map(m=>window.hdAsegurarAmpl_?window.hdAsegurarAmpl_(m):hdAsegurarAmpl_(m)));if(token!==runId)return;stores={OM5:result[0],UIA:result[1]};filterOptions();setView();repaint();}catch(e){if(token===runId)$('hdDashEstado').textContent='No se pudo cargar el dashboard: '+(e.message||e);}}
