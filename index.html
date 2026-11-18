@@ -894,6 +894,25 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   }
 }
 </style>
+
+<style id="hdOm5ConsultaRev92">
+/* REV92: consulta OM5 desde listado o Búsqueda Inteligente, exclusivamente.
+   Conservar la misma presentación que Nuevo expediente sin habilitar edición. */
+#amplModal.hd-om5-consulta #amplFormBody [data-k]:disabled{
+ opacity:1!important;-webkit-text-fill-color:currentColor!important;
+ color:#173b68!important;background:#fff!important;cursor:default!important;
+}
+#amplModal.hd-om5-consulta #amplFormBody select[data-k]:disabled{
+ color:#173b68!important;background-color:#fff!important;
+}
+#amplModal.hd-om5-consulta #amplFormBody input[data-k]:disabled,
+#amplModal.hd-om5-consulta #amplFormBody textarea[data-k]:disabled,
+#amplModal.hd-om5-consulta #amplFormBody select[data-k]:disabled{
+ pointer-events:none!important;
+}
+/* Mantener activos los botones Ver y Descargar de los documentos existentes. */
+#amplModal.hd-om5-consulta #amplSave{display:none!important}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -4851,7 +4870,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV91-REGISTRO-POSTGUARDADO-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV92-CONSULTA-OM5-LECTURA-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
@@ -4935,6 +4954,8 @@ async function openResult(i,mod){
   status('Abriendo consulta del expediente…');
   window.switchTab(mod.toLowerCase());
   await window.Ampliaciones.enter(mod);
+  // REV92: consultar datos vigentes antes de abrir, conservando el mismo formulario OM5.
+  await window.Ampliaciones.refresh(mod);
   if(!window.Ampliaciones.getData(mod)?.registros?.some(r=>String(r.__HD_ID)===String(rid)))throw Error('El expediente ya no está disponible en la consulta.');
   window.Ampliaciones.open(String(rid),0,false);
   fromSearch=true;
