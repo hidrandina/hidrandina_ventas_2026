@@ -273,6 +273,15 @@ function fieldInput(h,value,editable){let date=/^fecha/i.test(key(h)),text=/obse
 function captureStage(){
  if(!registro||!registro.editable)return;
  const form=$('amplFormBody');if(!form)return;
+ // REV89: recordar las filas que el usuario desplegó, incluso si están vacías.
+ // Se conserva también al rechazar un guardado o al cambiar de etapa.
+ if(registro.mod==='OM5'&&registro.stage===0){
+  registro.expandedDocs=registro.expandedDocs||{};
+  for(const kind of ['sol','res']){
+   const rows=[...form.querySelectorAll('[data-doc="'+kind+'"]')];
+   if(rows.length)registro.expandedDocs[kind]=Math.max(0,...rows.filter(el=>!el.hidden).map(el=>Number(el.dataset.num)||0));
+  }
+ }
  const changes={};
  form.querySelectorAll('[data-k]').forEach(el=>{
   if(el.closest('[data-doc]')?.hidden)return;
@@ -324,7 +333,7 @@ function switchStage(next){
  const old=registro;
  captureStage();
  const scrollPanel=$('amplModal')?.querySelector('.hd-ampl-panel');
- open(old.id,next,old.editable,old.drafts,old.pendingFiles,old.baselines);
+ open(old.id,next,old.editable,old.drafts,old.pendingFiles,old.baselines,old.expandedDocs);
  if(scrollPanel)scrollPanel.scrollTop=0;
 }
 function renderStageTabs(){
@@ -335,13 +344,14 @@ function renderStageTabs(){
 }
 
 /* REV08: formularios compactos según estructura real de Google Sheets. */
-function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,carriedBaselines=null){
+function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,carriedBaselines=null,carriedExpandedDocs=null){
  let row=rid?sheet(curso).registros.find(r=>id(r)===rid):null;
  if(rid&&!row){update('Expediente no disponible.');return;}
  if(editable&&!edit()){update('Sin permisos de edición.');return;}
  const drafts=carriedDrafts||{},pendingFiles=carriedFiles||{},baselines=carriedBaselines||{};
+ const expandedDocs=carriedExpandedDocs||{};
  const displayRow={...(row||{}),...Object.assign({},...Object.values(drafts))};
- registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines};
+ registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines,expandedDocs};
  const isNewOM5Entry=curso==='OM5'&&!rid&&stage===0;
  const isOM5Registro=curso==='OM5'&&stage===0;
  $('amplModal')?.classList.toggle('hd-om5-entry',isNewOM5Entry);
@@ -596,8 +606,12 @@ function docs(kind,editable){
  if(!g.rows.length){container.innerHTML='<p class="hd-ampl-schema-warning">La estructura de columnas recibida no contiene los campos esperados para '+safe(g.label)+'. No se ha cambiado ni borrado información. Comprueba que la aplicación lea la base correcta.</p>';return;}
  // En un expediente nuevo OM5 no se solicita una resolución por defecto.
  // En edición se muestran las resoluciones ya existentes; no se pierden datos.
- const optionalEmptyRes=kind==='res'&&curso==='OM5'&&!registro.id&&registro.stage===0;
- const maxShown=optionalEmptyRes?0:Math.max(1,...g.rows.filter(x=>x.v||x.f||x.obs||attachmentsFor(x.num).length).map(x=>x.i));
+ // REV89: las resoluciones son opcionales SOLO antes de introducirlas.
+ // Si hay valores en borradores, no deben volver a ocultarse al reconstruir el formulario.
+ const populated=Math.max(0,...g.rows.filter(x=>x.v||x.f||x.obs||attachmentsFor(x.num).length).map(x=>x.i));
+ const expanded=(curso==='OM5'&&!registro.id&&registro.stage===0)?Number(registro.expandedDocs?.[kind]||0):0;
+ const optionalEmptyRes=kind==='res'&&curso==='OM5'&&!registro.id&&registro.stage===0&&!populated&&!expanded;
+ const maxShown=optionalEmptyRes?0:Math.min(g.rows.length,Math.max(1,populated,expanded));
  const rows=g.rows.map(r=>{
   // REV67: numerar el campo, sin repetir un título encima de cada documento.
   // Se conserva el botón de eliminación para documentos ya registrados.
@@ -624,6 +638,10 @@ function addDoc(kind){
  let rows=[...document.querySelectorAll('[data-doc="'+kind+'"]')],next=rows.find(e=>e.hidden);
  if(!next){update('Se alcanzó el máximo permitido para este tipo.');return;}
  next.hidden=false;
+ if(curso==='OM5'&&!registro.id&&registro.stage===0){
+  registro.expandedDocs=registro.expandedDocs||{};
+  registro.expandedDocs[kind]=Math.max(Number(registro.expandedDocs[kind]||0),Number(next.dataset.num)||0);
+ }
  if(kind==='res'){$('amplResEmptyHint')?.remove();}
  const btn=next.parentElement.querySelector('.hd-ampl-add');if(btn)btn.disabled=!rows.some(e=>e.hidden);
  next.querySelector('input[data-k],textarea[data-k]')?.focus();
