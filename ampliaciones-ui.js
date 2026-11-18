@@ -550,11 +550,16 @@ function inlineUpload(fieldName,editable){
  const files=attachmentsFor(fieldName);
  const pending=Object.values(registro?.pendingFiles||{}).flat().filter(x=>key(x.campo)===key(fieldName));
  const pendingHtml=pending.length?'<div class="hd-ampl-pending">Pendiente de guardar: '+pending.map(x=>safe(x.file.name)).join(', ')+'</div>':'';
+ const isExec=curso==='OM5';
  const saved=files.length?'<div class="hd-ampl-attached-files"><strong>Archivos guardados ('+files.length+')</strong>'+files.map(x=>
-  '<div class="hd-ampl-file-line"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+'</span><div class="hd-ampl-file-actions"><button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+(editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':'')+'</div></div>').join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
+  '<div class="hd-ampl-file-line"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+'</span><div class="hd-ampl-file-actions">'+(isExec?
+  '<button type="button" aria-label="Ver '+safe(x.nombre)+'" title="Ver archivo" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')"><i class="fa-regular fa-eye" aria-hidden="true"></i></button><button type="button" aria-label="Descargar '+safe(x.nombre)+'" title="Descargar archivo" onclick="Ampliaciones.download(\''+safe(x.id)+'\')"><i class="fa-solid fa-download" aria-hidden="true"></i></button>'+(editable?'<button type="button" class="hd-ampl-delete-file" aria-label="Eliminar '+safe(x.nombre)+'" title="Eliminar archivo" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>':''):
+  '<button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+(editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':''))+'</div></div>').join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
  if(!editable)return '<div class="hd-ampl-inline-attachment">'+saved+'</div>';
- const camera=isPhoneCamera()?'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'';
- return '<div class="hd-ampl-inline-attachment">'+saved+'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>'+camera+pendingHtml+'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado" style="min-width:34px;padding:6px 8px">👁</button><span class="hd-ampl-local-actions" data-preview-files></span></div>';
+ const camera=isPhoneCamera()? (isExec?'<label class="hd-ampl-camera-label" title="Tomar fotografía" aria-label="Tomar fotografía"><i class="fa-solid fa-camera" aria-hidden="true"></i><input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>'):'';
+ const chooser=isExec?'<label class="hd-ampl-choose-file" title="Adjuntar PDF o imagen"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar PDF o imagen a '+safe(fieldName)+'"></label>':'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>';
+ const button=isExec?'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled aria-label="Vista previa del archivo seleccionado" title="Selecciona un archivo para visualizarlo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>':'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado">👁</button>';
+ return '<div class="hd-ampl-inline-attachment">'+saved+chooser+camera+button+(isExec?'<span class="hd-ampl-local-name" aria-live="polite">Sin archivo</span>':'')+pendingHtml+'<span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
 
 function docs(kind,editable){
@@ -808,9 +813,11 @@ function syncInlinePreview(container){
  const fieldName=button.getAttribute('data-hd-view-field');
  const file=selectedFileFor(fieldName,container);
  button.disabled=!file;
- button.textContent='👁';
+ if(!button.querySelector('i'))button.textContent='👁';
  button.setAttribute('aria-label', file ? 'Ver archivo seleccionado: '+file.name : 'Ver archivo seleccionado');
  button.title=file?'Ver archivo seleccionado: '+file.name:'Selecciona un PDF o imagen para visualizarlo';
+ const name=container.querySelector('.hd-ampl-local-name');
+ if(name){name.textContent=file?file.name:'Sin archivo';name.title=file?file.name:'';}
 }
 function renderPendingFilePreviews(input){
  const parent=input.closest('.hd-ampl-inline-attachment');
