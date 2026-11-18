@@ -343,6 +343,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  const displayRow={...(row||{}),...Object.assign({},...Object.values(drafts))};
  registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines};
  const isNewOM5Entry=curso==='OM5'&&!rid&&stage===0;
+ const isOM5Registro=curso==='OM5'&&stage===0;
  $('amplModal')?.classList.toggle('hd-om5-entry',isNewOM5Entry);
  $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
  // REV66: identificar la etapa para compactar únicamente el formulario OM5.
@@ -389,7 +390,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  });
  if(stage===0||curso==='UIA'){
   out.push('<section class="hd-ampl-doc-group"><h4>Solicitudes</h4><div class="hd-ampl-doc-list" id="amplRequests"></div></section>');
-  if(curso==='OM5')out.push('<section class="hd-ampl-doc-group hd-om5-resolutions"><div class="hd-om5-section-head"><h4>Resoluciones</h4><span>Opcional · Máximo 2</span></div><div class="hd-ampl-doc-list" id="amplResolutions"></div></section>');
+  if(curso==='OM5')out.push('<section class="hd-ampl-doc-group hd-om5-resolutions"><div class="hd-om5-section-head"><h4>Resoluciones</h4></div><div class="hd-ampl-doc-list" id="amplResolutions"></div></section>');
  }
  if(curso==='UIA')out.push('<section class="hd-ampl-doc-group"><h4>Memorandos GC — sin fecha</h4><div class="hd-ampl-doc-list" id="amplMemosGC"></div></section>');
  if(curso==='OM5'&&stage===1)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones y memorandos GC — Revisión</h4><div class="hd-ampl-doc-list" id="amplObsExp"></div></section>');
@@ -400,7 +401,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  ui.innerHTML=out.join('');
  // REV61: ingreso OM5: agrupar los campos ya existentes sin clonar inputs,
  // sin cambiar nombres de columna, datos, validaciones ni guardado.
- if(isNewOM5Entry){
+ if(isOM5Registro){
   const groups=[
    {title:'Datos generales del expediente',icon:'fa-clipboard-list',fields:['Solicitante','NombreSector','Suministro','TipoSuministro','IniciativaObra','ObservacionesObras']},
    {title:'Ubicación y datos comerciales',icon:'fa-location-dot',fields:['UUEE','Departamento','Provincia','Distrito','Alimentador','ClientesCaptar']}
@@ -426,10 +427,10 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  // inputs (conservar data-k y listeners) a tarjetas, sin duplicar ni alterar datos.
  if(curso==='OM5' && stage>0){
   const specs={
-   1:{primary:'Evaluación del expediente',secondary:'Observaciones y seguimiento'},
-   2:{primary:'Inspección de campo',secondary:'Observaciones y seguimiento'},
-   3:{primary:'Programación y montaje',secondary:'Memorandos y estado de gestión'},
-   4:{primary:'Gestión y captación de clientes',secondary:'Estado y observaciones'}
+   1:{primary:'Estado del expediente',secondary:'Seguimiento del expediente'},
+   2:{primary:'Datos de inspección de campo',secondary:'Estado de inspección y seguimiento'},
+   3:{primary:'Programación y ejecución',secondary:'Memorandos y estado de gestión'},
+   4:{primary:'Captación de clientes',secondary:'Estado y observaciones'}
   };
   const conf=specs[stage];
   const originalLabels=[...ui.querySelectorAll(':scope > .hd-ampl-label')];
@@ -448,7 +449,11 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
    if(!fields.length)continue;
    const sectionEl=document.createElement('section');
    sectionEl.className='hd-om5-form-section hd-om5-stage-section';
-   const heading=document.createElement('h3');heading.textContent=title;
+   const heading=document.createElement('h3');
+   const headingIcon=document.createElement('i');
+   headingIcon.className='fa-solid '+(stage===1?'fa-file-circle-check':stage===2?'fa-magnifying-glass':stage===3?'fa-screwdriver-wrench':'fa-users');
+   headingIcon.setAttribute('aria-hidden','true');
+   heading.append(headingIcon,document.createTextNode(' '+title));
    const grid=document.createElement('div');grid.className='hd-om5-field-grid';
    fields.forEach(label=>grid.appendChild(label));
    sectionEl.append(heading,grid);
@@ -549,7 +554,7 @@ function inlineUpload(fieldName,editable){
   '<div class="hd-ampl-file-line"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+'</span><div class="hd-ampl-file-actions"><button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+(editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':'')+'</div></div>').join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
  if(!editable)return '<div class="hd-ampl-inline-attachment">'+saved+'</div>';
  const camera=isPhoneCamera()?'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'';
- return '<div class="hd-ampl-inline-attachment">'+saved+'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>'+camera+pendingHtml+'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo">👁 Ver archivo</button><span class="hd-ampl-local-actions" data-preview-files></span></div>';
+ return '<div class="hd-ampl-inline-attachment">'+saved+'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>'+camera+pendingHtml+'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado" style="min-width:34px;padding:6px 8px">👁</button><span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
 
 function docs(kind,editable){
@@ -578,7 +583,7 @@ function docs(kind,editable){
  }).join('');
  const visibleCount=Math.min(maxShown,g.rows.length);
  const emptyHint=optionalEmptyRes?'<p class="hd-om5-optional-note" id="amplResEmptyHint">No es necesario registrar resoluciones. Utiliza «Agregar resolución» solo cuando corresponda.</p>':'';
- container.innerHTML=emptyHint+rows+(editable?`<div class="hd-ampl-doc-footer"><button type="button" class="hd-ampl-add" onclick="Ampliaciones.addDoc('${safe(kind)}')" ${visibleCount>=g.max?'disabled':''}>+ Agregar ${safe(g.label.toLowerCase())}</button><small>Máximo ${g.max}</small></div>`:'');
+ container.innerHTML=emptyHint+rows+(editable?`<div class="hd-ampl-doc-footer"><button type="button" class="hd-ampl-add" onclick="Ampliaciones.addDoc('${safe(kind)}')" ${visibleCount>=g.max?'disabled':''}>+ Agregar ${safe(g.label.toLowerCase())}</button></div>`:'');
  if(editable)container.querySelectorAll('.hd-ampl-inline-attachment').forEach(syncInlinePreview);
 }
 function addDoc(kind){
@@ -803,8 +808,9 @@ function syncInlinePreview(container){
  const fieldName=button.getAttribute('data-hd-view-field');
  const file=selectedFileFor(fieldName,container);
  button.disabled=!file;
- button.textContent=file?'👁 Ver archivo: '+file.name:'👁 Ver archivo';
- button.title=file?'Vista previa del archivo elegido antes de guardar':'Selecciona un PDF o imagen para visualizarlo';
+ button.textContent='👁';
+ button.setAttribute('aria-label', file ? 'Ver archivo seleccionado: '+file.name : 'Ver archivo seleccionado');
+ button.title=file?'Ver archivo seleccionado: '+file.name:'Selecciona un PDF o imagen para visualizarlo';
 }
 function renderPendingFilePreviews(input){
  const parent=input.closest('.hd-ampl-inline-attachment');
@@ -814,7 +820,9 @@ function renderPendingFilePreviews(input){
  target.replaceChildren();
  for(const file of [...(input.files||[])]){
   const button=document.createElement('button');button.type='button';button.className='hd-ampl-file-preview-btn';
-  button.textContent='👁 Ver archivo: '+file.name;
+  button.textContent='👁';
+  button.setAttribute('aria-label','Ver archivo seleccionado: '+file.name);
+  button.title='Ver archivo seleccionado: '+file.name;
   button.onclick=()=>localPreview(file);target.appendChild(button);
  }
 }
