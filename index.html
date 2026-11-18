@@ -4851,7 +4851,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV89-CONSERVAR-RESOLUCIONES-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV91-REGISTRO-POSTGUARDADO-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
@@ -5928,6 +5928,24 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 @media(max-width:700px){
  #tab-om5 #amplWorkspace .hd-om5-field-wrap{grid-column:1/-1!important}
  #tab-om5 #amplWorkspace .hd-ampl-grid th:nth-child(5),#tab-om5 #amplWorkspace .hd-ampl-grid td:nth-child(5){width:225px!important;min-width:225px!important;max-width:225px!important}
+}
+</style>
+
+<style id="hd-om5-registro-ajustes-rev90">
+/* REV91: oculta eliminar únicamente en Registro tras crear/guardar un expediente nuevo. */
+/* Editar expediente abierto desde la tabla conserva sus controles de eliminación autorizados. */
+#amplModal.hd-om5-consolidated.hd-om5-stage-0.hd-om5-postsave-new #amplFormBody .hd-ampl-doc[data-doc="sol"] .hd-ampl-doc-remove-only,
+#amplModal.hd-om5-consolidated.hd-om5-stage-0.hd-om5-postsave-new #amplFormBody .hd-ampl-doc[data-doc="res"] .hd-ampl-doc-remove-only {
+  display:none!important;
+}
+/* Icono y título de Resoluciones juntos, en el extremo izquierdo. */
+#amplModal.hd-om5-consolidated.hd-om5-stage-0 #amplFormBody > .hd-om5-resolutions > .hd-om5-section-head {
+  display:flex!important; flex-direction:row!important; align-items:center!important;
+  justify-content:flex-start!important; text-align:left!important; gap:8px!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-0 #amplFormBody > .hd-om5-resolutions > .hd-om5-section-head > h4 {
+  margin:0!important; padding:0!important; text-align:left!important;
+  width:auto!important; flex:0 0 auto!important;
 }
 </style>
 </body>
