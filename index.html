@@ -748,16 +748,98 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 /* REV71: accesible local file preview in every OM5/UIA form stage */
 #amplFormBody .hd-ampl-inline-attachment .hd-ampl-view-selected{
  display:inline-flex!important;align-items:center;justify-content:center;
- min-height:34px;max-width:100%;margin-top:5px;padding:6px 10px;
- border:1px solid #7db0e9;border-radius:8px;background:#eaf4ff;
- color:#114c91;font-size:11px;font-weight:800;cursor:pointer;
- white-space:normal;overflow-wrap:anywhere;text-align:left;
+ width:34px;min-width:34px;height:34px;min-height:34px;
+ margin-top:5px;padding:0;border:1px solid #7db0e9;border-radius:8px;
+ background:#eaf4ff;color:#114c91;font-size:15px;font-weight:800;cursor:pointer;
+ line-height:1;vertical-align:middle;
 }
 #amplFormBody .hd-ampl-inline-attachment .hd-ampl-view-selected:disabled{
  opacity:.55;cursor:not-allowed;background:#eef2f7;color:#64748b;
 }
 #amplFormBody .hd-ampl-inline-attachment .hd-ampl-view-selected:not(:disabled):hover{
  background:#d9ecff;border-color:#3477c6;
+}
+</style>
+
+<style id="hd-om5-franjas-rev73">
+/* REV73: diseño de franjas, sin alterar lógica ni valores. Solo formulario OM5. */
+#amplModal.hd-om5-consolidated{--hd-section-blue:#3578C5;--hd-title-blue:#103778}
+#amplModal.hd-om5-consolidated .hd-ampl-panel>.hd-ampl-controls:first-child{
+ background:var(--hd-title-blue)!important;color:white!important;border-radius:10px;
+ padding:11px 13px!important;margin-bottom:10px!important;gap:10px;
+}
+#amplModal.hd-om5-consolidated #amplFormTitle{color:#fff!important;font-size:21px!important;line-height:1.25!important}
+#amplModal.hd-om5-consolidated .hd-ampl-panel>.hd-ampl-controls:first-child button{
+ color:#fff!important;border:1px solid #8faed5!important;border-radius:7px!important;
+ background:rgba(255,255,255,.12)!important;font-size:12px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody{gap:10px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-om5-form-section,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-group{
+ border:1px solid #d3dfed!important;border-radius:11px!important;background:#fff!important;
+ padding:0!important;margin:0!important;overflow:hidden;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-om5-form-section>h3,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-group>h4,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-om5-section-head{
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;
+ gap:8px!important;width:100%!important;padding:9px 12px!important;
+ margin:0!important;min-height:36px!important;
+ background:var(--hd-section-blue)!important;color:#fff!important;
+ font-size:13px!important;line-height:1.25!important;font-weight:800!important;
+ border:0!important;border-radius:0!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-om5-form-section>h3 i{color:#fff!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-group>h4::before{
+ display:inline-block;font-family:'Font Awesome 6 Free';font-weight:900;color:#fff;
+ content:'\f15c';
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-om5-resolutions .hd-om5-section-head>h4{
+ margin:0!important;color:#fff!important;font-size:13px!important;font-weight:800!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-om5-resolutions .hd-om5-section-head::before{
+ display:inline-block;font-family:'Font Awesome 6 Free';font-weight:900;color:#fff;content:'\f518';
+}
+#amplModal.hd-om5-consolidated #amplFormBody #amplRequests,
+#amplModal.hd-om5-consolidated #amplFormBody #amplResolutions,
+#amplModal.hd-om5-consolidated #amplFormBody #amplObsExp,
+#amplModal.hd-om5-consolidated #amplFormBody #amplObsInsp,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-memo-individual>.hd-ampl-doc-list{
+ padding:9px 11px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-om5-field-grid{
+ padding:10px 12px!important;gap:8px 12px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc{
+ background:#fcfdff!important;border:1px solid #dbe5f1!important;
+ padding:8px 10px!important;border-radius:8px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-label>span,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell>span{
+ font-size:11px!important;line-height:1.25!important;color:#37516c!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-label input,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-label select,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-label textarea,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell input,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell textarea{
+ font-size:12px!important;min-height:36px!important;height:auto;padding:7px 8px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell input,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-cell textarea{height:37px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-add{font-size:11px!important;padding:7px 10px!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-footer{padding:2px 11px 10px!important;margin:0!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-om5-optional-note{padding:9px 11px!important;font-size:11px!important;margin:0!important}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment .hd-ampl-view-selected{
+ width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important;
+ padding:0!important;font-size:15px!important;
+}
+@media(max-width:650px){
+ #amplModal.hd-om5-consolidated #amplFormTitle{font-size:18px!important}
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-om5-form-section>h3,
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-doc-group>h4,
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-om5-section-head{padding:8px 10px!important;font-size:12px!important}
+ #amplModal.hd-om5-consolidated #amplFormBody .hd-om5-field-grid{padding:9px!important}
 }
 </style>
 </head>
@@ -1435,7 +1517,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
           <section class="hd-memo-section" aria-labelledby="hdMemoSectionForm">
             <div class="hd-memo-section-heading"><div><span class="hd-memo-section-step">02</span><h3 id="hdMemoSectionForm">Registrar o editar memorando</h3><p id="hdMemoEditNote" class="hd-memo-help">Selecciona los expedientes para registrar el memorando.</p></div></div>
             <div class="hd-memo-form"><label>Número de memorando <input id="hdMemoNumber" maxlength="180" placeholder="Ej. MEM-001-2026-GC" required></label><label>Fecha de envío <input type="date" id="hdMemoDate" required></label><label>Asunto (opcional) <input id="hdMemoSubject" maxlength="600" placeholder="Asunto del memorando"></label><label>Adjuntar PDF o imagen (máx. 10 MB) <input type="file" id="hdMemoPdf" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp"></label></div>
-            <div class="hd-memo-row hd-memo-file-tools"><label id="hdMemoCameraBox" style="display:none;flex:0 1 auto;min-width:205px" hidden>Tomar foto (celular) <input id="hdMemoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label><button type="button" id="hdMemoLocalOpen"><i class="fa-regular fa-eye"></i> Ver archivo seleccionado</button><span class="hd-memo-help" id="hdMemoFileHelp">Puedes adjuntar un PDF o una imagen. Solo se adjunta un archivo por memorando.</span></div>
+            <div class="hd-memo-row hd-memo-file-tools"><label id="hdMemoCameraBox" style="display:none;flex:0 1 auto;min-width:205px" hidden>Tomar foto (celular) <input id="hdMemoCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label><button type="button" id="hdMemoLocalOpen" aria-label="Ver archivo seleccionado"><i class="fa-regular fa-eye" aria-hidden="true"></i><span class="sr-only">Ver archivo seleccionado</span></button><span class="hd-memo-help" id="hdMemoFileHelp">Puedes adjuntar un PDF o una imagen. Solo se adjunta un archivo por memorando.</span></div>
             <div id="hdMemoLocalPreview" hidden><div class="hd-memo-row"><strong>Archivo seleccionado (aún no guardado)</strong><a id="hdMemoLocalDownload" href="#" download>Descargar</a><button type="button" id="hdMemoLocalClose">Cerrar vista previa</button></div><iframe id="hdMemoLocalFrame" title="Vista previa del documento seleccionado"></iframe><img id="hdMemoLocalImage" alt="Imagen seleccionada" hidden></div>
             <div class="hd-memo-row hd-memo-save-tools"><button type="button" id="hdMemoSave" class="hd-memo-primary"><i class="fa-solid fa-floppy-disk"></i> Grabar memorando para seleccionados</button><button type="button" id="hdMemoNew"><i class="fa-solid fa-plus"></i> Nuevo memorando</button></div>
             <p id="hdMemoStatus" role="status" aria-live="polite" class="hd-memo-status"></p>
@@ -4544,7 +4626,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV71-VISTA-PREVIA-20261117"></script>
+<script src="./ampliaciones-ui.js?v=REV73-FRANJAS-OM5-20261118"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
