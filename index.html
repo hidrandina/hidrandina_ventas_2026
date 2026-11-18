@@ -5729,5 +5729,27 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
 }
 </style>
+
+<style id="hd-revision-rev85-estado">
+/* REV85: SOLO estado de expediente, etapa 2, sin afectar otras etapas */
+@media (min-width:851px) {
+  #amplModal.hd-om5-consolidated.hd-om5-stage-1 #amplFormBody
+  > .hd-om5-ordered-section > .hd-om5-field-grid:has(> .hd-ampl-label [data-k="EstadoExpVentas"]) {
+    grid-template-columns:minmax(0,25%)!important;justify-content:start!important;
+  }
+}
+@media (min-width:601px) and (max-width:850px) {
+  #amplModal.hd-om5-consolidated.hd-om5-stage-1 #amplFormBody
+  > .hd-om5-ordered-section > .hd-om5-field-grid:has(> .hd-ampl-label [data-k="EstadoExpVentas"]) {
+    grid-template-columns:minmax(0,50%)!important;
+  }
+}
+@media (max-width:600px) {
+  #amplModal.hd-om5-consolidated.hd-om5-stage-1 #amplFormBody
+  > .hd-om5-ordered-section > .hd-om5-field-grid:has(> .hd-ampl-label [data-k="EstadoExpVentas"]) {
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}
+</style>
 </body>
 </html>
