@@ -913,6 +913,29 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 /* Mantener activos los botones Ver y Descargar de los documentos existentes. */
 #amplModal.hd-om5-consulta #amplSave{display:none!important}
 </style>
+<style>
+/* REV95: únicamente los adjuntos en el formulario Editar expediente OM5. */
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-inline-attachment.hd-ampl-edit-compact{
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+ gap:5px!important;justify-content:flex-start!important;min-height:38px!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-edit-compact .hd-ampl-edit-trash,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-edit-compact .hd-ampl-edit-extra-eye{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;
+ padding:0!important;margin:0!important;box-sizing:border-box!important;
+ border:1px solid #b2c9e9!important;border-radius:7px!important;
+ background:#eef5ff!important;color:#16579f!important;font-size:15px!important;
+ cursor:pointer!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-edit-compact .hd-ampl-edit-trash{
+ color:#b91c1c!important;background:#fff7f7!important;border-color:#f1c6c6!important;
+}
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-edit-compact .hd-ampl-local-name,
+#amplModal.hd-om5-consolidated #amplFormBody .hd-ampl-edit-compact .hd-ampl-pending{
+ display:none!important;
+}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -4870,7 +4893,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV94-EDICION-ARCHIVOS-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV95-EDICION-ICONOS-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
