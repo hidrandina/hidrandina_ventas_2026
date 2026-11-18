@@ -1541,7 +1541,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
       <nav id="amplStageTabs" class="hd-ampl-stage-tabs" aria-label="Etapas del expediente OM5" hidden></nav>
       <p id="amplFormStatus" class="hd-ampl-form-status" role="alert" aria-live="assertive" hidden></p>
       <div id="amplFormBody" class="hd-ampl-fields"></div><hr id="amplAttachmentsDivider" hidden><div id="amplExistingAttachments" hidden></div>
-      <div class="hd-ampl-controls"><button id="amplSave" onclick="Ampliaciones.save()" class="hd-ampl-primary">Guardar</button><button onclick="Ampliaciones.close()">Cancelar</button></div></div>
+      <div class="hd-ampl-controls"><button id="amplSave" onclick="Ampliaciones.save()" class="hd-ampl-primary"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button><button onclick="Ampliaciones.close()" class="hd-ampl-cancel"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button></div></div>
     </div>
 
 
@@ -4851,7 +4851,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV79-MONTAJE-ANCHO-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV80-MONTAJE-BOTONES-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
@@ -5613,5 +5613,40 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<style id="hd-montaje-rev80-footer">
+/* REV80: solo la barra inferior de etapa Montaje; la lógica no cambia. */
+#amplModal.hd-om5-consolidated.hd-om5-stage-3 .hd-ampl-panel > .hd-ampl-controls:last-child {
+ display:flex!important;align-items:center!important;justify-content:flex-end!important;
+ gap:9px!important;flex-wrap:wrap!important;padding:9px 4px!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-3 .hd-ampl-panel > .hd-ampl-controls:last-child > button {
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:auto!important;min-width:0!important;min-height:36px!important;
+ padding:7px 13px!important;margin:0!important;gap:7px!important;
+ font-size:12px!important;line-height:1.25!important;font-weight:700!important;
+ border-radius:8px!important;box-shadow:none!important;white-space:nowrap!important;
+ transition:background-color .15s ease,border-color .15s ease!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplSave {
+ color:#fff!important;background:#1555af!important;border:1px solid #1555af!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplSave:not(:disabled):hover {
+ background:#103d88!important;border-color:#103d88!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-3 .hd-ampl-cancel {
+ color:#123c82!important;background:#fff!important;border:1px solid #b6cbed!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-3 .hd-ampl-cancel:hover {
+ background:#eaf3ff!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplSave:disabled {
+ opacity:.6!important;cursor:wait!important;
+}
+@media(max-width:460px){
+ #amplModal.hd-om5-consolidated.hd-om5-stage-3 .hd-ampl-panel > .hd-ampl-controls:last-child {justify-content:stretch!important;}
+ #amplModal.hd-om5-consolidated.hd-om5-stage-3 .hd-ampl-panel > .hd-ampl-controls:last-child > button {flex:1 1 0!important;}
+}
+</style>
 </body>
 </html>
