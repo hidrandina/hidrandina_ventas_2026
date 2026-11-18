@@ -396,7 +396,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  if(curso==='OM5'&&stage===1)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones y memorandos GC — Revisión</h4><div class="hd-ampl-doc-list" id="amplObsExp"></div></section>');
  if(curso==='OM5'&&stage===2)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones y memorandos GC — Inspección</h4><div class="hd-ampl-doc-list" id="amplObsInsp"></div></section>');
  if(memoIndividual){
-  out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell"><span>Número de memorando individual</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
+  out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell"><span>Número de memorando</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
  }
  ui.innerHTML=out.join('');
  // REV61: ingreso OM5: agrupar los campos ya existentes sin clonar inputs,
