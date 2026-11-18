@@ -993,6 +993,35 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #tab-om5 #amplWorkspace .hd-ampl-grid tbody td.hd-report-actions > button.hd-om5-eye,
 #tab-om5 #amplWorkspace .hd-ampl-grid tbody td.hd-report-actions > button.hd-om5-pencil{display:inline-flex!important;vertical-align:middle!important;margin:1px!important;float:none!important;}
 </style>
+
+<style>
+/* REV99: exclusivamente botones de paginación del listado Ampliaciones OM5. */
+#tab-om5 #amplWorkspace #amplPrev,
+#tab-om5 #amplWorkspace #amplNext{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:6px!important;box-sizing:border-box!important;
+  width:112px!important;min-width:112px!important;max-width:112px!important;
+  height:38px!important;min-height:38px!important;
+  padding:7px 11px!important;border-radius:9px!important;
+  font-size:13px!important;line-height:1.2!important;font-weight:700!important;
+  letter-spacing:0!important;white-space:nowrap!important;
+  box-shadow:none!important;transition:background-color .15s ease,border-color .15s ease!important;
+}
+#tab-om5 #amplWorkspace #amplPrev{
+  color:#42526a!important;background:#f1f4f8!important;border:1px solid #cbd5e1!important;
+}
+#tab-om5 #amplWorkspace #amplNext{
+  color:#fff!important;background:#1859b8!important;border:1px solid #1859b8!important;
+}
+#tab-om5 #amplWorkspace #amplPrev::before{content:'‹';font-size:18px;line-height:12px;}
+#tab-om5 #amplWorkspace #amplNext::after{content:'›';font-size:18px;line-height:12px;}
+#tab-om5 #amplWorkspace #amplPrev:disabled,
+#tab-om5 #amplWorkspace #amplNext:disabled{
+  opacity:.5!important;cursor:not-allowed!important;box-shadow:none!important;
+}
+#tab-om5 #amplWorkspace #amplPrev:not(:disabled):hover{background:#e2e8f0!important;}
+#tab-om5 #amplWorkspace #amplNext:not(:disabled):hover{background:#10458f!important;}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
