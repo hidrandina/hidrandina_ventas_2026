@@ -364,7 +364,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   fechaejecucionumd:'Fecha de ejecución UMD',fechaejecutacionumd:'Fecha de ejecución UMD',estadoumd:'Estado UMD',
   clientescaptados:'Clientes captados',obscaptacionclientes:'Observaciones de captación de clientes',
   estadocaptacionclientes:'Estado de captación de clientes',
-  estadoexpventas:'Estado del expediente',estadoinspeccionventas:'Estado de inspección de ventas',
+  estadoexpventas:'Estado del expediente',estadoinspeccionventas:'Estado de la inspección',
   memoenvioindividualgt:'Memorando individual de envío a Gerencia Técnica'
  };
  const grouped=new Set();
@@ -394,7 +394,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  }
  if(curso==='UIA')out.push('<section class="hd-ampl-doc-group"><h4>Memorandos GC — sin fecha</h4><div class="hd-ampl-doc-list" id="amplMemosGC"></div></section>');
  if(curso==='OM5'&&stage===1)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones al Expediente</h4><div class="hd-ampl-doc-list" id="amplObsExp"></div></section>');
- if(curso==='OM5'&&stage===2)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones y memorandos GC — Inspección</h4><div class="hd-ampl-doc-list" id="amplObsInsp"></div></section>');
+ if(curso==='OM5'&&stage===2)out.push('<section class="hd-ampl-doc-group"><h4>Observaciones de inspección de campo</h4><div class="hd-ampl-doc-list" id="amplObsInsp"></div></section>');
  if(memoIndividual){
   out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell"><span>Número de memorando</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
  }
@@ -458,8 +458,8 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   }else if(stage===2){
    // Observaciones, infraestructura y por último respuesta/estado.
    group('amplObsInsp');
-   section('Redes e infraestructura','fa-network-wired',matches(/^(redes|postes|sed)/),3);
-   section('Respuesta y estado de inspección','fa-clipboard-check',
+   section('Metrado de redes a implementar','fa-network-wired',matches(/^(redes|postes|sed)/),3);
+   section('Memorando de respuesta al solicitante','fa-clipboard-check',
     [...take('MemoRespuestaGC','MemoRespGC','MemoInspeccionRespuestaGC','MemoRespuestaInspeccionGC'),
      ...take('EstadoInspeccionVentas')],2);
   }else if(stage===3){
