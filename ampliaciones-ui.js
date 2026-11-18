@@ -614,15 +614,20 @@ function inlineUpload(fieldName,editable){
  const pending=Object.values(registro?.pendingFiles||{}).flat().filter(x=>key(x.campo)===key(fieldName));
  const pendingHtml=pending.length?'<div class="hd-ampl-pending">Pendiente de guardar: '+pending.map(x=>safe(x.file.name)).join(', ')+'</div>':'';
  const isExec=curso==='OM5';
- const saved=files.length?'<div class="hd-ampl-attached-files"><strong>Archivos guardados ('+files.length+')</strong>'+files.map(x=>
+ // REV94: solo el editor de un expediente OM5 existente. Nuevo/Consulta/UIA intactos.
+ const isOM5Edit=isExec&&editable&&!!registro?.id&&!registro.postSaveNew;
+ let saved=files.length?'<div class="hd-ampl-attached-files"><strong>Archivos guardados ('+files.length+')</strong>'+files.map(x=>
   '<div class="hd-ampl-file-line"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+'</span><div class="hd-ampl-file-actions">'+(isExec?
   '<button type="button" aria-label="Ver '+safe(x.nombre)+'" title="Ver archivo" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')"><i class="fa-regular fa-eye" aria-hidden="true"></i></button><button type="button" aria-label="Descargar '+safe(x.nombre)+'" title="Descargar archivo" onclick="Ampliaciones.download(\''+safe(x.id)+'\')"><i class="fa-solid fa-download" aria-hidden="true"></i></button>'+(editable?'<button type="button" class="hd-ampl-delete-file" aria-label="Eliminar '+safe(x.nombre)+'" title="Eliminar archivo" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>':''):
   '<button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+(editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':''))+'</div></div>').join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
  if(!editable)return '<div class="hd-ampl-inline-attachment">'+saved+'</div>';
+ if(isOM5Edit)saved=''; // mismo renglón del alta, sin listado inferior duplicado
  const camera=isPhoneCamera()? (isExec?'<label class="hd-ampl-camera-label" title="Tomar fotografía" aria-label="Tomar fotografía"><i class="fa-solid fa-camera" aria-hidden="true"></i><input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>'):'';
  const chooser=isExec?'<label class="hd-ampl-choose-file" title="Adjuntar PDF o imagen"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar PDF o imagen a '+safe(fieldName)+'"></label>':'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>';
- const button=isExec?'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled aria-label="Vista previa del archivo seleccionado" title="Selecciona un archivo para visualizarlo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>':'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado">👁</button>';
- return '<div class="hd-ampl-inline-attachment">'+saved+chooser+camera+button+(isExec?'<span class="hd-ampl-local-name" aria-live="polite">Sin archivo</span>':'')+pendingHtml+'<span class="hd-ampl-local-actions" data-preview-files></span></div>';
+ const button=isExec?'<button type="button" class="hd-ampl-view-selected" '+(isOM5Edit&&files.length?'data-hd-saved-id="'+safe(files[0].id)+'" ':'')+'data-hd-view-field="'+safe(fieldName)+'" '+(isOM5Edit&&files.length?'':'disabled ')+'aria-label="Vista previa del archivo seleccionado" title="Selecciona un archivo para visualizarlo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>':'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado">👁</button>';
+ const editChooser=isOM5Edit&&files.length?chooser.replace('title="Adjuntar PDF o imagen"','title="Actualizar archivo (reemplazar el actual)"').replace('fa-file-arrow-up','fa-arrows-rotate').replace('Adjuntar PDF o imagen a ','Reemplazar archivo de '):chooser;
+ const shownName=isOM5Edit&&files.length?safe(files.map(x=>x.nombre).join(' · ')):'Sin archivo';
+ return '<div class="hd-ampl-inline-attachment">'+saved+editChooser+camera+button+(isExec?'<span class="hd-ampl-local-name" aria-live="polite">'+shownName+'</span>':'')+pendingHtml+'<span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
 
 function docs(kind,editable){
@@ -694,6 +699,8 @@ async function save(){
   if(validation){formAlert(validation.message,'error',validation.field);return;}
   const currentStage=registro.stage;
   const fileGroups=Object.entries(registro.pendingFiles).flatMap(([stage,arr])=>(arr||[]).map(item=>({...item,stage:Number(stage)})));
+  // REV94: registrar adjuntos anteriores ANTES de subir los nuevos, solo en Editar OM5.
+  const replaceIds=(mod==='OM5'&&!isNew&&!registro.postSaveNew)?new Map(fileGroups.map(({campo})=>[key(campo),(sheet(mod).adjuntos||[]).filter(a=>String(a.expedienteId)===String(registro.id)&&key(a.campo)===key(campo)).map(a=>String(a.id))])):new Map();
   for(const {file} of fileGroups)if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);
   saving=true;if(button){button.disabled=true;button.textContent='Guardando…';}
   update('Guardando expediente. Permanece en este formulario.');
@@ -702,11 +709,21 @@ async function save(){
   savedOnServer=true;serverResult=r;
   // Actualizar el token de control de concurrencia antes de otra edición.
   registro.id=r.expedienteId;registro.version=r.version;
-  const failed=[];
+  const failed=[],replaceWarnings=[];
+  const replacedFields=new Set();
   for(let i=0;i<fileGroups.length;i++){
    const {campo,file,stage}=fileGroups[i];update('Guardado confirmado. Subiendo archivo '+(i+1)+' de '+fileGroups.length+': '+file.name);
-   try{await api('amplUpload',{modulo:mod,expedienteId:r.expedienteId,campo,nombre:file.name,base64:await fileToBase64(file)});}
-   catch(e){failed.push({campo,file,stage,error:e.message});}
+   try{
+    await api('amplUpload',{modulo:mod,expedienteId:r.expedienteId,campo,nombre:file.name,base64:await fileToBase64(file)});
+    // Retirar el adjunto anterior SOLO tras confirmación de la subida.
+    if(!replacedFields.has(key(campo))){
+     replacedFields.add(key(campo));
+     for(const oldId of (replaceIds.get(key(campo))||[])){
+      try{await api('amplDeleteAdj',{adjuntoId:oldId,confirmar:'SI'});}
+      catch(e){replaceWarnings.push('No se pudo retirar el archivo anterior de '+campo+': '+e.message);}
+     }
+    }
+   }catch(e){failed.push({campo,file,stage,error:e.message});}
   }
   const note='Expediente guardado correctamente.'+(fileGroups.length?' '+(fileGroups.length-failed.length)+' archivo(s) adjuntados.':'');
   // Leer datos frescos sin cerrar la ventana; la versión y los adjuntos quedan actualizados.
@@ -729,9 +746,9 @@ async function save(){
    registro.row={...registro.row,...payload};registro.originalRow={...registro.row};registro.drafts={};
    registro.pendingFiles={};
   }
-  if(failed.length){
-   const detail=failed.map(x=>x.file.name+': '+x.error).join('\n');
-   formAlert(note+' Algunos archivos NO se subieron; vuelve a seleccionarlos para reintentar:\n'+detail,'error');
+  if(failed.length||replaceWarnings.length){
+   const detail=failed.map(x=>x.file.name+': '+x.error).concat(replaceWarnings).join('\n');
+   formAlert(note+' Revisa los archivos indicados antes de volver a guardar; no repitas una subida confirmada:\n'+detail,'error');
   }else{
    formAlert(note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
   }
@@ -883,12 +900,13 @@ function syncInlinePreview(container){
  const button=container.querySelector('.hd-ampl-view-selected');if(!button)return;
  const fieldName=button.getAttribute('data-hd-view-field');
  const file=selectedFileFor(fieldName,container);
- button.disabled=!file;
+ const savedId=button.getAttribute('data-hd-saved-id');
+ button.disabled=!file&&!savedId;
  if(!button.querySelector('i'))button.textContent='👁';
- button.setAttribute('aria-label', file ? 'Ver archivo seleccionado: '+file.name : 'Ver archivo seleccionado');
- button.title=file?'Ver archivo seleccionado: '+file.name:'Selecciona un PDF o imagen para visualizarlo';
+ button.setAttribute('aria-label',file?'Ver archivo seleccionado: '+file.name:savedId?'Ver archivo guardado':'Ver archivo seleccionado');
+ button.title=file?'Ver archivo seleccionado: '+file.name:savedId?'Ver archivo guardado':'Selecciona un PDF o imagen para visualizarlo';
  const name=container.querySelector('.hd-ampl-local-name');
- if(name){name.textContent=file?file.name:'Sin archivo';name.title=file?file.name:'';}
+ if(name){const existing=name.getAttribute('data-hd-existing-name')||name.textContent; if(!name.hasAttribute('data-hd-existing-name'))name.setAttribute('data-hd-existing-name',existing);name.textContent=file?file.name:existing;name.title=name.textContent;}
 }
 function renderPendingFilePreviews(input){
  const parent=input.closest('.hd-ampl-inline-attachment');
@@ -914,6 +932,7 @@ document.addEventListener('click',e=>{
  const button=e.target.closest('button[data-hd-view-field]');if(!button)return;
  const file=selectedFileFor(button.getAttribute('data-hd-view-field'),button.closest('.hd-ampl-inline-attachment'));
  if(file)localPreview(file);
+ else {const savedId=button.getAttribute('data-hd-saved-id');if(savedId)previewSaved(savedId);}
 });
 // REV16: OCR conservador. Sin franjas con whitelist: causaban cifras inventadas.
 function ocrMessage(message){const e=$('amplOCRStatus');if(e)e.textContent=message;}
