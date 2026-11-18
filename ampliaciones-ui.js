@@ -626,8 +626,12 @@ function inlineUpload(fieldName,editable){
  const chooser=isExec?'<label class="hd-ampl-choose-file" title="Adjuntar PDF o imagen"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar PDF o imagen a '+safe(fieldName)+'"></label>':'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>';
  const button=isExec?'<button type="button" class="hd-ampl-view-selected" '+(isOM5Edit&&files.length?'data-hd-saved-id="'+safe(files[0].id)+'" ':'')+'data-hd-view-field="'+safe(fieldName)+'" '+(isOM5Edit&&files.length?'':'disabled ')+'aria-label="Vista previa del archivo seleccionado" title="Selecciona un archivo para visualizarlo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>':'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado">👁</button>';
  const editChooser=isOM5Edit&&files.length?chooser.replace('title="Adjuntar PDF o imagen"','title="Actualizar archivo (reemplazar el actual)"').replace('fa-file-arrow-up','fa-arrows-rotate').replace('Adjuntar PDF o imagen a ','Reemplazar archivo de '):chooser;
- const shownName=isOM5Edit&&files.length?safe(files.map(x=>x.nombre).join(' · ')):'Sin archivo';
- return '<div class="hd-ampl-inline-attachment">'+saved+editChooser+camera+button+(isExec?'<span class="hd-ampl-local-name" aria-live="polite">'+shownName+'</span>':'')+pendingHtml+'<span class="hd-ampl-local-actions" data-preview-files></span></div>';
+ // REV95: en Editar OM5, nada de nombres ni lista aparte. El tacho elimina SOLO adjuntos.
+ // Si un campo tiene varios archivos, cada uno recibe su ojo y tacho, sin mostrar nombres.
+ const editTrash=isOM5Edit?files.map(x=>'<button type="button" class="hd-ampl-edit-trash" title="Eliminar archivo adjunto" aria-label="Eliminar adjunto '+safe(x.nombre)+'" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>').join(''):'';
+ const otherSaved=isOM5Edit?files.slice(1).map(x=>'<button type="button" class="hd-ampl-edit-extra-eye" title="Ver archivo adjunto" aria-label="Ver adjunto '+safe(x.nombre)+'" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>').join(''):'';
+ const shownName='Sin archivo';
+ return '<div class="hd-ampl-inline-attachment'+(isOM5Edit?' hd-ampl-edit-compact':'')+'">'+saved+editChooser+camera+button+otherSaved+editTrash+(isExec&&!isOM5Edit?'<span class="hd-ampl-local-name" aria-live="polite">'+shownName+'</span>':'')+(isOM5Edit?'':pendingHtml)+'<span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
 
 function docs(kind,editable){
@@ -649,7 +653,7 @@ function docs(kind,editable){
    :'Número de '+g.label.toLowerCase()+' '+r.i;
   const noteCell=r.note?`<label class="hd-ampl-doc-cell hd-ampl-note"><span>Observación ${r.i}</span>${fieldInput(r.note,r.obs,editable)}</label>`:'';
   const dateCell=r.date?`<label class="hd-ampl-doc-cell hd-ampl-date"><span>Fecha</span>${fieldInput(r.date,r.f,editable)}</label>`:'';
-  const remove=registro.id&&editable&&!registro.postSaveNew&&r.v&&['sol','res'].includes(kind)?`<button type="button" class="hd-ampl-remove" onclick="Ampliaciones.deleteDocField('${safe(r.num)}')">Eliminar documento y adjuntos</button>`:'';
+  const remove=registro.id&&editable&&!registro.postSaveNew&&!(curso==='OM5')&&r.v&&['sol','res'].includes(kind)?`<button type="button" class="hd-ampl-remove" onclick="Ampliaciones.deleteDocField('${safe(r.num)}')">Eliminar documento y adjuntos</button>`:'';
   return `<div class="hd-ampl-doc" data-doc="${safe(kind)}" data-num="${r.i}" ${r.i>maxShown?'hidden':''}>
    ${noteCell}
    <label class="hd-ampl-doc-cell"><span>${safe(numberLabel)}</span>${compactNumberInput(r.num,r.v,editable)}</label>
