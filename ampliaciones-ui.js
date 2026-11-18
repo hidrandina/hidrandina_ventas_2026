@@ -423,42 +423,66 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  }
 
 
- // Consolidación visual de las cuatro etapas restantes: mover los mismos
- // inputs (conservar data-k y listeners) a tarjetas, sin duplicar ni alterar datos.
+ // REV76: orden visual aprobado para etapas 2-5, sin alterar el campo
+ // real data-k, el orden de las columnas de Sheets ni la lógica de guardado.
+ // Los controles se MUEVEN (no se clonan); cada campo sigue siendo único.
  if(curso==='OM5' && stage>0){
-  const specs={
-   1:{primary:'Estado del expediente',secondary:'Seguimiento del expediente'},
-   2:{primary:'Datos de inspección de campo',secondary:'Estado de inspección y seguimiento'},
-   3:{primary:'Programación y ejecución',secondary:'Memorandos y estado de gestión'},
-   4:{primary:'Captación de clientes',secondary:'Estado y observaciones'}
-  };
-  const conf=specs[stage];
   const originalLabels=[...ui.querySelectorAll(':scope > .hd-ampl-label')];
-  const primary=[],secondary=[];
-  function secondaryField(name){
-   const k=key(name);
-   if(stage===1||stage===2)return /estado|observ|memo|coment|motivo/.test(k);
-   if(stage===3)return /estado|memo|modalidad|observ/.test(k);
-   return /estado|observ|coment|motivo/.test(k);
-  }
-  originalLabels.forEach(label=>{
-   const name=label.querySelector('[data-k]')?.getAttribute('data-k')||'';
-   (secondaryField(name)?secondary:primary).push(label);
-  });
-  for(const [title,fields] of [[conf.primary,primary],[conf.secondary,secondary]]){
-   if(!fields.length)continue;
-   const sectionEl=document.createElement('section');
-   sectionEl.className='hd-om5-form-section hd-om5-stage-section';
+  const remaining=new Set(originalLabels);
+  const originalDocs=[...ui.querySelectorAll(':scope > .hd-ampl-doc-group')];
+  const rendered=[];
+  function section(title,icon,labels,columns=3){
+   if(!labels.length)return;
+   const node=document.createElement('section');
+   node.className='hd-om5-form-section hd-om5-stage-section hd-om5-ordered-section';
    const heading=document.createElement('h3');
-   const headingIcon=document.createElement('i');
-   headingIcon.className='fa-solid '+(stage===1?'fa-file-circle-check':stage===2?'fa-magnifying-glass':stage===3?'fa-screwdriver-wrench':'fa-users');
-   headingIcon.setAttribute('aria-hidden','true');
-   heading.append(headingIcon,document.createTextNode(' '+title));
+   const i=document.createElement('i');i.className='fa-solid '+icon;i.setAttribute('aria-hidden','true');
+   heading.append(i,document.createTextNode(' '+title));
    const grid=document.createElement('div');grid.className='hd-om5-field-grid';
-   fields.forEach(label=>grid.appendChild(label));
-   sectionEl.append(heading,grid);
-   ui.insertBefore(sectionEl,ui.querySelector('.hd-ampl-doc-group'));
+   grid.style.setProperty('--hd-om5-stage-cols',String(columns));
+   labels.forEach(label=>{remaining.delete(label);grid.appendChild(label);});
+   node.append(heading,grid);rendered.push(node);
   }
+  function take(...names){
+   const wanted=new Set(names.map(key));
+   return originalLabels.filter(label=>remaining.has(label)&&wanted.has(key(label.querySelector('[data-k]')?.dataset.k)));
+  }
+  function matches(re){
+   return originalLabels.filter(label=>remaining.has(label)&&re.test(key(label.querySelector('[data-k]')?.dataset.k||'')));
+  }
+  function group(name){const el=originalDocs.find(node=>!!node.querySelector('#'+name));if(el)rendered.push(el);}
+  if(stage===1){
+   // Observaciones GC 1-3 aparecen antes del estado de expediente.
+   group('amplObsExp');
+   section('Estado del expediente','fa-clipboard-check',take('EstadoExpVentas'),1);
+  }else if(stage===2){
+   // Observaciones, infraestructura y por último respuesta/estado.
+   group('amplObsInsp');
+   section('Redes e infraestructura','fa-network-wired',matches(/^(redes|postes|sed)/),3);
+   section('Respuesta y estado de inspección','fa-clipboard-check',
+    [...take('MemoRespuestaGC','MemoRespGC','MemoInspeccionRespuestaGC','MemoRespuestaInspeccionGC'),
+     ...take('EstadoInspeccionVentas')],2);
+  }else if(stage===3){
+   // Memorando individual con su archivo, masivo, modalidad, fechas, OM y estado.
+   const individual=originalDocs.find(node=>node.classList.contains('hd-ampl-memo-individual'));
+   if(individual)rendered.push(individual);
+   section('Memorandos a Gerencia Técnica','fa-envelope',
+    take('MemoEnvioGTmasivo','Modalidad'),3);
+   section('Programación y orden de montaje','fa-calendar-days',
+    take('FechaProgramadaEjecucionUMD','TipoOM','NroOM'),3);
+   section('Ejecución y estado UMD','fa-screwdriver-wrench',
+    take('FechaEjecucionUMD','EstadoUMD'),2);
+  }else if(stage===4){
+   section('Captación de clientes','fa-users',take('ClientesCaptados'),1);
+   section('Observaciones de captación','fa-pen-to-square',take('ObsCaptacionClientes'),1);
+   section('Estado de captación','fa-clipboard-check',take('EstadoCaptacionClientes'),1);
+  }
+  // No descartar jamás campos nuevos/desconocidos procedentes de la base.
+  // Se mantienen en su orden original y en una última sección complementaria.
+  if(remaining.size)section('Otros datos de la etapa','fa-list-check',
+   originalLabels.filter(label=>remaining.has(label)),3);
+  for(const doc of originalDocs)if(!rendered.includes(doc))rendered.push(doc);
+  ui.replaceChildren(...rendered);
  }
 
  if(curso==='OM5'){
