@@ -4851,7 +4851,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV86-INSPECCION-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV88-TABLA-OM5-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
@@ -5165,7 +5165,7 @@ document.addEventListener('DOMContentLoaded',init);
           section.innerHTML=`<div id="amplWorkspace"><h2>${mod==='OM5'?'AMPLIACIONES DE REDES OM5':'AMPLIACIONES UIA'}</h2>
           <div class="hd-ampl-controls hd-om5-filters">
            <div class="hd-ampl-queryline"><input id="amplSearch" type="search" placeholder="Buscar por texto" oninput="Ampliaciones.search()" /><button type="button" id="amplConsult" onclick="Ampliaciones.refresh(document.getElementById('tab-uia').contains(document.getElementById('amplWorkspace'))?'UIA':'OM5')">Consultar</button></div>
-           <select id="amplField" onchange="Ampliaciones.search()"><option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option>${mod==='OM5'?'<option value="res">Número de resolución</option>':''}<option value="${mod==='OM5'?'Solicitante':'Nombre'}">Solicitante</option><option value="${mod==='OM5'?'NombreSector':'Direccion'}">Sector / Dirección</option></select>
+           <div class="hd-om5-field-wrap"><select id="amplField" onchange="Ampliaciones.search()"><option value="todos">Todos los campos</option><option value="sol">Número de solicitud</option>${mod==='OM5'?'<option value="res">Número de resolución</option>':''}<option value="${mod==='OM5'?'Solicitante':'Nombre'}">Solicitante</option><option value="${mod==='OM5'?'NombreSector':'Direccion'}">Sector / Dirección</option></select><button type="button" id="amplFieldReset" title="Restablecer campo de búsqueda" aria-label="Restablecer campo de búsqueda" onclick="document.getElementById('amplField').value='todos';Ampliaciones.search()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
            <label>Desde <input type="date" id="amplStart" onchange="Ampliaciones.search()" /></label><label>Hasta <input type="date" id="amplEnd" onchange="Ampliaciones.search()" /></label>
           </div><div class="hd-ampl-controls hd-om5-actions">
            <button id="amplNew" class="hd-ampl-primary" onclick="Ampliaciones.open('',0,true)">Nuevo expediente</button>
@@ -5854,6 +5854,80 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 }
 #amplModal.hd-om5-consolidated.hd-om5-stage-4 .hd-ampl-cancel:hover {
   background:#eaf3ff!important;
+}
+</style>
+
+<style id="hdOm5TableRev88">
+/* REV88: EXCLUSIVO pantalla principal Ampliaciones OM5. No afecta formulario modal ni UIA */
+#tab-om5 #amplWorkspace #amplConsult{
+ background:#0C876D!important;border:1px solid #0C876D!important;color:#fff!important;
+ box-shadow:0 2px 7px #0c876d25!important;transition:background .15s ease!important;
+}
+#tab-om5 #amplWorkspace #amplConsult:hover{background:#096A56!important;border-color:#096A56!important}
+#tab-om5 #amplWorkspace .hd-om5-field-wrap{
+ display:flex!important;align-items:center!important;gap:5px!important;min-width:0!important;width:100%!important;
+}
+#tab-om5 #amplWorkspace .hd-om5-field-wrap #amplField{width:100%!important;flex:1 1 auto!important;min-width:0!important;grid-column:auto!important}
+#tab-om5 #amplWorkspace .hd-om5-field-wrap #amplFieldReset{
+ display:inline-flex!important;justify-content:center!important;align-items:center!important;
+ flex:0 0 34px!important;width:34px!important;height:38px!important;min-width:34px!important;
+ padding:0!important;background:#fff!important;border:1px solid #b9cdea!important;
+ border-radius:8px!important;color:#244879!important;font-size:13px!important;
+}
+#tab-om5 #amplWorkspace .hd-om5-field-wrap #amplFieldReset:hover{background:#edf5ff!important}
+/* Tabla: mantener desplazamiento horizontal y los 40 campos existentes, compactar columnas de acciones. */
+#tab-om5 #amplWorkspace .hd-ampl-grid{overflow:auto!important;border:1px solid #bcd0ec!important;border-radius:10px!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid table{table-layout:fixed!important;width:max-content!important;min-width:100%!important;border-collapse:separate!important;border-spacing:0!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid th,
+#tab-om5 #amplWorkspace .hd-ampl-grid td{
+ font-size:11px!important;padding:8px 9px!important;line-height:1.35!important;
+ border-bottom:1px solid #dce7f4!important;vertical-align:top!important;
+}
+#tab-om5 #amplWorkspace .hd-ampl-grid th{background:#123778!important;color:#fff!important;font-weight:800!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid td.hd-choose,
+#tab-om5 #amplWorkspace .hd-ampl-grid th.hd-choose{
+ min-width:48px!important;width:48px!important;max-width:48px!important;
+ left:0!important;text-align:center!important;
+}
+#tab-om5 #amplWorkspace .hd-ampl-grid td.hd-report-actions,
+#tab-om5 #amplWorkspace .hd-ampl-grid th.hd-report-actions{
+ min-width:88px!important;width:88px!important;max-width:88px!important;
+ left:48px!important;text-align:center!important;
+}
+#tab-om5 #amplWorkspace .hd-ampl-grid .hd-report-actions button{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ vertical-align:middle!important;width:32px!important;min-width:32px!important;height:32px!important;
+ padding:0!important;margin:1px 2px!important;line-height:1!important;
+ font-size:13px!important;border-radius:7px!important;white-space:nowrap!important;
+}
+#tab-om5 #amplWorkspace .hd-ampl-grid .hd-report-actions .hd-om5-eye{
+ background:#e9f2ff!important;color:#1555af!important;border:1px solid #bdd1f0!important;
+}
+#tab-om5 #amplWorkspace .hd-ampl-grid .hd-report-actions .hd-om5-pencil{
+ background:#fff5e5!important;color:#a9680a!important;border:1px solid #f0d7a8!important;
+}
+#tab-om5 #amplWorkspace .hd-ampl-grid .hd-report-actions button:hover{filter:brightness(.95)}
+#tab-om5 #amplWorkspace .hd-ampl-grid th.hd-report-actions i{display:inline-block;margin:0 3px;font-size:13px}
+/* Columna Ítem ya oculta en REV58: no restaurar. Los anchos usan el orden real. */
+#tab-om5 #amplWorkspace .hd-ampl-grid th:nth-child(4),
+#tab-om5 #amplWorkspace .hd-ampl-grid td:nth-child(4){width:175px!important;min-width:175px!important;max-width:175px!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid th:nth-child(5),
+#tab-om5 #amplWorkspace .hd-ampl-grid td:nth-child(5){width:305px!important;min-width:305px!important;max-width:305px!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid th:nth-child(6),
+#tab-om5 #amplWorkspace .hd-ampl-grid td:nth-child(6){width:155px!important;min-width:155px!important;max-width:155px!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid th:nth-child(7),
+#tab-om5 #amplWorkspace .hd-ampl-grid td:nth-child(7){width:143px!important;min-width:143px!important;max-width:143px!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid tbody tr:nth-child(odd) td:not(:nth-child(3)){background:#fff}
+#tab-om5 #amplWorkspace .hd-ampl-grid tbody tr:nth-child(even) td:not(:nth-child(3)){background:#eff5fc}
+#tab-om5 #amplWorkspace .hd-ampl-grid tbody tr:hover td:not(:nth-child(3)){background:#e2efff!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid tbody tr.hd-ampl-selected td:not(:nth-child(3)){background:#d9eaff!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid th.hd-choose,
+#tab-om5 #amplWorkspace .hd-ampl-grid th.hd-report-actions{background:#123778!important;z-index:7!important}
+#tab-om5 #amplWorkspace .hd-ampl-grid td.hd-choose,
+#tab-om5 #amplWorkspace .hd-ampl-grid td.hd-report-actions{z-index:4!important}
+@media(max-width:700px){
+ #tab-om5 #amplWorkspace .hd-om5-field-wrap{grid-column:1/-1!important}
+ #tab-om5 #amplWorkspace .hd-ampl-grid th:nth-child(5),#tab-om5 #amplWorkspace .hd-ampl-grid td:nth-child(5){width:225px!important;min-width:225px!important;max-width:225px!important}
 }
 </style>
 </body>
