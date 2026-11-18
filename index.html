@@ -4851,7 +4851,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV83-SUBTITULO-REVISION-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV86-INSPECCION-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
@@ -5749,6 +5749,55 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   > .hd-om5-ordered-section > .hd-om5-field-grid:has(> .hd-ampl-label [data-k="EstadoExpVentas"]) {
     grid-template-columns:minmax(0,1fr)!important;
   }
+}
+</style>
+
+<style id="hd-inspeccion-rev86">
+/* REV86: exclusivamente etapa 3 (Inspección de campo) */
+@media (min-width: 851px) {
+  #amplModal.hd-om5-consolidated.hd-om5-stage-2 #amplFormBody
+  > .hd-om5-ordered-section > .hd-om5-field-grid:has([data-k="EstadoInspeccionVentas"]) {
+    grid-template-columns:minmax(0,50%) minmax(0,25%) !important;
+    justify-content:start !important;
+  }
+}
+@media (min-width: 601px) and (max-width:850px) {
+  #amplModal.hd-om5-consolidated.hd-om5-stage-2 #amplFormBody
+  > .hd-om5-ordered-section > .hd-om5-field-grid:has([data-k="EstadoInspeccionVentas"]) {
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+  }
+}
+@media (max-width:600px) {
+  #amplModal.hd-om5-consolidated.hd-om5-stage-2 #amplFormBody
+  > .hd-om5-ordered-section > .hd-om5-field-grid:has([data-k="EstadoInspeccionVentas"]) {
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-2 .hd-ampl-panel > .hd-ampl-controls:last-child {
+  display:flex !important; flex-direction:row !important; justify-content:flex-end !important;
+  align-items:center !important; gap:9px !important; padding:9px 4px !important;
+  width:100% !important; flex-wrap:wrap !important; box-sizing:border-box !important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-2 .hd-ampl-panel > .hd-ampl-controls:last-child > button {
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  flex:0 0 auto !important; width:auto !important; min-width:0 !important; min-height:36px !important;
+  padding:7px 13px !important; margin:0 !important; gap:7px !important;
+  font-size:12px !important; font-weight:700 !important; line-height:1.25 !important;
+  white-space:nowrap !important; border-radius:8px !important; box-shadow:none !important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-2 #amplSave {
+  order:2 !important; background:#1555af !important; color:#fff !important;
+  border:1px solid #1555af !important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-2 #amplSave:not(:disabled):hover {
+  background:#103d88 !important; border-color:#103d88 !important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-2 .hd-ampl-cancel {
+  order:1 !important; background:#fff !important; color:#123c82 !important;
+  border:1px solid #b6cbed !important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-2 .hd-ampl-cancel:hover {
+  background:#eaf3ff !important;
 }
 </style>
 </body>
