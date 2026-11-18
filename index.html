@@ -3540,7 +3540,41 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 ['Observaciones',getProp(doc,['Observaciones',10])]
             ];
             const adj=adjuntos.map((a,i)=>`<li>${escapeHtmlSustento(String(getProp(a,['Tipo_Sustento',2]))==='Atencion'?'Descargo / atención':'Sustento')} — ${escapeHtmlSustento((i+1)+'_'+nombreSeguroExpediente_(getProp(a,['Nombre_Archivo',3])||'Archivo'))}</li>`).join('');
-            return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resumen del expediente</title><style>body{font:15px system-ui,sans-serif;max-width:780px;margin:auto;padding:24px;color:#17335e}h1{color:#0b3678}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #cbd5e1;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{width:34%;background:#eef5ff}li{margin:7px 0}.nota{font-size:12px;color:#526581}</style></head><body><h1>HIDRANDINA — Atención de Documentos</h1><h2>Resumen del expediente</h2><table>${filas.map(x=>campo(...x)).join('')}</table><h2>Archivos adjuntos</h2>${adj?'<ol>'+adj+'</ol>':'<p>Este expediente no tiene adjuntos.</p>'}<p class="nota">Los archivos originales se incluyen en las carpetas Sustentos y Atencion de este ZIP. Documento generado por un usuario autorizado.</p></body></html>`;
+            return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Resumen del expediente</title><style>body{font:15px system-ui,sans-serif;max-width:780px;margin:auto;padding:24px;color:#17335e}h1{color:#0b3678}table{width:100%;border-collapse:collapse}th,td{padding:10px;border:1px solid #cbd5e1;text-align:left;vertical-align:top;overflow-wrap:anywhere}th{width:34%;background:#eef5ff}li{margin:7px 0}.nota{font-size:12px;color:#526581}</style></head><body><h1>HIDRANDINA — Atención de Documentos</h1><h2>Resumen del expediente</h2><table>${filas.map(x=>campo(...x)).join('')}</table><h2>Archivos adjuntos</h2>${adj?'<ol>'+adj+'</ol>':'<p>Este expediente no tiene adjuntos.</p>'}<p class="nota">Los archivos originales se incluyen en las carpetas Sustentos y Atencion de este ZIP. Documento generado por un usuario autorizado.</p><style id="hd-registro-rev81-footer">
+/* REV81: solo la barra inferior de etapa Registro; la lógica no cambia. */
+#amplModal.hd-om5-consolidated.hd-om5-stage-0 .hd-ampl-panel > .hd-ampl-controls:last-child {
+ display:flex!important;align-items:center!important;justify-content:flex-end!important;
+ gap:9px!important;flex-wrap:wrap!important;padding:9px 4px!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-0 .hd-ampl-panel > .hd-ampl-controls:last-child > button {
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:auto!important;min-width:0!important;min-height:36px!important;
+ padding:7px 13px!important;margin:0!important;gap:7px!important;
+ font-size:12px!important;line-height:1.25!important;font-weight:700!important;
+ border-radius:8px!important;box-shadow:none!important;white-space:nowrap!important;
+ transition:background-color .15s ease,border-color .15s ease!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-0 #amplSave {
+ color:#fff!important;background:#1555af!important;border:1px solid #1555af!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-0 #amplSave:not(:disabled):hover {
+ background:#103d88!important;border-color:#103d88!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-0 .hd-ampl-cancel {
+ color:#123c82!important;background:#fff!important;border:1px solid #b6cbed!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-0 .hd-ampl-cancel:hover {
+ background:#eaf3ff!important;
+}
+#amplModal.hd-om5-consolidated.hd-om5-stage-0 #amplSave:disabled {
+ opacity:.6!important;cursor:wait!important;
+}
+@media(max-width:460px){
+ #amplModal.hd-om5-consolidated.hd-om5-stage-0 .hd-ampl-panel > .hd-ampl-controls:last-child {justify-content:stretch!important;}
+ #amplModal.hd-om5-consolidated.hd-om5-stage-0 .hd-ampl-panel > .hd-ampl-controls:last-child > button {flex:1 1 0!important;}
+}
+</style>
+</body></html>`;
         }
         async function compartirExpedienteConsulta() {
             const idx=expedienteConsultaIndice;
@@ -4851,7 +4885,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV80-MONTAJE-BOTONES-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV81-REGISTRO-BOTONES-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
