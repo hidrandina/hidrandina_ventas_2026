@@ -333,7 +333,7 @@ function switchStage(next){
  const old=registro;
  captureStage();
  const scrollPanel=$('amplModal')?.querySelector('.hd-ampl-panel');
- open(old.id,next,old.editable,old.drafts,old.pendingFiles,old.baselines,old.expandedDocs);
+ open(old.id,next,old.editable,old.drafts,old.pendingFiles,old.baselines,old.expandedDocs,old.postSaveNew);
  if(scrollPanel)scrollPanel.scrollTop=0;
 }
 function renderStageTabs(){
@@ -344,17 +344,18 @@ function renderStageTabs(){
 }
 
 /* REV08: formularios compactos según estructura real de Google Sheets. */
-function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,carriedBaselines=null,carriedExpandedDocs=null){
+function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,carriedBaselines=null,carriedExpandedDocs=null,carriedPostSaveNew=false){
  let row=rid?sheet(curso).registros.find(r=>id(r)===rid):null;
  if(rid&&!row){update('Expediente no disponible.');return;}
  if(editable&&!edit()){update('Sin permisos de edición.');return;}
  const drafts=carriedDrafts||{},pendingFiles=carriedFiles||{},baselines=carriedBaselines||{};
  const expandedDocs=carriedExpandedDocs||{};
  const displayRow={...(row||{}),...Object.assign({},...Object.values(drafts))};
- registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines,expandedDocs};
+ registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines,expandedDocs,postSaveNew:!!carriedPostSaveNew};
  const isNewOM5Entry=curso==='OM5'&&!rid&&stage===0;
  const isOM5Registro=curso==='OM5'&&stage===0;
  $('amplModal')?.classList.toggle('hd-om5-entry',isNewOM5Entry);
+ $('amplModal')?.classList.toggle('hd-om5-postsave-new',curso==='OM5'&&registro.postSaveNew);
  $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
  // REV66: identificar la etapa para compactar únicamente el formulario OM5.
  for(let i=0;i<5;i++)$('amplModal')?.classList.toggle('hd-om5-stage-'+i,curso==='OM5'&&stage===i);
@@ -620,7 +621,7 @@ function docs(kind,editable){
    :'Número de '+g.label.toLowerCase()+' '+r.i;
   const noteCell=r.note?`<label class="hd-ampl-doc-cell hd-ampl-note"><span>Observación ${r.i}</span>${fieldInput(r.note,r.obs,editable)}</label>`:'';
   const dateCell=r.date?`<label class="hd-ampl-doc-cell hd-ampl-date"><span>Fecha</span>${fieldInput(r.date,r.f,editable)}</label>`:'';
-  const remove=registro.id&&editable&&r.v&&['sol','res'].includes(kind)?`<button type="button" class="hd-ampl-remove" onclick="Ampliaciones.deleteDocField('${safe(r.num)}')">Eliminar documento y adjuntos</button>`:'';
+  const remove=registro.id&&editable&&!registro.postSaveNew&&r.v&&['sol','res'].includes(kind)?`<button type="button" class="hd-ampl-remove" onclick="Ampliaciones.deleteDocField('${safe(r.num)}')">Eliminar documento y adjuntos</button>`:'';
   return `<div class="hd-ampl-doc" data-doc="${safe(kind)}" data-num="${r.i}" ${r.i>maxShown?'hidden':''}>
    ${noteCell}
    <label class="hd-ampl-doc-cell"><span>${safe(numberLabel)}</span>${compactNumberInput(r.num,r.v,editable)}</label>
@@ -699,7 +700,7 @@ async function save(){
   }
   if(refreshed){
    curso=mod;
-   open(r.expedienteId,currentStage,true);
+   open(r.expedienteId,currentStage,true,null,null,null,null,isNew||registro.postSaveNew);
   }else{
    // Mantener el editor activo y su versión; descartar los cambios ya guardados.
    registro.row={...registro.row,...payload};registro.originalRow={...registro.row};registro.drafts={};
