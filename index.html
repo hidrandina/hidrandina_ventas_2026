@@ -744,6 +744,22 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 @media(max-width:1200px){#tab-om5 #amplWorkspace>.hd-om5-filters{grid-template-columns:minmax(260px,2fr) minmax(150px,1fr)!important}}
 @media(max-width:700px){#tab-om5.hd-ampl-section{padding:11px!important}#tab-om5 #amplWorkspace>.hd-om5-filters{grid-template-columns:1fr 1fr!important;gap:8px!important}#tab-om5 #amplWorkspace>.hd-om5-filters .hd-ampl-queryline{grid-column:1/-1}#tab-om5 #amplWorkspace>.hd-om5-filters #amplField{grid-column:1/-1}#tab-om5 #amplWorkspace>.hd-om5-actions button{white-space:normal!important}#tab-om5 #amplWorkspace>h2{font-size:19px!important}}
 </style>
+<style id="hd-file-preview-rev71">
+/* REV71: accesible local file preview in every OM5/UIA form stage */
+#amplFormBody .hd-ampl-inline-attachment .hd-ampl-view-selected{
+ display:inline-flex!important;align-items:center;justify-content:center;
+ min-height:34px;max-width:100%;margin-top:5px;padding:6px 10px;
+ border:1px solid #7db0e9;border-radius:8px;background:#eaf4ff;
+ color:#114c91;font-size:11px;font-weight:800;cursor:pointer;
+ white-space:normal;overflow-wrap:anywhere;text-align:left;
+}
+#amplFormBody .hd-ampl-inline-attachment .hd-ampl-view-selected:disabled{
+ opacity:.55;cursor:not-allowed;background:#eef2f7;color:#64748b;
+}
+#amplFormBody .hd-ampl-inline-attachment .hd-ampl-view-selected:not(:disabled):hover{
+ background:#d9ecff;border-color:#3477c6;
+}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -4528,7 +4544,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV70-CONSOLIDADO-20261116"></script>
+<script src="./ampliaciones-ui.js?v=REV71-VISTA-PREVIA-20261117"></script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
 
