@@ -2170,6 +2170,37 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 }
 </style>
 
+<style id="hd-om5-montaje-rev79-fix">
+/* REV79: prevalece sobre las reglas previas; EXCLUSIVO etapa 4 de OM5.
+   Memorando numérico 25%, área adjunto 35%. Estado UMD 25%.
+   No modifica las columnas de la base de datos ni la estructura de otros módulos. */
+@media (min-width: 851px) {
+  #amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplFormBody > .hd-ampl-memo-individual .hd-ampl-single-doc {
+    grid-template-columns: minmax(0, 25%) minmax(0, 35%) !important;
+    justify-content: start !important;
+  }
+  #amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplFormBody > .hd-om5-ordered-section .hd-om5-field-grid:has(> .hd-ampl-label [data-k="EstadoUMD"]) {
+    grid-template-columns: minmax(0, 25%) !important;
+    justify-content: start !important;
+  }
+}
+@media (min-width: 601px) and (max-width: 850px) {
+  #amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplFormBody > .hd-ampl-memo-individual .hd-ampl-single-doc {
+    grid-template-columns: minmax(0, 40%) minmax(0, 55%) !important;
+  }
+  #amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplFormBody > .hd-om5-ordered-section .hd-om5-field-grid:has(> .hd-ampl-label [data-k="EstadoUMD"]) {
+    grid-template-columns: minmax(0, 45%) !important;
+  }
+}
+@media (max-width: 600px) {
+  #amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplFormBody > .hd-ampl-memo-individual .hd-ampl-single-doc,
+  #amplModal.hd-om5-consolidated.hd-om5-stage-3 #amplFormBody > .hd-om5-ordered-section .hd-om5-field-grid:has(> .hd-ampl-label [data-k="EstadoUMD"]) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+</style>
+
+
     <!-- LÓGICA JAVASCRIPT INTEGRADA -->
     <script>
         const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbzYsQr2mOkJouXeq0pDo--9ZVGhQIgy34YCDg4YsyCrwidEwjdnWcmjXGnJQBbOicG3/exec";
@@ -4820,7 +4851,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV78-MONTAJE-20261118"></script>
+<script src="./ampliaciones-ui.js?v=REV79-MONTAJE-ANCHO-20261118"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
