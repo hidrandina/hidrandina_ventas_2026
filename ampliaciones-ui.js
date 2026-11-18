@@ -352,9 +352,11 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  const expandedDocs=carriedExpandedDocs||{};
  const displayRow={...(row||{}),...Object.assign({},...Object.values(drafts))};
  registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines,expandedDocs,postSaveNew:!!carriedPostSaveNew};
- const isNewOM5Entry=curso==='OM5'&&!rid&&stage===0;
+ const isNewOM5Entry=curso==='OM5'&&stage===0&&(!rid||!editable);
+ const isOM5Consulta=curso==='OM5'&&!!rid&&!editable;
  const isOM5Registro=curso==='OM5'&&stage===0;
  $('amplModal')?.classList.toggle('hd-om5-entry',isNewOM5Entry);
+ $('amplModal')?.classList.toggle('hd-om5-consulta',isOM5Consulta);
  $('amplModal')?.classList.toggle('hd-om5-postsave-new',curso==='OM5'&&registro.postSaveNew);
  $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
  // REV66: identificar la etapa para compactar únicamente el formulario OM5.
@@ -534,7 +536,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   });
  }
  if(stage===0||curso==='UIA'){docs('sol',editable);if(curso==='OM5')docs('res',editable);}
- if(isNewOM5Entry){
+ if(isNewOM5Entry&&editable){
   const missing=om5MissingColumns_();
   if(missing.length){
    const warning=document.createElement('div');
@@ -555,7 +557,15 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  // Al volver a una etapa, NO se sobrescribe su referencia inicial.
  if(editable&&!Object.prototype.hasOwnProperty.call(registro.baselines,String(stage)))
   registro.baselines[String(stage)]=snapshotStage_();
- $('amplSave').hidden=!editable;$('amplModal').hidden=false;const note=$('amplFormStatus');if(note){note.textContent='';note.hidden=true;note.dataset.type='info';}if($('amplSave')){$('amplSave').disabled=!!(isNewOM5Entry&&om5MissingColumns_().length);$('amplSave').textContent='Guardar';}
+ // REV92: la misma ficha de cinco etapas para consultas desde OM5 y Búsqueda Inteligente.
+ // Los campos se generan deshabilitados en fieldInput/compactNumberInput; no hay
+ // Guardar, Agregar, Eliminar, Adjuntar ni llamadas de escritura en esta ruta.
+ // Mantener únicamente las vistas previas y descargas de documentos guardados.
+ const closeButton=$('amplModal')?.querySelector('.hd-ampl-panel > .hd-ampl-controls:last-child .hd-ampl-cancel');
+ if(closeButton){
+  closeButton.innerHTML=editable?'<i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar':'<i class="fa-solid fa-xmark" aria-hidden="true"></i> Cerrar';
+ }
+ $('amplSave').hidden=!editable;$('amplModal').hidden=false;const note=$('amplFormStatus');if(note){note.textContent='';note.hidden=true;note.dataset.type='info';}if($('amplSave')){$('amplSave').disabled=!!(editable&&isNewOM5Entry&&om5MissingColumns_().length);$('amplSave').textContent='Guardar';}
 }
 function docGroup(kind){
  let h=sheet(curso).headers;
