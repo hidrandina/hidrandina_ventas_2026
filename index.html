@@ -4896,7 +4896,11 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
           if(!window.XLSX||!window.JSZip)throw Error('No se pudieron cargar SheetJS y JSZip.');
           const book=XLSX.utils.book_new();const info=[];const seen=new Set();
           sheets.forEach((sheet,i)=>{
-            const h=sheet.headers,rows=sheet.filas;
+            const h=sheet.headers,filasOriginales=sheet.filas;
+            // REV117: numeración de Ítem exclusivamente en cada hoja del Excel profesional.
+            // No modifica los identificadores ni los valores de Google Sheets.
+            const itemPos=(mod==='OM5'||mod==='UIA')?h.findIndex(c=>/^(ítem|item)$/i.test(String(c).trim())):-1;
+            const rows=itemPos<0?filasOriginales:filasOriginales.map((fila,i)=>fila.map((valor,j)=>j===itemPos?i+1:valor));
             const matrix=[['HIDRANDINA S.A. — '+sheet.titulo],[],h,...rows,[],
               ['Fecha y hora de generación: '+hdExcelFecha_()],['Usuario: '+hdExcelUsuario_()],
               ['Módulo: '+mod+'   |   Registros: '+rows.length]];
