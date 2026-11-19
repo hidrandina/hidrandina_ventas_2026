@@ -360,7 +360,8 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  $('amplModal')?.classList.toggle('hd-om5-postsave-new',curso==='OM5'&&registro.postSaveNew);
  $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
  // REV101: diseño únicamente del formulario Nuevo expediente UIA.
- $('amplModal')?.classList.toggle('hd-uia-new-entry',curso==='UIA'&&(!rid||registro.postSaveNew));
+ $('amplModal')?.classList.toggle('hd-uia-new-entry',curso==='UIA'&&(!rid||registro.postSaveNew||!editable));
+ $('amplModal')?.classList.toggle('hd-uia-consulta',curso==='UIA'&&!!rid&&!editable);
  $('amplModal')?.classList.remove('hd-uia-saved-locked');
  // REV66: identificar la etapa para compactar únicamente el formulario OM5.
  for(let i=0;i<5;i++)$('amplModal')?.classList.toggle('hd-om5-stage-'+i,curso==='OM5'&&stage===i);
@@ -552,7 +553,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  // REV101: ordenar el formulario NUEVO UIA como los 18 campos del reporte.
  // Reubica los controles originales, nunca los clona; conserva data-k, adjuntos y guardado.
  // Item/Ítem es un identificador interno: no se muestra en el formulario.
- if(curso==='UIA'&&(!rid||registro.postSaveNew)){
+ if(curso==='UIA'&&(!rid||registro.postSaveNew||!editable)){
   const labels=[...ui.querySelectorAll(':scope > .hd-ampl-label')];
   const pending=new Set(labels);
   const groups=[];
@@ -621,7 +622,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  const closeButton=footer?.querySelector('.hd-ampl-cancel');
  const saveButton=$('amplSave');
  if(closeButton){
-  closeButton.innerHTML=editable?'<i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar':'<i class="fa-solid fa-xmark" aria-hidden="true"></i> Salir';
+  closeButton.innerHTML=editable?'<i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar':'<i class="fa-solid fa-xmark" aria-hidden="true"></i> '+(curso==='UIA'?'Cerrar':'Salir');
   closeButton.setAttribute('aria-label',editable?'Cancelar edición':'Salir de la consulta');
  }
  if(saveButton){
@@ -677,6 +678,13 @@ function inlineUpload(fieldName,editable){
   '<div class="hd-ampl-file-line"><span title="'+safe(x.nombre)+'">'+safe(x.nombre)+'</span><div class="hd-ampl-file-actions">'+(isExec?
   '<button type="button" aria-label="Ver '+safe(x.nombre)+'" title="Ver archivo" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')"><i class="fa-regular fa-eye" aria-hidden="true"></i></button><button type="button" aria-label="Descargar '+safe(x.nombre)+'" title="Descargar archivo" onclick="Ampliaciones.download(\''+safe(x.id)+'\')"><i class="fa-solid fa-download" aria-hidden="true"></i></button>'+(editable?'<button type="button" class="hd-ampl-delete-file" aria-label="Eliminar '+safe(x.nombre)+'" title="Eliminar archivo" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>':''):
   '<button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+(editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':''))+'</div></div>').join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
+ if(!editable&&curso==='UIA'){
+  // REV112: la consulta usa la misma fila documental que Nuevo expediente,
+  // solo con iconos de vista previa del archivo que existe realmente.
+  // Nunca se generan controles de carga, reemplazo ni eliminación.
+  const eyes=files.map(x=>'<button type="button" class="hd-uia-consulta-eye" title="Vista previa del documento" aria-label="Ver documento adjunto" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>').join('');
+  return '<div class="hd-ampl-inline-attachment hd-uia-readonly-attachment">'+(eyes||'<button type="button" class="hd-uia-consulta-eye" disabled title="Sin archivo" aria-label="Sin archivo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button><span class="hd-ampl-local-name">Sin archivo</span>')+'</div>';
+ }
  if(!editable)return '<div class="hd-ampl-inline-attachment">'+saved+'</div>';
  if(isOM5Edit||isUIAPostSave)saved=''; // mantener una sola fila compacta al terminar Nuevo expediente UIA
  const camera=isPhoneCamera()? (isExec?'<label class="hd-ampl-camera-label" title="Tomar fotografía" aria-label="Tomar fotografía"><i class="fa-solid fa-camera" aria-hidden="true"></i><input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>'):'';
