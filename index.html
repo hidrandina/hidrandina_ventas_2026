@@ -667,7 +667,8 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #tab-ocr .hd-smart-table-actions{min-width:235px}
 #tab-ocr .hd-smart-action-buttons{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
 #tab-ocr .hd-smart-table-actions button{min-width:105px;background:#fff;color:#124da0;border:1px solid #acc5eb;border-radius:8px;padding:7px 10px;font-weight:750}
-#tab-ocr .hd-smart-open-btn{flex:1 1 auto}
+#tab-ocr .hd-smart-open-btn{flex:0 0 44px;min-width:44px;width:44px;padding:7px 0;background:#eef5ff!important;color:#1455b8!important;border-color:#a9c7ed!important}
+#tab-ocr .hd-smart-open-btn i{font-size:15px}
 #tab-ocr .hd-smart-table-actions button.hd-smart-wa-btn{flex:0 0 44px;min-width:44px;width:44px;padding:7px 0;background:#ecfdf3;color:#15803d;border-color:#9ad0ab}
 #tab-ocr .hd-smart-wa-btn i{font-size:15px}
 #tab-ocr .hd-smart-table-actions button.hd-smart-zip-btn{flex:0 0 44px;min-width:44px;width:44px;padding:7px 0;background:#eef5ff;color:#1455b8;border-color:#a9c7ed}
@@ -5393,7 +5394,7 @@ async function search(){
    resultRows.forEach((x,idx)=>{
     const row=x.row,number=value(row,data,'Ítem','Item')||String(idx+1),name=value(row,data,mod==='OM5'?'Solicitante':'Nombre'),place=value(row,data,mod==='OM5'?'NombreSector':'Direccion','Dirección');
     const tr=document.createElement('tr');
-    tr.innerHTML='<td>'+esc(number)+'</td><td>'+esc(name||'Sin nombre')+'</td><td>'+esc(place||'—')+'</td><td>'+esc(x.matched.join(', '))+'</td><td class="hd-smart-table-actions"><div class="hd-smart-action-buttons"><button type="button" class="hd-smart-open-btn">Consultar</button><button type="button" class="hd-smart-wa-btn" title="Enviar resumen por WhatsApp" aria-label="Enviar resumen por WhatsApp"><i class="fa-brands fa-whatsapp"></i></button><button type="button" class="hd-smart-zip-btn" title="Descargar todos los adjuntos (ZIP)" aria-label="Descargar documentos adjuntos del expediente en ZIP"><i class="fa-solid fa-file-zipper"></i></button></div></td>';
+    tr.innerHTML='<td>'+esc(number)+'</td><td>'+esc(name||'Sin nombre')+'</td><td>'+esc(place||'—')+'</td><td>'+esc(x.matched.join(', '))+'</td><td class="hd-smart-table-actions"><div class="hd-smart-action-buttons"><button type="button" class="hd-smart-open-btn" title="Consultar expediente" aria-label="Consultar expediente"><i class="fa-regular fa-eye"></i></button><button type="button" class="hd-smart-wa-btn" title="Enviar resumen por WhatsApp" aria-label="Enviar resumen por WhatsApp"><i class="fa-brands fa-whatsapp"></i></button><button type="button" class="hd-smart-zip-btn" title="Descargar todos los adjuntos (ZIP)" aria-label="Descargar documentos adjuntos del expediente en ZIP"><i class="fa-solid fa-file-zipper"></i></button></div></td>';
     const buttons=tr.querySelectorAll('button');
     buttons[0].addEventListener('click',()=>openResult(idx,mod));
     buttons[1].addEventListener('click',()=>shareResult(idx,mod));
