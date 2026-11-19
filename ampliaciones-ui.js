@@ -551,7 +551,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  // REV101: ordenar el formulario NUEVO UIA como los 18 campos del reporte.
  // Reubica los controles originales, nunca los clona; conserva data-k, adjuntos y guardado.
  // Item/Ítem es un identificador interno: no se muestra en el formulario.
- if(curso==='UIA'&&!rid){
+ if(curso==='UIA'&&(!rid||registro.postSaveNew)){
   const labels=[...ui.querySelectorAll(':scope > .hd-ampl-label')];
   const pending=new Set(labels);
   const groups=[];
@@ -686,7 +686,7 @@ function inlineUpload(fieldName,editable){
  // Si un campo tiene varios archivos, cada uno recibe su ojo y tacho, sin mostrar nombres.
  const editTrash=isOM5Edit?files.map(x=>'<button type="button" class="hd-ampl-edit-trash" title="Eliminar archivo adjunto" aria-label="Eliminar adjunto '+safe(x.nombre)+'" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>').join(''):'';
  const otherSaved=isOM5Edit?files.slice(1).map(x=>'<button type="button" class="hd-ampl-edit-extra-eye" title="Ver archivo adjunto" aria-label="Ver adjunto '+safe(x.nombre)+'" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>').join(''):'';
- const shownName='Sin archivo';
+ const shownName=isUIAPostSave&&files.length?'Archivo guardado':'Sin archivo';
  return '<div class="hd-ampl-inline-attachment'+(isOM5Edit?' hd-ampl-edit-compact':'')+'">'+saved+editChooser+camera+button+otherSaved+editTrash+(isExec&&!isOM5Edit?'<span class="hd-ampl-local-name" aria-live="polite">'+shownName+'</span>':'')+(isOM5Edit?'':pendingHtml)+'<span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
 
@@ -769,12 +769,13 @@ async function save(){
   savedOnServer=true;serverResult=r;
   // Actualizar el token de control de concurrencia antes de otra edición.
   registro.id=r.expedienteId;registro.version=r.version;
-  const failed=[],replaceWarnings=[];
+  const failed=[],replaceWarnings=[],uploadedUIA=[];
   const replacedFields=new Set();
   for(let i=0;i<fileGroups.length;i++){
    const {campo,file,stage}=fileGroups[i];update('Guardado confirmado. Subiendo archivo '+(i+1)+' de '+fileGroups.length+': '+file.name);
    try{
-    await api('amplUpload',{modulo:mod,expedienteId:r.expedienteId,campo,nombre:file.name,base64:await fileToBase64(file)});
+    const uploadedResult=await api('amplUpload',{modulo:mod,expedienteId:r.expedienteId,campo,nombre:file.name,base64:await fileToBase64(file)});
+    if(mod==='UIA'&&uploadedResult?.id)uploadedUIA.push({id:uploadedResult.id,expedienteId:r.expedienteId,campo,nombre:uploadedResult.nombre||file.name});
     // Retirar el adjunto anterior SOLO tras confirmación de la subida.
     if(!replacedFields.has(key(campo))){
      replacedFields.add(key(campo));
@@ -791,7 +792,16 @@ async function save(){
   try{
    const fresh=await api('amplRead',{modulo:mod});
    if(!fresh||!Array.isArray(fresh.registros))throw Error('No se pudo actualizar la lista.');
-   STORE[mod]=normalizeReadData_(mod,fresh);refreshed=true;
+   STORE[mod]=normalizeReadData_(mod,fresh);
+   // UIA: si la lectura inmediata no refleja todavía un archivo confirmado,
+   // conservar su referencia real devuelta por amplUpload para habilitar Vista previa.
+   if(mod==='UIA'&&uploadedUIA.length){
+    const current=Array.isArray(STORE[mod].adjuntos)?STORE[mod].adjuntos:[];
+    const ids=new Set(current.map(a=>String(a.id)));
+    for(const a of uploadedUIA)if(!ids.has(String(a.id))){current.push(a);ids.add(String(a.id));}
+    STORE[mod].adjuntos=current;
+   }
+   refreshed=true;
    NAV[mod].selected=r.expedienteId;
    if(activeAmplModule()===mod){curso=mod;render(mod);}
   }catch(e){
