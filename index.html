@@ -5459,7 +5459,7 @@ async function openResult(i,mod){
  if(!rid){status('El expediente no tiene identificador interno disponible.',true);return;}
  try{
   status('Abriendo consulta del expediente…');
-  window.switchTab(mod.toLowerCase());
+  // REV119: consultar OM5/UIA desde Búsqueda inteligente sin cambiar de pantalla.
   await window.Ampliaciones.enter(mod);
   // REV92: consultar datos vigentes antes de abrir, conservando el mismo formulario OM5.
   await window.Ampliaciones.refresh(mod);
