@@ -360,12 +360,12 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  $('amplModal')?.classList.toggle('hd-om5-postsave-new',curso==='OM5'&&registro.postSaveNew);
  $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
  // REV101: diseño únicamente del formulario Nuevo expediente UIA.
- $('amplModal')?.classList.toggle('hd-uia-new-entry',curso==='UIA'&&!rid);
+ $('amplModal')?.classList.toggle('hd-uia-new-entry',curso==='UIA'&&(!rid||registro.postSaveNew));
  // REV66: identificar la etapa para compactar únicamente el formulario OM5.
  for(let i=0;i<5;i++)$('amplModal')?.classList.toggle('hd-om5-stage-'+i,curso==='OM5'&&stage===i);
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
  renderStageTabs();
- $('amplFormTitle').textContent=rid?(editable?'Editar expediente':'Consultar expediente'):'Nuevo expediente';
+ $('amplFormTitle').textContent=curso==='UIA'&&registro.postSaveNew?'Nuevo expediente':rid?(editable?'Editar expediente':'Consultar expediente'):'Nuevo expediente';
  // Etiquetas legibles incluso cuando la hoja opcional EtiquetasOM5 no está disponible.
  const uiLabels={
   solicitante:'Solicitante',nombresector:'Nombre del sector',suministro:'Suministro',
@@ -667,7 +667,8 @@ function inlineUpload(fieldName,editable){
  const files=attachmentsFor(fieldName);
  const pending=Object.values(registro?.pendingFiles||{}).flat().filter(x=>key(x.campo)===key(fieldName));
  const pendingHtml=pending.length?'<div class="hd-ampl-pending">Pendiente de guardar: '+pending.map(x=>safe(x.file.name)).join(', ')+'</div>':'';
- const isNewUIA=curso==='UIA'&&editable&&!registro?.id;
+ const isNewUIA=curso==='UIA'&&editable&&(!registro?.id||registro.postSaveNew);
+ const isUIAPostSave=curso==='UIA'&&editable&&!!registro?.id&&!!registro.postSaveNew;
  const isExec=curso==='OM5'||isNewUIA;
  // REV94: solo el editor de un expediente OM5 existente. Nuevo/Consulta/UIA intactos.
  const isOM5Edit=isExec&&editable&&!!registro?.id&&!registro.postSaveNew;
@@ -676,10 +677,10 @@ function inlineUpload(fieldName,editable){
   '<button type="button" aria-label="Ver '+safe(x.nombre)+'" title="Ver archivo" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')"><i class="fa-regular fa-eye" aria-hidden="true"></i></button><button type="button" aria-label="Descargar '+safe(x.nombre)+'" title="Descargar archivo" onclick="Ampliaciones.download(\''+safe(x.id)+'\')"><i class="fa-solid fa-download" aria-hidden="true"></i></button>'+(editable?'<button type="button" class="hd-ampl-delete-file" aria-label="Eliminar '+safe(x.nombre)+'" title="Eliminar archivo" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>':''):
   '<button type="button" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')">Ver</button><button type="button" onclick="Ampliaciones.download(\''+safe(x.id)+'\')">Descargar</button>'+(editable?'<button type="button" class="hd-ampl-delete-file" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')">Eliminar</button>':''))+'</div></div>').join('')+'</div>':'<span class="hd-ampl-no-attachment">Sin archivo guardado</span>';
  if(!editable)return '<div class="hd-ampl-inline-attachment">'+saved+'</div>';
- if(isOM5Edit)saved=''; // mismo renglón del alta, sin listado inferior duplicado
+ if(isOM5Edit||isUIAPostSave)saved=''; // mantener una sola fila compacta al terminar Nuevo expediente UIA
  const camera=isPhoneCamera()? (isExec?'<label class="hd-ampl-camera-label" title="Tomar fotografía" aria-label="Tomar fotografía"><i class="fa-solid fa-camera" aria-hidden="true"></i><input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>'):'';
  const chooser=isExec?'<label class="hd-ampl-choose-file" title="Adjuntar PDF o imagen"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar PDF o imagen a '+safe(fieldName)+'"></label>':'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>';
- const button=isExec?'<button type="button" class="hd-ampl-view-selected" '+(isOM5Edit&&files.length?'data-hd-saved-id="'+safe(files[0].id)+'" ':'')+'data-hd-view-field="'+safe(fieldName)+'" '+(isOM5Edit&&files.length?'':'disabled ')+'aria-label="Vista previa del archivo seleccionado" title="Selecciona un archivo para visualizarlo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>':'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado">👁</button>';
+ const button=isExec?'<button type="button" class="hd-ampl-view-selected" '+((isOM5Edit||isUIAPostSave)&&files.length?'data-hd-saved-id="'+safe(files[0].id)+'" ':'')+'data-hd-view-field="'+safe(fieldName)+'" '+((isOM5Edit||isUIAPostSave)&&files.length?'':'disabled ')+'aria-label="Vista previa del archivo seleccionado" title="Selecciona un archivo para visualizarlo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>':'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado">👁</button>';
  const editChooser=isOM5Edit&&files.length?chooser.replace('title="Adjuntar PDF o imagen"','title="Actualizar archivo (reemplazar el actual)"').replace('fa-file-arrow-up','fa-arrows-rotate').replace('Adjuntar PDF o imagen a ','Reemplazar archivo de '):chooser;
  // REV95: en Editar OM5, nada de nombres ni lista aparte. El tacho elimina SOLO adjuntos.
  // Si un campo tiene varios archivos, cada uno recibe su ojo y tacho, sin mostrar nombres.
@@ -784,7 +785,7 @@ async function save(){
     }
    }catch(e){failed.push({campo,file,stage,error:e.message});}
   }
-  const note='Expediente guardado correctamente.'+(fileGroups.length?' '+(fileGroups.length-failed.length)+' archivo(s) adjuntados.':'');
+  const note=mod==='UIA'?'GRABACIÓN SATISFACTORIA':'Expediente guardado correctamente.'+(fileGroups.length?' '+(fileGroups.length-failed.length)+' archivo(s) adjuntados.':'');
   // Leer datos frescos sin cerrar la ventana; la versión y los adjuntos quedan actualizados.
   let refreshed=false;
   try{
@@ -807,9 +808,9 @@ async function save(){
   }
   if(failed.length||replaceWarnings.length){
    const detail=failed.map(x=>x.file.name+': '+x.error).concat(replaceWarnings).join('\n');
-   formAlert(note+' Revisa los archivos indicados antes de volver a guardar; no repitas una subida confirmada:\n'+detail,'error');
+   formAlert((mod==='UIA'?'Expediente registrado, pero faltan archivos por adjuntar.':note)+' Revisa los archivos indicados antes de volver a guardar; no repitas una subida confirmada:\n'+detail,'error');
   }else{
-   formAlert(note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
+   formAlert(mod==='UIA'?'GRABACIÓN SATISFACTORIA':note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
   }
   if(r.advertencias?.length)formAlert(note+'\nAdvertencias: '+r.advertencias.join(' | '),'info');
  }catch(e){
