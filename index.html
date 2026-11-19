@@ -1102,6 +1102,58 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  #tab-uia #amplWorkspace>.hd-om5-actions button{white-space:normal!important}
 }
 </style>
+<style>
+/* REV101: solo NUEVO EXPEDIENTE UIA. No afecta Editar/Consultar UIA, OM5 ni Documentos. */
+#amplModal.hd-uia-new-entry #amplFormBody{
+ display:flex!important;flex-direction:column!important;gap:12px!important;align-items:stretch!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody > .hd-uia-new-section,
+#amplModal.hd-uia-new-entry #amplFormBody > .hd-ampl-doc-group{
+ display:block!important;width:100%!important;margin:0!important;padding:0!important;
+ border:1px solid #d3dfed!important;border-radius:11px!important;background:#fff!important;
+ overflow:hidden!important;box-sizing:border-box!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody > .hd-uia-new-section > h3,
+#amplModal.hd-uia-new-entry #amplFormBody > .hd-ampl-doc-group > h4{
+ display:flex!important;align-items:center!important;gap:9px!important;
+ margin:0!important;padding:11px 14px!important;min-height:43px!important;
+ background:#377bc4!important;color:#fff!important;font-size:14px!important;
+ font-weight:800!important;line-height:1.25!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-uia-new-grid{
+ display:grid!important;grid-template-columns:repeat(var(--uia-columns,2),minmax(0,1fr))!important;
+ gap:11px 14px!important;padding:13px 15px!important;align-items:end!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-uia-new-grid .hd-ampl-label{
+ min-width:0!important;grid-column:auto!important;margin:0!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-uia-new-grid .hd-ampl-label input,
+#amplModal.hd-uia-new-entry #amplFormBody .hd-uia-new-grid .hd-ampl-label select,
+#amplModal.hd-uia-new-entry #amplFormBody .hd-uia-new-grid .hd-ampl-label textarea{
+ width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-doc-list{padding:10px 13px 4px!important;gap:7px!important}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-doc{
+ grid-template-columns:minmax(0,1.5fr) minmax(0,.9fr) minmax(0,1.2fr)!important;
+ padding:9px 11px!important;gap:8px 11px!important;align-items:end!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-doc[hidden]{display:none!important}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-doc-footer{padding:3px 12px 10px!important}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment{
+ min-height:40px!important;gap:6px!important;padding:5px 8px!important;align-self:end!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-no-attachment{display:none!important}
+@media(max-width:800px){
+ #amplModal.hd-uia-new-entry #amplFormBody .hd-uia-new-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-doc{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment{grid-column:1/-1!important}
+}
+@media(max-width:520px){
+ #amplModal.hd-uia-new-entry #amplFormBody .hd-uia-new-grid{grid-template-columns:1fr!important}
+ #amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-doc{grid-template-columns:1fr!important}
+ #amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment{grid-column:1!important}
+}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -5095,7 +5147,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV100-UIA-LISTADO-20261119"></script>
+<script src="./ampliaciones-ui.js?v=REV101-UIA-NUEVO-ORDENADO-20261119"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
