@@ -352,7 +352,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  const expandedDocs=carriedExpandedDocs||{};
  const displayRow={...(row||{}),...Object.assign({},...Object.values(drafts))};
  registro={id:rid||'',version:row?row.__HD_VERSION:0,editable:!!editable,stage,row:displayRow,originalRow:row||{},mod:curso,drafts,pendingFiles,baselines,expandedDocs,postSaveNew:!!carriedPostSaveNew};
- const isNewOM5Entry=curso==='OM5'&&stage===0&&(!rid||!editable);
+ const isNewOM5Entry=curso==='OM5'&&stage===0&&(!rid||!editable||registro.postSaveNew);
  const isOM5Consulta=curso==='OM5'&&!!rid&&!editable;
  const isOM5Registro=curso==='OM5'&&stage===0;
  $('amplModal')?.classList.toggle('hd-om5-entry',isNewOM5Entry);
@@ -361,6 +361,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
  // REV101: diseño únicamente del formulario Nuevo expediente UIA.
  $('amplModal')?.classList.toggle('hd-uia-new-entry',curso==='UIA'&&(!rid||registro.postSaveNew));
+ $('amplModal')?.classList.remove('hd-uia-saved-locked');
  // REV66: identificar la etapa para compactar únicamente el formulario OM5.
  for(let i=0;i<5;i++)$('amplModal')?.classList.toggle('hd-om5-stage-'+i,curso==='OM5'&&stage===i);
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
@@ -738,7 +739,13 @@ function addDoc(kind){
 async function deleteDocField(campo){if(!registro?.id||!registro.editable)return;if(!confirm('¿Eliminar '+campo+' y enviar a la papelera TODOS sus adjuntos?'))return;try{let r=await api('amplDeleteDocument',{modulo:curso,expedienteId:registro.id,campo,confirmar:'ELIMINAR_DOCUMENTO'});let rid=registro.id;await refresh(curso);open(rid,registro.stage,true);formAlert('Documento eliminado correctamente; '+r.adjuntos+' adjunto(s) enviados a papelera.','info');}catch(e){formAlert('No se pudo eliminar el documento: '+e.message,'error')}}
 function close(){
  if(saving){formAlert('El guardado todavía está en curso. No cierres el formulario.','info');return;}
- if(registro?.editable){
+ if(registro?.mod==='OM5'&&registro.editable&&(!registro.id||registro.postSaveNew)){
+  captureStage();
+  const question=registro.id
+   ?'Una parte del expediente ya se ha grabado. Los datos registrados permanecerán en la base, pero pueden quedar archivos pendientes. ¿Desea salir sin completar el registro?'
+   :'El expediente no ha sido grabado. ¿Desea salir sin guardar la información?';
+  if(!window.confirm(question))return;
+ }else if(registro?.editable&&!registro.postSaveLocked){
   captureStage();
   if(hasUnsavedChanges_()&&!confirm('Hay cambios sin guardar. ¿Cerrar y descartarlos?'))return;
  }
@@ -748,25 +755,33 @@ function collect(){let result={};$('amplFormBody').querySelectorAll('[data-k]').
 /* REV41: guardar conserva abierto el editor y actualiza su versión antes de otro guardado. */
 async function save(){
  if(saving)return;
- if(!registro?.editable)return; // Consulta de solo lectura: no ejecutar guardado ni mostrar errores de edición.
+ if(!registro?.editable||registro.postSaveLocked)return; // Consulta y alta UIA finalizada: nunca permitir segundo guardado.
  const button=$('amplSave');
  let savedOnServer=false,serverResult=null;
  try{
   $('amplFormBody').querySelectorAll('.hd-ampl-invalid').forEach(el=>{el.classList.remove('hd-ampl-invalid');el.removeAttribute('aria-invalid');});
   captureStage();
   const payload={...Object.assign({},...Object.values(registro.drafts))},mod=registro.mod,isNew=!registro.id;
+  const om5NewFlow=mod==='OM5'&&(isNew||!!registro.postSaveNew);
   const validation=validateBeforeSave(payload,mod,isNew);
   if(validation){formAlert(validation.message,'error',validation.field);return;}
   const currentStage=registro.stage;
   const fileGroups=Object.entries(registro.pendingFiles).flatMap(([stage,arr])=>(arr||[]).map(item=>({...item,stage:Number(stage)})));
   // REV94: registrar adjuntos anteriores ANTES de subir los nuevos, solo en Editar OM5.
   const replaceIds=(mod==='OM5'&&!isNew&&!registro.postSaveNew)?new Map(fileGroups.map(({campo})=>[key(campo),(sheet(mod).adjuntos||[]).filter(a=>String(a.expedienteId)===String(registro.id)&&key(a.campo)===key(campo)).map(a=>String(a.id))])):new Map();
-  for(const {file} of fileGroups)if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);
+  // Rechazar adjuntos inválidos antes de crear el expediente.
+  for(const {file} of fileGroups){
+   if(om5NewFlow&&(!file||!file.size))throw Error('Archivo vacío o no seleccionado.');
+   if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);
+   if(om5NewFlow&&!/\.(pdf|jpg|jpeg|png|webp|gif)$/i.test(file.name||''))
+    throw Error('Formato de archivo no permitido: '+(file.name||'Sin nombre')+'.');
+  }
   saving=true;if(button){button.disabled=true;button.textContent='Guardando…';}
   update('Guardando expediente. Permanece en este formulario.');
   const r=await api('amplSave',{modulo:mod,expedienteId:registro.id,version:registro.version,datos:JSON.stringify(payload)});
   if(!r||!r.expedienteId)throw Error('El servidor no confirmó el ID del expediente. Consulta la lista antes de reintentar.');
   savedOnServer=true;serverResult=r;
+  if((mod==='UIA'&&isNew)||om5NewFlow)registro.postSaveNew=true; // Conservar la procedencia de un registro nuevo si hay guardado parcial.
   // Actualizar el token de control de concurrencia antes de otra edición.
   registro.id=r.expedienteId;registro.version=r.version;
   const failed=[],replaceWarnings=[],uploadedUIA=[];
@@ -786,6 +801,10 @@ async function save(){
     }
    }catch(e){failed.push({campo,file,stage,error:e.message});}
   }
+  // Solo los adjuntos fallidos podrán reintentarse; no reenviar los confirmados.
+  const unresolvedFiles={};
+  if(om5NewFlow)for(const entry of failed)(unresolvedFiles[entry.stage]||(unresolvedFiles[entry.stage]=[])).push({campo:entry.campo,file:entry.file});
+  if(om5NewFlow)registro.pendingFiles=unresolvedFiles;
   const note=mod==='UIA'?'Grabación satisfactoria':'Expediente guardado correctamente.'+(fileGroups.length?' '+(fileGroups.length-failed.length)+' archivo(s) adjuntados.':'');
   // Leer datos frescos sin cerrar la ventana; la versión y los adjuntos quedan actualizados.
   let refreshed=false;
@@ -810,11 +829,20 @@ async function save(){
   }
   if(refreshed){
    curso=mod;
-   open(r.expedienteId,currentStage,true,null,null,null,null,isNew||registro.postSaveNew);
+   open(r.expedienteId,currentStage,true,null,om5NewFlow?unresolvedFiles:null,null,null,isNew||registro.postSaveNew);
   }else{
    // Mantener el editor activo y su versión; descartar los cambios ya guardados.
    registro.row={...registro.row,...payload};registro.originalRow={...registro.row};registro.drafts={};
-   registro.pendingFiles={};
+   registro.pendingFiles=om5NewFlow?unresolvedFiles:{};
+  }
+  // Confirmación de NUEVO expediente OM5, incluida recuperación tras fallos parciales.
+  // No se muestra hasta confirmar TODOS los adjuntos y obtener una lectura válida.
+  if(om5NewFlow&&refreshed&&!failed.length&&!replaceWarnings.length&&!(r.advertencias||[]).length){
+   window.alert('Grabación satisfactoria');
+   const modal=$('amplModal');
+   if(modal)modal.hidden=true;
+   registro=null;
+   return;
   }
   if(failed.length||replaceWarnings.length){
    const detail=failed.map(x=>x.file.name+': '+x.error).concat(replaceWarnings).join('\n');
@@ -823,11 +851,37 @@ async function save(){
    formAlert(mod==='UIA'?'Grabación satisfactoria':note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
   }
   if(r.advertencias?.length)formAlert(note+'\nAdvertencias: '+r.advertencias.join(' | '),'info');
+  // Inmovilizar el alta UIA solo si se grabó sin fallas de adjuntos.
+  if(mod==='UIA'&&(isNew||registro.postSaveNew)&&!failed.length&&!replaceWarnings.length&&!r.advertencias?.length)lockSavedNewUIA();
  }catch(e){
   const msg=(e&&e.message)||String(e);
   formAlert((savedOnServer?'El expediente se guardó, pero ocurrió un problema adicional; no repitas el guardado sin verificarlo. ':'No se pudo guardar. ')+msg,'error');
- }finally{saving=false;if(button){button.disabled=false;button.textContent='Guardar';}}
+ }finally{saving=false;if(button){button.disabled=!!registro?.postSaveLocked;button.textContent='Guardar';}}
 }
+/* REV108: solo NUEVO expediente UIA guardado satisfactoriamente.
+   Congela los mismos controles ya renderizados: no convierte a Consulta/Editar,
+   no reconstruye el DOM ni deshabilita los ojos de vista previa. */
+function lockSavedNewUIA(){
+ if(!registro||registro.mod!=='UIA'||!registro.postSaveNew)return;
+ registro.postSaveLocked=true;
+ const modal=$('amplModal'),body=$('amplFormBody');
+ if(!modal||!body)return;
+ modal.classList.add('hd-uia-saved-locked');
+ body.querySelectorAll('input,select,textarea').forEach(el=>{el.disabled=true;});
+ body.querySelectorAll('button').forEach(el=>{
+  // Los botones de vista previa son los únicos interactivos en el formulario.
+  const preview=el.classList.contains('hd-ampl-view-selected')||
+    el.classList.contains('hd-ampl-edit-extra-eye')||
+    !!el.closest('.hd-ampl-file-actions')&&/ver|descargar/i.test(el.textContent||el.getAttribute('title')||'');
+  if(!preview)el.disabled=true;
+ });
+ const footer=modal.querySelector('.hd-ampl-panel > .hd-ampl-controls:last-child');
+ const saveBtn=$('amplSave');
+ if(saveBtn){saveBtn.hidden=true;saveBtn.style.setProperty('display','none','important');saveBtn.disabled=true;}
+ const exit=footer?.querySelector('.hd-ampl-cancel');
+ if(exit){exit.innerHTML='<i class="fa-solid fa-xmark" aria-hidden="true"></i> Salir';exit.setAttribute('aria-label','Salir del expediente registrado');}
+}
+
 /* Los adjuntos mostrados en las fichas de cada etapa NO se vuelven a listar abajo.
    Se conserva acceso a adjuntos de otros campos y la carga adicional en edición. */
 function inlineAttachmentFields(mod){
