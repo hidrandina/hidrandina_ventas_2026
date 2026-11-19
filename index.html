@@ -1198,6 +1198,54 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  }
 }
 </style>
+
+<style id="hd-uia-new-footer-rev103">
+/* REV103: ÚNICAMENTE botones Guardar y Cancelar en Nuevo expediente UIA. */
+#amplModal.hd-uia-new-entry .hd-ampl-panel > .hd-ampl-controls:last-child{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  flex-wrap:wrap!important;
+  gap:10px!important;
+  padding:12px 15px!important;
+}
+#amplModal.hd-uia-new-entry .hd-ampl-panel > .hd-ampl-controls:last-child > button{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  min-height:43px!important;
+  padding:10px 18px!important;
+  border-radius:10px!important;
+  font-size:13px!important;
+  line-height:1.2!important;
+  font-weight:700!important;
+  width:auto!important;
+  flex:0 0 auto!important;
+  box-sizing:border-box!important;
+}
+#amplModal.hd-uia-new-entry .hd-ampl-panel > .hd-ampl-controls:last-child #amplSave{
+  background:#1557b4!important;
+  color:#fff!important;
+  border:1px solid #1557b4!important;
+}
+#amplModal.hd-uia-new-entry .hd-ampl-panel > .hd-ampl-controls:last-child .hd-ampl-cancel{
+  background:#fff!important;
+  color:#123b78!important;
+  border:1px solid #bbd1f4!important;
+}
+#amplModal.hd-uia-new-entry .hd-ampl-panel > .hd-ampl-controls:last-child #amplSave:disabled{
+  opacity:.55!important;
+  cursor:not-allowed!important;
+}
+@media(max-width:480px){
+  #amplModal.hd-uia-new-entry .hd-ampl-panel > .hd-ampl-controls:last-child{
+    justify-content:flex-end!important;
+  }
+}
+</style>
+
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
