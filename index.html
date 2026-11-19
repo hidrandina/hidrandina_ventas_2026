@@ -1533,36 +1533,79 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 .hd-backup-notice.hd-backup-error{background:#fff1f1;border-color:#e6b2b2;color:#9a1c24}
 @media(max-width:600px){.hd-backup-progress{padding:11px}.hd-backup-progress-top{font-size:12px}}
 </style>
+
+<style id="hd-backup-ui-rev116">
+/* REV116: apariencia, exclusivamente Copias de seguridad. Sin cambios funcionales. */
+#tab-copias{max-width:1260px;margin-inline:auto;padding:20px!important;border-radius:20px!important;background:#fff!important;overflow:visible}
+#tab-copias .hd-bk-hero{display:flex;align-items:center;gap:16px;background:#143777;color:#fff;padding:22px 24px;border-radius:15px;margin:0 0 16px}
+#tab-copias .hd-bk-hero-icon{display:grid;place-items:center;flex:0 0 48px;height:48px;border-radius:12px;background:#315995;font-size:21px}
+#tab-copias .hd-bk-hero h2{font-size:23px;font-weight:800;color:#fff;margin:0;line-height:1.3}
+#tab-copias .hd-bk-hero p{color:#dce8ff;font-size:12px;margin:4px 0 0}
+#tab-copias .hd-bk-information{display:flex;align-items:flex-start;gap:13px;background:#f1f6fc;border:1px solid #d5e4f6;border-radius:12px;padding:14px 17px;margin-bottom:17px;color:#214c86}
+#tab-copias .hd-bk-information>i{font-size:21px;color:#13885e;margin-top:2px}
+#tab-copias .hd-bk-information strong{font-size:14px;color:#133c76}
+#tab-copias .hd-bk-information p{font-size:12px;line-height:1.55;color:#526e91;margin:3px 0 0}
+#tab-copias .hd-bk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:stretch}
+#tab-copias .hd-bk-card{display:flex;flex-direction:column;min-width:0;margin:0!important;padding:0!important;background:#fff;border:1px solid #d3e2f3!important;border-radius:13px!important;overflow:hidden}
+#tab-copias .hd-bk-card legend{display:block;float:left;box-sizing:border-box;width:100%;padding:13px 16px!important;margin:0!important;font-size:14px!important;line-height:1.4;font-weight:800!important;color:#fff!important;background:#377cc4!important;border:none!important}
+#tab-copias .hd-bk-card legend i{margin-right:7px}
+#tab-copias .hd-bk-card-content{clear:both;display:flex;flex-direction:column;gap:10px;padding:15px!important;flex:1}
+#tab-copias .hd-bk-option{display:flex!important;align-items:center!important;gap:11px!important;margin:0!important;padding:12px!important;background:#f7faff!important;border:1px solid #e0e9f7!important;border-radius:9px!important;font-size:13px!important;cursor:pointer;color:#234779!important;line-height:1.45!important}
+#tab-copias .hd-bk-option:has(input:checked){background:#edf5ff!important;border-color:#b0cdf7!important}
+#tab-copias .hd-bk-option input{flex:0 0 auto!important;width:17px!important;height:17px!important;margin:0!important;accent-color:#1559bf}
+#tab-copias .hd-bk-option span{display:flex;flex-direction:column;gap:2px;min-width:0}
+#tab-copias .hd-bk-option strong{font-weight:750;font-size:13px;color:#173d79}
+#tab-copias .hd-bk-option small{font-size:11px;color:#617897;line-height:1.45}
+#tab-copias .hd-bk-card-note{margin:0!important;font-size:12px;color:#607a97;line-height:1.55}
+#tab-copias .hd-bk-dates{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:12px!important;align-items:end!important}
+#tab-copias .hd-bk-dates label{display:flex!important;flex-direction:column!important;gap:6px!important;min-width:0!important;margin:0!important;font-size:13px!important;font-weight:750!important;color:#204374!important}
+#tab-copias .hd-bk-dates input{width:100%!important;min-width:0!important;max-width:100%!important;height:46px!important;box-sizing:border-box!important;font-size:13px!important;color:#123d79!important;border:1px solid #b9cfed!important;border-radius:9px!important;background:#f9fbff!important;padding:8px 10px!important}
+#tab-copias .hd-bk-hint{margin:1px 0!important;font-size:12px!important;line-height:1.5;color:#587697!important}
+#tab-copias .hd-bk-footer{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:18px;background:#f1f6fc;border:1px solid #d6e5f7;border-radius:12px;margin-top:18px}
+#tab-copias .hd-bk-footer strong{color:#153c79;font-size:14px;font-weight:800}
+#tab-copias .hd-bk-footer p{color:#657d9c;font-size:12px;margin:3px 0 0}
+#tab-copias .hd-bk-actions{display:flex!important;align-items:center!important;gap:10px!important;margin:0!important}
+#tab-copias .hd-bk-actions button{border-radius:9px!important;padding:11px 17px!important;font-size:13px!important;min-height:44px!important;font-weight:750!important;width:auto!important}
+#tab-copias #hdBackupBtn{background:#155ab9!important;color:#fff!important;border:1px solid #155ab9!important}
+#tab-copias #hdBCancelar{background:#fff!important;color:#aa3030!important;border:1px solid #e8b9b9!important}
+#tab-copias .hd-bk-actions button[hidden]{display:none!important}
+@media(max-width:860px){#tab-copias .hd-bk-grid{grid-template-columns:1fr}}
+@media(max-width:550px){#tab-copias{padding:12px!important}#tab-copias .hd-bk-hero{padding:17px;gap:10px}#tab-copias .hd-bk-hero h2{font-size:19px}#tab-copias .hd-bk-dates{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important}#tab-copias .hd-bk-dates input{font-size:11px!important;padding:6px!important}#tab-copias .hd-bk-footer{align-items:stretch}#tab-copias .hd-bk-actions{flex-wrap:wrap!important}#tab-copias .hd-bk-actions button{width:100%!important}}
+</style>
         <section id="tab-copias" class="hidden hd-ampl-section">
- <h2 class="text-xl font-bold">Copias de seguridad de las bases de datos</h2>
- <p class="hd-bk-help">Descarga una copia en tu equipo. No se crearán archivos adicionales en Google Drive. En PC podrás elegir la carpeta cuando Chrome lo permita.</p>
- <div class="hd-bk-grid">
-  <fieldset><legend>1. Formato del respaldo</legend>
-   <label><input type="radio" name="hdBFormato" value="google" onchange="hdBackupFormato_()"> Copia original del archivo Google Sheets (descargada como .xlsx)</label>
-   <label><input type="radio" name="hdBFormato" value="profesional" onchange="hdBackupFormato_()" checked> Excel profesional consolidado</label>
-  </fieldset>
-  <fieldset><legend>2. Bases de datos</legend>
-   <label><input type="checkbox" id="hdBDocumentos" checked> Copia de seguridad Documentos</label>
-   <label><input type="checkbox" id="hdBOM5" checked> Copia de seguridad Ampliaciones OM5</label>
-   <label><input type="checkbox" id="hdBUIA" checked> Copia de seguridad Ampliaciones UIA</label>
-  </fieldset>
-  <fieldset><legend>3. Fechas del reporte</legend>
-   <div class="hd-bk-dates"><label>Desde <input id="hdBDesde" type="date" onchange="hdBackupFormato_()"></label><label>Hasta <input id="hdBHasta" type="date" onchange="hdBackupFormato_()"></label></div>
-   <p id="hdBFechaAviso" class="hd-bk-hint">Sin fechas: se incluyen todos los registros.</p>
-  </fieldset>
-  <fieldset><legend>4. Archivos adjuntos</legend>
-   <label><input id="hdBAdjuntos" type="checkbox"> Incluir los archivos adjuntos en un ZIP, organizados por módulo y expediente</label>
-   <small>Esta descarga puede tardar y ocupar bastante memoria, especialmente en celulares. El respaldo original conserva todas las hojas de cada libro.</small>
-  </fieldset>
- </div>
- <div class="hd-bk-actions"><button type="button" id="hdBackupBtn" onclick="hdCrearCopia()">Preparar y descargar respaldo</button><button type="button" id="hdBCancelar" onclick="hdBAbortar_()" hidden>Cancelar descarga</button></div>
- <div id="hdBackupProgreso" class="hd-backup-progress" hidden role="group" aria-label="Progreso del respaldo">
-   <div class="hd-backup-progress-top"><strong id="hdBackupProgresoEtapa">Preparando respaldo…</strong><strong id="hdBackupPorcentaje">0 %</strong></div>
-   <div id="hdBackupBarraFondo" class="hd-backup-track" role="progressbar" aria-label="Porcentaje de avance estimado del respaldo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="hdBackupBarra" class="hd-backup-fill"></div></div>
-   <small>Avance estimado por etapas y archivos completados. El tiempo puede variar según el tamaño de los adjuntos.</small>
- </div>
- <p id="hdBackupEstado" role="status" aria-live="polite"></p><div id="hdBackupResultados"></div>
- <div id="hdBackupAviso" class="hd-backup-notice" role="alert" hidden></div>
+  <div class="hd-bk-hero">
+    <div class="hd-bk-hero-icon"><i class="fa-solid fa-database" aria-hidden="true"></i></div>
+    <div><h2>Copias de seguridad</h2><p>Respaldo de bases de datos · HIDRANDINA</p></div>
+  </div>
+  <div class="hd-bk-information"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><div><strong>Respaldo local</strong><p class="hd-bk-help">Descarga una copia en tu equipo. No se crearán archivos adicionales en Google Drive. En PC podrás elegir la carpeta cuando Chrome lo permita.</p></div></div>
+  <div class="hd-bk-grid">
+    <fieldset class="hd-bk-card"><legend><i class="fa-solid fa-file-excel" aria-hidden="true"></i> 1. Formato del respaldo</legend><div class="hd-bk-card-content">
+      <label class="hd-bk-option"><input type="radio" name="hdBFormato" value="google" onchange="hdBackupFormato_()"><span><strong>Copia original de Google Sheets</strong><small>Descarga del archivo original en formato .xlsx</small></span></label>
+      <label class="hd-bk-option"><input type="radio" name="hdBFormato" value="profesional" onchange="hdBackupFormato_()" checked><span><strong>Excel profesional consolidado</strong><small>Información organizada en un archivo Excel</small></span></label>
+    </div></fieldset>
+    <fieldset class="hd-bk-card"><legend><i class="fa-solid fa-database" aria-hidden="true"></i> 2. Bases de datos</legend><div class="hd-bk-card-content">
+      <p class="hd-bk-card-note">Selecciona las bases que deseas respaldar.</p>
+      <label class="hd-bk-option"><input type="checkbox" id="hdBDocumentos" checked><span><strong>Gestión de Documentos</strong></span></label>
+      <label class="hd-bk-option"><input type="checkbox" id="hdBOM5" checked><span><strong>Ampliaciones OM5</strong></span></label>
+      <label class="hd-bk-option"><input type="checkbox" id="hdBUIA" checked><span><strong>Ampliaciones UIA</strong></span></label>
+    </div></fieldset>
+    <fieldset class="hd-bk-card"><legend><i class="fa-regular fa-calendar-days" aria-hidden="true"></i> 3. Fechas del reporte</legend><div class="hd-bk-card-content">
+      <div class="hd-bk-dates"><label>Desde <input id="hdBDesde" type="date" onchange="hdBackupFormato_()"></label><label>Hasta <input id="hdBHasta" type="date" onchange="hdBackupFormato_()"></label></div>
+      <p id="hdBFechaAviso" class="hd-bk-hint">Sin fechas: se incluyen todos los registros.</p>
+    </div></fieldset>
+    <fieldset class="hd-bk-card"><legend><i class="fa-solid fa-file-zipper" aria-hidden="true"></i> 4. Archivos adjuntos</legend><div class="hd-bk-card-content">
+      <label class="hd-bk-option"><input id="hdBAdjuntos" type="checkbox"><span><strong>Incluir archivos adjuntos</strong><small>Incluir los archivos adjuntos en un ZIP, organizados por módulo y expediente</small></span></label>
+      <small class="hd-bk-card-note">Esta descarga puede tardar y ocupar bastante memoria, especialmente en celulares. El respaldo original conserva todas las hojas de cada libro.</small>
+    </div></fieldset>
+  </div>
+  <div class="hd-bk-footer"><div><strong>Preparar respaldo</strong><p>Elige el formato, las bases y las fechas que necesites.</p></div><div class="hd-bk-actions"><button type="button" id="hdBackupBtn" onclick="hdCrearCopia()"><i class="fa-solid fa-download" aria-hidden="true"></i> Preparar y descargar respaldo</button><button type="button" id="hdBCancelar" onclick="hdBAbortar_()" hidden>Cancelar descarga</button></div></div>
+  <div id="hdBackupProgreso" class="hd-backup-progress" hidden role="group" aria-label="Progreso del respaldo">
+    <div class="hd-backup-progress-top"><strong id="hdBackupProgresoEtapa">Preparando respaldo…</strong><strong id="hdBackupPorcentaje">0 %</strong></div>
+    <div id="hdBackupBarraFondo" class="hd-backup-track" role="progressbar" aria-label="Porcentaje de avance estimado del respaldo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="hdBackupBarra" class="hd-backup-fill"></div></div>
+    <small>Avance estimado por etapas y archivos completados. El tiempo puede variar según el tamaño de los adjuntos.</small>
+  </div>
+  <p id="hdBackupEstado" role="status" aria-live="polite"></p><div id="hdBackupResultados"></div>
+  <div id="hdBackupAviso" class="hd-backup-notice" role="alert" hidden></div>
 </section>
         <section id="tab-personal" class="hidden hd-ampl-section"><h2 class="text-xl font-bold">Administración general de Personal y usuarios</h2><p>Usuarios y roles transversales. Se conserva la hoja Personal de la base documental.</p><div id="hdPersonalPanel" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></section>
         <!-- TAB 1: DOCUMENTOS -->
