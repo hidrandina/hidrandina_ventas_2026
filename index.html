@@ -1154,6 +1154,50 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  #amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment{grid-column:1!important}
 }
 </style>
+
+<style id="hd-uia-new-attachment-icons-rev102">
+/* REV102: SOLO Nuevo expediente UIA: adjuntos iguales a Nuevo expediente OM5. */
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment{
+ display:flex!important; flex-flow:row nowrap!important; align-items:center!important;
+ justify-content:flex-start!important; gap:5px!important; min-height:40px!important;
+ border:1px solid #d1e0f5!important; border-radius:9px!important;
+ background:#f7faff!important; padding:5px 9px!important; overflow:visible!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment .hd-ampl-choose-file,
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment .hd-ampl-camera-label,
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment .hd-ampl-view-selected{
+ position:relative!important; display:inline-flex!important; align-items:center!important;
+ justify-content:center!important; flex:0 0 38px!important; width:38px!important;
+ min-width:38px!important; max-width:38px!important; height:38px!important;
+ min-height:38px!important; margin:0!important; padding:0!important;
+ border:1px solid #bfd4f4!important; border-radius:8px!important;
+ background:#eef5ff!important; color:#18599e!important; font-size:17px!important;
+ line-height:1!important; cursor:pointer!important; overflow:hidden!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment .hd-ampl-view-selected:disabled{
+ opacity:.48!important; cursor:not-allowed!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment .hd-ampl-choose-file input[type=file],
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment .hd-ampl-camera-label input[type=file]{
+ position:absolute!important; inset:0!important; opacity:0!important;
+ width:100%!important; height:100%!important; min-height:0!important;
+ margin:0!important; padding:0!important; cursor:pointer!important; z-index:2!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment .hd-ampl-local-name{
+ display:block!important; flex:1 1 auto!important; min-width:0!important;
+ font-size:11px!important; font-weight:400!important; color:#6b7a94!important;
+ overflow:hidden!important; text-overflow:ellipsis!important; white-space:nowrap!important;
+}
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment .hd-ampl-local-actions,
+#amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment .hd-ampl-pending{
+ display:none!important;
+}
+@media(max-width:800px){
+ #amplModal.hd-uia-new-entry #amplFormBody .hd-ampl-inline-attachment{
+  grid-column:1/-1!important; width:100%!important; box-sizing:border-box!important;
+ }
+}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -5147,7 +5191,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV101-UIA-NUEVO-ORDENADO-20261119"></script>
+<script src="./ampliaciones-ui.js?v=REV102-UIA-ADJUNTOS-ICONOS-20261119"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
