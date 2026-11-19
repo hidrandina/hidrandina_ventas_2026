@@ -1287,6 +1287,34 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 }
 #amplModal.hd-uia-saved-locked #amplSave{display:none!important}
 </style>
+
+<style id="hd-uia-consulta-rev112">
+/* REV112: SOLO CONSULTAR UIA. Se reutiliza el aspecto de Nuevo expediente UIA. */
+#amplModal.hd-uia-consulta #amplFormBody [data-k]:disabled,
+#amplModal.hd-uia-consulta #amplFormBody .hd-ampl-doc-cell input:disabled{
+ opacity:1!important;-webkit-text-fill-color:#173b68!important;color:#173b68!important;
+ background:#f8fbff!important;cursor:default!important;
+}
+#amplModal.hd-uia-consulta #amplFormBody .hd-ampl-inline-attachment.hd-uia-readonly-attachment{
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;
+ justify-content:flex-start!important;gap:7px!important;min-height:40px!important;
+ padding:5px 9px!important;
+}
+#amplModal.hd-uia-consulta #amplFormBody .hd-uia-consulta-eye{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;
+ border:1px solid #b9cfee!important;border-radius:8px!important;
+ background:#eef5ff!important;color:#1759a2!important;font-size:16px!important;
+ padding:0!important;cursor:pointer!important;
+}
+#amplModal.hd-uia-consulta #amplFormBody .hd-uia-consulta-eye:disabled{opacity:.45!important;cursor:not-allowed!important}
+#amplModal.hd-uia-consulta #amplFormBody .hd-ampl-local-name{display:inline!important;grid-column:auto!important;color:#6b7f9b!important}
+#amplModal.hd-uia-consulta #amplSave{display:none!important}
+#amplModal.hd-uia-consulta .hd-ampl-panel > .hd-ampl-controls:last-child{justify-content:flex-end!important}
+#amplModal.hd-uia-consulta .hd-ampl-panel > .hd-ampl-controls:last-child .hd-ampl-cancel{
+ background:#1557b4!important;color:#fff!important;border:1px solid #1557b4!important;
+}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -5280,7 +5308,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV111-UIA-NUEVO-GUARDADO-20261119"></script>
+<script src="./ampliaciones-ui.js?v=REV112-UIA-CONSULTA-20261119"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
