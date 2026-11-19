@@ -359,6 +359,8 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  $('amplModal')?.classList.toggle('hd-om5-consulta',isOM5Consulta);
  $('amplModal')?.classList.toggle('hd-om5-postsave-new',curso==='OM5'&&registro.postSaveNew);
  $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
+ // REV101: diseño únicamente del formulario Nuevo expediente UIA.
+ $('amplModal')?.classList.toggle('hd-uia-new-entry',curso==='UIA'&&!rid);
  // REV66: identificar la etapa para compactar únicamente el formulario OM5.
  for(let i=0;i<5;i++)$('amplModal')?.classList.toggle('hd-om5-stage-'+i,curso==='OM5'&&stage===i);
  const hs=fieldsByStage(curso,stage),all=sheet(curso).headers,ui=$('amplFormBody');
@@ -546,6 +548,58 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   }
  }
  if(curso==='UIA')docs('memo',editable);
+ // REV101: ordenar el formulario NUEVO UIA como los 18 campos del reporte.
+ // Reubica los controles originales, nunca los clona; conserva data-k, adjuntos y guardado.
+ // Item/Ítem es un identificador interno: no se muestra en el formulario.
+ if(curso==='UIA'&&!rid){
+  const labels=[...ui.querySelectorAll(':scope > .hd-ampl-label')];
+  const pending=new Set(labels);
+  const groups=[];
+  const norm=s=>key(s);
+  function pick(...aliases){
+   const wanted=new Set(aliases.map(norm));
+   const found=labels.find(el=>pending.has(el)&&wanted.has(norm(el.querySelector('[data-k]')?.dataset.k)));
+   if(found)pending.delete(found);
+   return found||null;
+  }
+  function namedGroup(title,icon,items,colCount=2){
+   const content=items.filter(Boolean);
+   if(!content.length)return;
+   const el=document.createElement('section');
+   el.className='hd-uia-new-section';
+   const h=document.createElement('h3');
+   const i=document.createElement('i');i.className='fa-solid '+icon;i.setAttribute('aria-hidden','true');
+   h.append(i,document.createTextNode(' '+title));
+   const grid=document.createElement('div');grid.className='hd-uia-new-grid';
+   grid.style.setProperty('--uia-columns',colCount);
+   content.forEach(node=>grid.appendChild(node));
+   el.append(h,grid);groups.push(el);
+  }
+  function docGroupNode(id){return ui.querySelector('#'+id)?.closest('.hd-ampl-doc-group');}
+  namedGroup('Datos generales del expediente','fa-clipboard-list',[
+   pick('Nombre'),pick('Direccion','Dirección','Direcciòn')
+  ]);
+  const solicitudes=docGroupNode('amplRequests');if(solicitudes)groups.push(solicitudes);
+  namedGroup('Ubicación y datos técnicos','fa-location-dot',[
+   pick('Departamento'),pick('Provincia'),pick('Distrito'),
+   pick('SED Referencia','SEDReferencia'),pick('N° Clientes','Nº Clientes','N Clientes','NroClientes')
+  ],3);
+  const memos=docGroupNode('amplMemosGC');if(memos)groups.push(memos);
+  namedGroup('Montaje y estado','fa-screwdriver-wrench',[
+   pick('Tipo de OM','TipoOM'),pick('Nro OM','NroOM','N° OM'),
+   pick('FechaEjecutadoUMD','Fecha Ejecutado UMD','FechaEjecutacionUMD'),
+   pick('Estado Actual','EstadoActual')
+  ]);
+  namedGroup('Captación de clientes','fa-users',[
+   pick('Clentes Captados','Clientes Captados','ClientesCaptados'),
+   pick('Estado Captación Clientes','EstadoCaptacionClientes'),
+   pick('Observación Captación Clientes','ObservacionCaptacionClientes','ObsCaptacionClientes')
+  ]);
+  // Si la hoja posee columnas extra, conservarlas y evitar pérdida silenciosa.
+  if(pending.size)namedGroup('Otros datos del expediente','fa-list-check',labels.filter(el=>pending.has(el)));
+  ui.replaceChildren(...groups);
+ }
+
  if(curso==='OM5'&&stage===1)docs('obsExp',editable);
  if(curso==='OM5'&&stage===2)docs('obsInsp',editable);
  // Los archivos de cada solicitud/resolución/memorando se muestran junto a su campo.
