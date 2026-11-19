@@ -229,11 +229,11 @@ function render(mod){
  }else{
   // UIA: 18 campos sin la columna duplicada Tipo; Elegir y Acción se conservan.
   const columns=UIA_REPORT_HEADERS,report=uiaReportRows({headers:h,registros:sub});
-  theader.innerHTML='<tr><th class="hd-choose">Seleccionar</th><th class="hd-report-actions">Consultar / Editar</th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'</tr>';
+  theader.innerHTML='<tr><th class="hd-choose" title="Seleccionar expediente" aria-label="Seleccionar expediente"><i class="fa-solid fa-xmark" aria-hidden="true"></i></th><th class="hd-report-actions" title="Consultar / Editar" aria-label="Consultar / Editar"><i class="fa-regular fa-eye" aria-hidden="true"></i> <i class="fa-solid fa-pen" aria-hidden="true"></i></th>'+columns.map(k=>'<th>'+safe(k)+'</th>').join('')+'</tr>';
   body.innerHTML=report.map((r,i)=>{
    const original=sub[i],uid=id(original),chosen=n.selected===uid;
    return '<tr data-id="'+safe(uid)+'" class="'+(chosen?'hd-ampl-selected':'')+'"><td class="hd-choose"><input type="radio" name="amplElegido" '+(chosen?'checked':'')+' aria-label="Seleccionar ítem '+safe(r['Item'])+'" onchange="Ampliaciones.select(\''+safe(uid)+'\')"></td>'+
-    '<td class="hd-report-actions"><button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)">Consultar</button>'+(edit()?'<button type="button" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)">Editar</button>':'')+'</td>'+
+    '<td class="hd-report-actions"><button type="button" class="hd-uia-eye" title="Consultar expediente" aria-label="Consultar expediente" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,false)"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>'+(edit()?'<button type="button" class="hd-uia-pencil" title="Editar expediente" aria-label="Editar expediente" onclick="Ampliaciones.open(\''+safe(uid)+'\',0,true)"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>':'')+'</td>'+
     columns.map(k=>'<td title="'+safe(r[k]).replace(/\n/g,' / ')+'" class="'+(UIA_REPORT_GROUPS[k]?'hd-report-multiline':'')+'">'+safe(r[k])+'</td>').join('')+'</tr>';
   }).join('')||'<tr><td colspan="20">No se encontraron expedientes UIA</td></tr>';
  }
