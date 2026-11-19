@@ -774,6 +774,9 @@ async function save(){
   // REV111: UIA aplica la misma secuencia de alta segura, sin afectar OM5 ni ediciones.
   const uiaNewFlow=mod==='UIA'&&(isNew||!!registro.postSaveNew);
   const newEntryFlow=om5NewFlow||uiaNewFlow;
+  // REV113: solo EDITAR expediente existente OM5; los nuevos ya tienen su propio flujo.
+  const om5EditFlow=mod==='OM5'&&!newEntryFlow&&!isNew;
+  const om5CompleteFlow=newEntryFlow||om5EditFlow;
   const validation=validateBeforeSave(payload,mod,isNew);
   if(validation){formAlert(validation.message,'error',validation.field);return;}
   const currentStage=registro.stage;
@@ -782,9 +785,9 @@ async function save(){
   const replaceIds=(mod==='OM5'&&!isNew&&!registro.postSaveNew)?new Map(fileGroups.map(({campo})=>[key(campo),(sheet(mod).adjuntos||[]).filter(a=>String(a.expedienteId)===String(registro.id)&&key(a.campo)===key(campo)).map(a=>String(a.id))])):new Map();
   // Rechazar adjuntos inválidos antes de crear el expediente.
   for(const {file} of fileGroups){
-   if(newEntryFlow&&(!file||!file.size))throw Error('Archivo vacío o no seleccionado.');
+   if(om5CompleteFlow&&(!file||!file.size))throw Error('Archivo vacío o no seleccionado.');
    if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);
-   if(newEntryFlow&&!/\.(pdf|jpg|jpeg|png|webp|gif)$/i.test(file.name||''))
+   if(om5CompleteFlow&&!/\.(pdf|jpg|jpeg|png|webp|gif)$/i.test(file.name||''))
     throw Error('Formato de archivo no permitido: '+(file.name||'Sin nombre')+'.');
   }
   saving=true;if(button){button.disabled=true;button.textContent='Guardando…';}
@@ -814,8 +817,8 @@ async function save(){
   }
   // Solo los adjuntos fallidos podrán reintentarse; no reenviar los confirmados.
   const unresolvedFiles={};
-  if(newEntryFlow)for(const entry of failed)(unresolvedFiles[entry.stage]||(unresolvedFiles[entry.stage]=[])).push({campo:entry.campo,file:entry.file});
-  if(newEntryFlow)registro.pendingFiles=unresolvedFiles;
+  if(om5CompleteFlow)for(const entry of failed)(unresolvedFiles[entry.stage]||(unresolvedFiles[entry.stage]=[])).push({campo:entry.campo,file:entry.file});
+  if(om5CompleteFlow)registro.pendingFiles=unresolvedFiles;
   const note=mod==='UIA'?'Grabación satisfactoria':'Expediente guardado correctamente.'+(fileGroups.length?' '+(fileGroups.length-failed.length)+' archivo(s) adjuntados.':'');
   // Leer datos frescos sin cerrar la ventana; la versión y los adjuntos quedan actualizados.
   let refreshed=false;
@@ -840,15 +843,16 @@ async function save(){
   }
   if(refreshed){
    curso=mod;
-   open(r.expedienteId,currentStage,true,null,newEntryFlow?unresolvedFiles:null,null,null,isNew||registro.postSaveNew);
+   open(r.expedienteId,currentStage,true,null,om5CompleteFlow?unresolvedFiles:null,null,null,isNew||registro.postSaveNew);
   }else{
    // Mantener el editor activo y su versión; descartar los cambios ya guardados.
    registro.row={...registro.row,...payload};registro.originalRow={...registro.row};registro.drafts={};
-   registro.pendingFiles=newEntryFlow?unresolvedFiles:{};
+   registro.pendingFiles=om5CompleteFlow?unresolvedFiles:{};
   }
-  // Confirmación de NUEVO expediente OM5, incluida recuperación tras fallos parciales.
-  // No se muestra hasta confirmar TODOS los adjuntos y obtener una lectura válida.
-  if(newEntryFlow&&refreshed&&!failed.length&&!replaceWarnings.length&&!(r.advertencias||[]).length){
+  // REV113: Editar OM5 confirma y cierra únicamente cuando el servidor ha guardado
+  // los datos, todos los adjuntos se procesaron y la nueva lectura se confirmó.
+  // Con errores, advertencias o carga parcial conserva abierta la misma ficha.
+  if(om5CompleteFlow&&refreshed&&!failed.length&&!replaceWarnings.length&&!(r.advertencias||[]).length){
    window.alert('Grabación satisfactoria');
    const modal=$('amplModal');
    if(modal)modal.hidden=true;
@@ -857,7 +861,7 @@ async function save(){
   }
   if(failed.length||replaceWarnings.length){
    const detail=failed.map(x=>x.file.name+': '+x.error).concat(replaceWarnings).join('\n');
-   formAlert((mod==='UIA'?'Expediente registrado, pero faltan archivos por adjuntar.':note)+' Revisa los archivos indicados antes de volver a guardar; no repitas una subida confirmada:\n'+detail,'error');
+   formAlert((mod==='UIA'?'Expediente registrado, pero faltan archivos por adjuntar.':om5EditFlow?'Se guardaron los cambios, pero quedan adjuntos pendientes.':note)+' Revisa los archivos indicados antes de volver a guardar; no repitas una subida confirmada:\n'+detail,'error');
   }else{
    formAlert(mod==='UIA'?'Grabación satisfactoria':note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
   }
