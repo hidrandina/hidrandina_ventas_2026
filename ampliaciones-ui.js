@@ -264,6 +264,12 @@ function fieldInput(h,value,editable){let date=/^fecha/i.test(key(h)),text=/obse
  if(date&&/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(val)){
   const [dd,mm,yyyy]=val.split('/');val=yyyy+'-'+mm.padStart(2,'0')+'-'+dd.padStart(2,'0');
  }
+ // REV118: únicamente OM5 / 4. Montaje: valor inicial visualmente vacío, OM5 u OM4.
+ // Un dato heredado fuera del catálogo se conserva visible para no sobrescribirlo al editar.
+ if(curso==='OM5'&&registro?.stage===3&&key(h)==='tipoom'){
+  const legacy=val&&!['OM5','OM4'].includes(val)?`<option value="${safe(val)}" selected hidden>${safe(val)}</option>`:'';
+  return `<select data-k="${safe(h)}" ${disabled}><option value="" ${!val?'selected':''}></option><option value="OM5" ${val==='OM5'?'selected':''}>OM5</option><option value="OM4" ${val==='OM4'?'selected':''}>OM4</option>${legacy}</select>`;
+ }
  if(opts.length)return `<select data-k="${safe(h)}" ${disabled}><option value="">Seleccionar...</option>${[...new Set([...opts,val].filter(Boolean))].map(v=>`<option ${v===val?'selected':''} value="${safe(v)}">${safe(v)}</option>`).join('')}</select>`;
  if(text)return `<textarea ${disabled} rows="3" data-k="${safe(h)}">${safe(val)}</textarea>`;
  return `<input ${disabled} data-k="${safe(h)}" type="${date?'date':/^clientes|^redes|^postes/i.test(key(h))?'number':'text'}" ${/^clientes|^redes|^postes/i.test(key(h))?'min="0"':''} value="${safe(date?val.slice(0,10):val)}">`;
