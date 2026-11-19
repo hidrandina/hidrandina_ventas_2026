@@ -1271,6 +1271,22 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   #amplModal.hd-uia-new-entry #amplFormTitle{font-size:18px!important;}
 }
 </style>
+
+<style id="hd-uia-saved-lock-rev108">
+/* Exclusivo del formulario Nuevo expediente UIA después de guardar con éxito. */
+#amplModal.hd-uia-saved-locked #amplFormBody [data-k]:disabled{
+ opacity:1!important; -webkit-text-fill-color:#173b68!important;
+ color:#173b68!important; background:#f8fbff!important;
+}
+#amplModal.hd-uia-saved-locked #amplFormBody .hd-ampl-choose-file,
+#amplModal.hd-uia-saved-locked #amplFormBody .hd-ampl-camera-label{
+ pointer-events:none!important;opacity:.5!important;cursor:not-allowed!important;
+}
+#amplModal.hd-uia-saved-locked #amplFormBody .hd-ampl-view-selected:not(:disabled){
+ pointer-events:auto!important;opacity:1!important;cursor:pointer!important;
+}
+#amplModal.hd-uia-saved-locked #amplSave{display:none!important}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -5264,7 +5280,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV107-UIA-MENSAJE-20261119"></script>
+<script src="./ampliaciones-ui.js?v=REV110-OM5-VALIDACION-SALIDA-20261119"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
