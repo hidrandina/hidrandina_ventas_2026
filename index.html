@@ -1315,6 +1315,27 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
  background:#1557b4!important;color:#fff!important;border:1px solid #1557b4!important;
 }
 </style>
+
+<style id="hd-uia-editar-rev114">
+/* REV114 — solo Editar expediente UIA; reutiliza todas las franjas/columnas de Nuevo UIA. */
+#amplModal.hd-uia-edit-entry #amplFormBody .hd-ampl-inline-attachment.hd-ampl-edit-compact{
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;
+ justify-content:flex-start!important;gap:5px!important;overflow:visible!important;
+}
+#amplModal.hd-uia-edit-entry #amplFormBody .hd-ampl-edit-compact .hd-ampl-edit-trash,
+#amplModal.hd-uia-edit-entry #amplFormBody .hd-ampl-edit-compact .hd-ampl-edit-extra-eye{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 38px!important;width:38px!important;min-width:38px!important;max-width:38px!important;
+ height:38px!important;min-height:38px!important;margin:0!important;padding:0!important;
+ border-radius:8px!important;border:1px solid #bfd4f4!important;background:#eef5ff!important;
+ color:#18599e!important;font-size:17px!important;cursor:pointer!important;
+}
+#amplModal.hd-uia-edit-entry #amplFormBody .hd-ampl-edit-compact .hd-ampl-edit-trash{
+ color:#c31e1e!important;border-color:#f1c6c6!important;background:#fff7f7!important;
+}
+#amplModal.hd-uia-edit-entry #amplFormBody .hd-ampl-edit-compact .hd-ampl-local-name,
+#amplModal.hd-uia-edit-entry #amplFormBody .hd-ampl-edit-compact .hd-ampl-attached-files{display:none!important;}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -5308,7 +5329,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV113-OM5-EDITAR-CONFIRMAR-20261119"></script>
+<script src="./ampliaciones-ui.js?v=REV114-UIA-EDITAR-FORMATO-GUARDAR-20261119"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
