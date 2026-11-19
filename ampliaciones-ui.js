@@ -739,7 +739,7 @@ function addDoc(kind){
 async function deleteDocField(campo){if(!registro?.id||!registro.editable)return;if(!confirm('¿Eliminar '+campo+' y enviar a la papelera TODOS sus adjuntos?'))return;try{let r=await api('amplDeleteDocument',{modulo:curso,expedienteId:registro.id,campo,confirmar:'ELIMINAR_DOCUMENTO'});let rid=registro.id;await refresh(curso);open(rid,registro.stage,true);formAlert('Documento eliminado correctamente; '+r.adjuntos+' adjunto(s) enviados a papelera.','info');}catch(e){formAlert('No se pudo eliminar el documento: '+e.message,'error')}}
 function close(){
  if(saving){formAlert('El guardado todavía está en curso. No cierres el formulario.','info');return;}
- if(registro?.mod==='OM5'&&registro.editable&&(!registro.id||registro.postSaveNew)){
+ if((registro?.mod==='OM5'||registro?.mod==='UIA')&&registro.editable&&(!registro.id||registro.postSaveNew)){
   captureStage();
   const question=registro.id
    ?'Una parte del expediente ya se ha grabado. Los datos registrados permanecerán en la base, pero pueden quedar archivos pendientes. ¿Desea salir sin completar el registro?'
@@ -763,6 +763,9 @@ async function save(){
   captureStage();
   const payload={...Object.assign({},...Object.values(registro.drafts))},mod=registro.mod,isNew=!registro.id;
   const om5NewFlow=mod==='OM5'&&(isNew||!!registro.postSaveNew);
+  // REV111: UIA aplica la misma secuencia de alta segura, sin afectar OM5 ni ediciones.
+  const uiaNewFlow=mod==='UIA'&&(isNew||!!registro.postSaveNew);
+  const newEntryFlow=om5NewFlow||uiaNewFlow;
   const validation=validateBeforeSave(payload,mod,isNew);
   if(validation){formAlert(validation.message,'error',validation.field);return;}
   const currentStage=registro.stage;
@@ -771,9 +774,9 @@ async function save(){
   const replaceIds=(mod==='OM5'&&!isNew&&!registro.postSaveNew)?new Map(fileGroups.map(({campo})=>[key(campo),(sheet(mod).adjuntos||[]).filter(a=>String(a.expedienteId)===String(registro.id)&&key(a.campo)===key(campo)).map(a=>String(a.id))])):new Map();
   // Rechazar adjuntos inválidos antes de crear el expediente.
   for(const {file} of fileGroups){
-   if(om5NewFlow&&(!file||!file.size))throw Error('Archivo vacío o no seleccionado.');
+   if(newEntryFlow&&(!file||!file.size))throw Error('Archivo vacío o no seleccionado.');
    if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);
-   if(om5NewFlow&&!/\.(pdf|jpg|jpeg|png|webp|gif)$/i.test(file.name||''))
+   if(newEntryFlow&&!/\.(pdf|jpg|jpeg|png|webp|gif)$/i.test(file.name||''))
     throw Error('Formato de archivo no permitido: '+(file.name||'Sin nombre')+'.');
   }
   saving=true;if(button){button.disabled=true;button.textContent='Guardando…';}
@@ -781,7 +784,7 @@ async function save(){
   const r=await api('amplSave',{modulo:mod,expedienteId:registro.id,version:registro.version,datos:JSON.stringify(payload)});
   if(!r||!r.expedienteId)throw Error('El servidor no confirmó el ID del expediente. Consulta la lista antes de reintentar.');
   savedOnServer=true;serverResult=r;
-  if((mod==='UIA'&&isNew)||om5NewFlow)registro.postSaveNew=true; // Conservar la procedencia de un registro nuevo si hay guardado parcial.
+  if(newEntryFlow)registro.postSaveNew=true; // Conservar la procedencia de un registro nuevo si hay guardado parcial.
   // Actualizar el token de control de concurrencia antes de otra edición.
   registro.id=r.expedienteId;registro.version=r.version;
   const failed=[],replaceWarnings=[],uploadedUIA=[];
@@ -803,8 +806,8 @@ async function save(){
   }
   // Solo los adjuntos fallidos podrán reintentarse; no reenviar los confirmados.
   const unresolvedFiles={};
-  if(om5NewFlow)for(const entry of failed)(unresolvedFiles[entry.stage]||(unresolvedFiles[entry.stage]=[])).push({campo:entry.campo,file:entry.file});
-  if(om5NewFlow)registro.pendingFiles=unresolvedFiles;
+  if(newEntryFlow)for(const entry of failed)(unresolvedFiles[entry.stage]||(unresolvedFiles[entry.stage]=[])).push({campo:entry.campo,file:entry.file});
+  if(newEntryFlow)registro.pendingFiles=unresolvedFiles;
   const note=mod==='UIA'?'Grabación satisfactoria':'Expediente guardado correctamente.'+(fileGroups.length?' '+(fileGroups.length-failed.length)+' archivo(s) adjuntados.':'');
   // Leer datos frescos sin cerrar la ventana; la versión y los adjuntos quedan actualizados.
   let refreshed=false;
@@ -829,15 +832,15 @@ async function save(){
   }
   if(refreshed){
    curso=mod;
-   open(r.expedienteId,currentStage,true,null,om5NewFlow?unresolvedFiles:null,null,null,isNew||registro.postSaveNew);
+   open(r.expedienteId,currentStage,true,null,newEntryFlow?unresolvedFiles:null,null,null,isNew||registro.postSaveNew);
   }else{
    // Mantener el editor activo y su versión; descartar los cambios ya guardados.
    registro.row={...registro.row,...payload};registro.originalRow={...registro.row};registro.drafts={};
-   registro.pendingFiles=om5NewFlow?unresolvedFiles:{};
+   registro.pendingFiles=newEntryFlow?unresolvedFiles:{};
   }
   // Confirmación de NUEVO expediente OM5, incluida recuperación tras fallos parciales.
   // No se muestra hasta confirmar TODOS los adjuntos y obtener una lectura válida.
-  if(om5NewFlow&&refreshed&&!failed.length&&!replaceWarnings.length&&!(r.advertencias||[]).length){
+  if(newEntryFlow&&refreshed&&!failed.length&&!replaceWarnings.length&&!(r.advertencias||[]).length){
    window.alert('Grabación satisfactoria');
    const modal=$('amplModal');
    if(modal)modal.hidden=true;
@@ -851,8 +854,8 @@ async function save(){
    formAlert(mod==='UIA'?'Grabación satisfactoria':note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
   }
   if(r.advertencias?.length)formAlert(note+'\nAdvertencias: '+r.advertencias.join(' | '),'info');
-  // Inmovilizar el alta UIA solo si se grabó sin fallas de adjuntos.
-  if(mod==='UIA'&&(isNew||registro.postSaveNew)&&!failed.length&&!replaceWarnings.length&&!r.advertencias?.length)lockSavedNewUIA();
+  // UIA y OM5 cierran el alta únicamente después de confirmar todos los adjuntos.
+  // La edición ordinaria de UIA conserva el comportamiento anterior.
  }catch(e){
   const msg=(e&&e.message)||String(e);
   formAlert((savedOnServer?'El expediente se guardó, pero ocurrió un problema adicional; no repitas el guardado sin verificarlo. ':'No se pudo guardar. ')+msg,'error');
