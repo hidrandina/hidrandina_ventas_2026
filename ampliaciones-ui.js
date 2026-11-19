@@ -360,7 +360,8 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  $('amplModal')?.classList.toggle('hd-om5-postsave-new',curso==='OM5'&&registro.postSaveNew);
  $('amplModal')?.classList.toggle('hd-om5-consolidated',curso==='OM5');
  // REV101: diseño únicamente del formulario Nuevo expediente UIA.
- $('amplModal')?.classList.toggle('hd-uia-new-entry',curso==='UIA'&&(!rid||registro.postSaveNew||!editable));
+ $('amplModal')?.classList.toggle('hd-uia-new-entry',curso==='UIA');
+ $('amplModal')?.classList.toggle('hd-uia-edit-entry',curso==='UIA'&&!!rid&&!!editable&&!registro.postSaveNew);
  $('amplModal')?.classList.toggle('hd-uia-consulta',curso==='UIA'&&!!rid&&!editable);
  $('amplModal')?.classList.remove('hd-uia-saved-locked');
  // REV66: identificar la etapa para compactar únicamente el formulario OM5.
@@ -553,7 +554,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
  // REV101: ordenar el formulario NUEVO UIA como los 18 campos del reporte.
  // Reubica los controles originales, nunca los clona; conserva data-k, adjuntos y guardado.
  // Item/Ítem es un identificador interno: no se muestra en el formulario.
- if(curso==='UIA'&&(!rid||registro.postSaveNew||!editable)){
+ if(curso==='UIA'){
   const labels=[...ui.querySelectorAll(':scope > .hd-ampl-label')];
   const pending=new Set(labels);
   const groups=[];
@@ -671,7 +672,8 @@ function inlineUpload(fieldName,editable){
  const pendingHtml=pending.length?'<div class="hd-ampl-pending">Pendiente de guardar: '+pending.map(x=>safe(x.file.name)).join(', ')+'</div>':'';
  const isNewUIA=curso==='UIA'&&editable&&(!registro?.id||registro.postSaveNew);
  const isUIAPostSave=curso==='UIA'&&editable&&!!registro?.id&&!!registro.postSaveNew;
- const isExec=curso==='OM5'||isNewUIA;
+ const isUIAEdit=curso==='UIA'&&editable&&!!registro?.id&&!registro.postSaveNew;
+ const isExec=curso==='OM5'||isNewUIA||isUIAEdit;
  // REV94: solo el editor de un expediente OM5 existente. Nuevo/Consulta/UIA intactos.
  const isOM5Edit=isExec&&editable&&!!registro?.id&&!registro.postSaveNew;
  let saved=files.length?'<div class="hd-ampl-attached-files"><strong>Archivos guardados ('+files.length+')</strong>'+files.map(x=>
@@ -686,17 +688,17 @@ function inlineUpload(fieldName,editable){
   return '<div class="hd-ampl-inline-attachment hd-uia-readonly-attachment">'+(eyes||'<button type="button" class="hd-uia-consulta-eye" disabled title="Sin archivo" aria-label="Sin archivo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button><span class="hd-ampl-local-name">Sin archivo</span>')+'</div>';
  }
  if(!editable)return '<div class="hd-ampl-inline-attachment">'+saved+'</div>';
- if(isOM5Edit||isUIAPostSave)saved=''; // mantener una sola fila compacta al terminar Nuevo expediente UIA
+ if(isOM5Edit||isUIAEdit||isUIAPostSave)saved=''; // mantener una sola fila compacta al terminar Nuevo expediente UIA
  const camera=isPhoneCamera()? (isExec?'<label class="hd-ampl-camera-label" title="Tomar fotografía" aria-label="Tomar fotografía"><i class="fa-solid fa-camera" aria-hidden="true"></i><input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>':'<label class="hd-ampl-camera-label">Tomar fotografía (celular)<input type="file" accept="image/*" capture="environment" data-ampl-upload="'+safe(fieldName)+'" aria-label="Fotografiar documento de '+safe(fieldName)+'"></label>'):'';
  const chooser=isExec?'<label class="hd-ampl-choose-file" title="Adjuntar PDF o imagen"><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i><input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar PDF o imagen a '+safe(fieldName)+'"></label>':'<label class="hd-ampl-choose-file">Adjuntar PDF o imagen<input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif" data-ampl-upload="'+safe(fieldName)+'" aria-label="Adjuntar archivo a '+safe(fieldName)+'"></label>';
- const button=isExec?'<button type="button" class="hd-ampl-view-selected" '+((isOM5Edit||isUIAPostSave)&&files.length?'data-hd-saved-id="'+safe(files[0].id)+'" ':'')+'data-hd-view-field="'+safe(fieldName)+'" '+((isOM5Edit||isUIAPostSave)&&files.length?'':'disabled ')+'aria-label="Vista previa del archivo seleccionado" title="Selecciona un archivo para visualizarlo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>':'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado">👁</button>';
- const editChooser=isOM5Edit&&files.length?chooser.replace('title="Adjuntar PDF o imagen"','title="Actualizar archivo (reemplazar el actual)"').replace('fa-file-arrow-up','fa-arrows-rotate').replace('Adjuntar PDF o imagen a ','Reemplazar archivo de '):chooser;
+ const button=isExec?'<button type="button" class="hd-ampl-view-selected" '+((isOM5Edit||isUIAEdit||isUIAPostSave)&&files.length?'data-hd-saved-id="'+safe(files[0].id)+'" ':'')+'data-hd-view-field="'+safe(fieldName)+'" '+((isOM5Edit||isUIAEdit||isUIAPostSave)&&files.length?'':'disabled ')+'aria-label="Vista previa del archivo seleccionado" title="Selecciona un archivo para visualizarlo"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>':'<button type="button" class="hd-ampl-view-selected" data-hd-view-field="'+safe(fieldName)+'" disabled title="Selecciona un archivo para visualizarlo" aria-label="Ver archivo seleccionado">👁</button>';
+ const editChooser=(isOM5Edit||isUIAEdit)&&files.length?chooser.replace('title="Adjuntar PDF o imagen"','title="Actualizar archivo (reemplazar el actual)"').replace('fa-file-arrow-up','fa-arrows-rotate').replace('Adjuntar PDF o imagen a ','Reemplazar archivo de '):chooser;
  // REV95: en Editar OM5, nada de nombres ni lista aparte. El tacho elimina SOLO adjuntos.
  // Si un campo tiene varios archivos, cada uno recibe su ojo y tacho, sin mostrar nombres.
- const editTrash=isOM5Edit?files.map(x=>'<button type="button" class="hd-ampl-edit-trash" title="Eliminar archivo adjunto" aria-label="Eliminar adjunto '+safe(x.nombre)+'" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>').join(''):'';
- const otherSaved=isOM5Edit?files.slice(1).map(x=>'<button type="button" class="hd-ampl-edit-extra-eye" title="Ver archivo adjunto" aria-label="Ver adjunto '+safe(x.nombre)+'" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>').join(''):'';
+ const editTrash=(isOM5Edit||isUIAEdit)?files.map(x=>'<button type="button" class="hd-ampl-edit-trash" title="Eliminar archivo adjunto" aria-label="Eliminar adjunto '+safe(x.nombre)+'" onclick="Ampliaciones.removeFile(\''+safe(x.id)+'\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>').join(''):'';
+ const otherSaved=(isOM5Edit||isUIAEdit)?files.slice(1).map(x=>'<button type="button" class="hd-ampl-edit-extra-eye" title="Ver archivo adjunto" aria-label="Ver adjunto '+safe(x.nombre)+'" onclick="Ampliaciones.previewSaved(\''+safe(x.id)+'\')"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>').join(''):'';
  const shownName=isUIAPostSave&&files.length?'Archivo guardado':'Sin archivo';
- return '<div class="hd-ampl-inline-attachment'+(isOM5Edit?' hd-ampl-edit-compact':'')+'">'+saved+editChooser+camera+button+otherSaved+editTrash+(isExec&&!isOM5Edit?'<span class="hd-ampl-local-name" aria-live="polite">'+shownName+'</span>':'')+(isOM5Edit?'':pendingHtml)+'<span class="hd-ampl-local-actions" data-preview-files></span></div>';
+ return '<div class="hd-ampl-inline-attachment'+((isOM5Edit||isUIAEdit)?' hd-ampl-edit-compact':'')+'">'+saved+editChooser+camera+button+otherSaved+editTrash+(isExec&&!isOM5Edit&&!isUIAEdit?'<span class="hd-ampl-local-name" aria-live="polite">'+shownName+'</span>':'')+((isOM5Edit||isUIAEdit)?'':pendingHtml)+'<span class="hd-ampl-local-actions" data-preview-files></span></div>';
 }
 
 function docs(kind,editable){
@@ -718,7 +720,7 @@ function docs(kind,editable){
    :'Número de '+g.label.toLowerCase()+' '+r.i;
   const noteCell=r.note?`<label class="hd-ampl-doc-cell hd-ampl-note"><span>Observación ${r.i}</span>${fieldInput(r.note,r.obs,editable)}</label>`:'';
   const dateCell=r.date?`<label class="hd-ampl-doc-cell hd-ampl-date"><span>Fecha</span>${fieldInput(r.date,r.f,editable)}</label>`:'';
-  const remove=registro.id&&editable&&!registro.postSaveNew&&!(curso==='OM5')&&r.v&&['sol','res'].includes(kind)?`<button type="button" class="hd-ampl-remove" onclick="Ampliaciones.deleteDocField('${safe(r.num)}')">Eliminar documento y adjuntos</button>`:'';
+  const remove=registro.id&&editable&&!registro.postSaveNew&&!(curso==='OM5'||curso==='UIA')&&r.v&&['sol','res'].includes(kind)?`<button type="button" class="hd-ampl-remove" onclick="Ampliaciones.deleteDocField('${safe(r.num)}')">Eliminar documento y adjuntos</button>`:'';
   return `<div class="hd-ampl-doc" data-doc="${safe(kind)}" data-num="${r.i}" ${r.i>maxShown?'hidden':''}>
    ${noteCell}
    <label class="hd-ampl-doc-cell"><span>${safe(numberLabel)}</span>${compactNumberInput(r.num,r.v,editable)}</label>
@@ -776,13 +778,14 @@ async function save(){
   const newEntryFlow=om5NewFlow||uiaNewFlow;
   // REV113: solo EDITAR expediente existente OM5; los nuevos ya tienen su propio flujo.
   const om5EditFlow=mod==='OM5'&&!newEntryFlow&&!isNew;
-  const om5CompleteFlow=newEntryFlow||om5EditFlow;
+  const uiaEditFlow=mod==='UIA'&&!newEntryFlow&&!isNew;
+  const om5CompleteFlow=newEntryFlow||om5EditFlow||uiaEditFlow;
   const validation=validateBeforeSave(payload,mod,isNew);
   if(validation){formAlert(validation.message,'error',validation.field);return;}
   const currentStage=registro.stage;
   const fileGroups=Object.entries(registro.pendingFiles).flatMap(([stage,arr])=>(arr||[]).map(item=>({...item,stage:Number(stage)})));
   // REV94: registrar adjuntos anteriores ANTES de subir los nuevos, solo en Editar OM5.
-  const replaceIds=(mod==='OM5'&&!isNew&&!registro.postSaveNew)?new Map(fileGroups.map(({campo})=>[key(campo),(sheet(mod).adjuntos||[]).filter(a=>String(a.expedienteId)===String(registro.id)&&key(a.campo)===key(campo)).map(a=>String(a.id))])):new Map();
+  const replaceIds=((mod==='OM5'||mod==='UIA')&&!isNew&&!registro.postSaveNew)?new Map(fileGroups.map(({campo})=>[key(campo),(sheet(mod).adjuntos||[]).filter(a=>String(a.expedienteId)===String(registro.id)&&key(a.campo)===key(campo)).map(a=>String(a.id))])):new Map();
   // Rechazar adjuntos inválidos antes de crear el expediente.
   for(const {file} of fileGroups){
    if(om5CompleteFlow&&(!file||!file.size))throw Error('Archivo vacío o no seleccionado.');
@@ -861,9 +864,9 @@ async function save(){
   }
   if(failed.length||replaceWarnings.length){
    const detail=failed.map(x=>x.file.name+': '+x.error).concat(replaceWarnings).join('\n');
-   formAlert((mod==='UIA'?'Expediente registrado, pero faltan archivos por adjuntar.':om5EditFlow?'Se guardaron los cambios, pero quedan adjuntos pendientes.':note)+' Revisa los archivos indicados antes de volver a guardar; no repitas una subida confirmada:\n'+detail,'error');
+   formAlert((uiaEditFlow?'Se guardaron los cambios, pero quedan adjuntos pendientes.':mod==='UIA'?'Expediente registrado, pero faltan archivos por adjuntar.':om5EditFlow?'Se guardaron los cambios, pero quedan adjuntos pendientes.':note)+' Revisa los archivos indicados antes de volver a guardar; no repitas una subida confirmada:\n'+detail,'error');
   }else{
-   formAlert(mod==='UIA'?'Grabación satisfactoria':note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
+   formAlert(uiaEditFlow?'No se pudo confirmar la actualización completa. Comprueba las advertencias antes de salir.':mod==='UIA'?'Grabación satisfactoria':note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
   }
   if(r.advertencias?.length)formAlert(note+'\nAdvertencias: '+r.advertencias.join(' | '),'info');
   // UIA y OM5 cierran el alta únicamente después de confirmar todos los adjuntos.
