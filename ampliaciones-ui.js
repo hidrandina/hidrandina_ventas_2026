@@ -667,7 +667,8 @@ function inlineUpload(fieldName,editable){
  const files=attachmentsFor(fieldName);
  const pending=Object.values(registro?.pendingFiles||{}).flat().filter(x=>key(x.campo)===key(fieldName));
  const pendingHtml=pending.length?'<div class="hd-ampl-pending">Pendiente de guardar: '+pending.map(x=>safe(x.file.name)).join(', ')+'</div>':'';
- const isExec=curso==='OM5';
+ const isNewUIA=curso==='UIA'&&editable&&!registro?.id;
+ const isExec=curso==='OM5'||isNewUIA;
  // REV94: solo el editor de un expediente OM5 existente. Nuevo/Consulta/UIA intactos.
  const isOM5Edit=isExec&&editable&&!!registro?.id&&!registro.postSaveNew;
  let saved=files.length?'<div class="hd-ampl-attached-files"><strong>Archivos guardados ('+files.length+')</strong>'+files.map(x=>
