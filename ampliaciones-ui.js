@@ -786,7 +786,7 @@ async function save(){
     }
    }catch(e){failed.push({campo,file,stage,error:e.message});}
   }
-  const note=mod==='UIA'?'GRABACIÓN SATISFACTORIA':'Expediente guardado correctamente.'+(fileGroups.length?' '+(fileGroups.length-failed.length)+' archivo(s) adjuntados.':'');
+  const note=mod==='UIA'?'Grabación satisfactoria':'Expediente guardado correctamente.'+(fileGroups.length?' '+(fileGroups.length-failed.length)+' archivo(s) adjuntados.':'');
   // Leer datos frescos sin cerrar la ventana; la versión y los adjuntos quedan actualizados.
   let refreshed=false;
   try{
@@ -820,7 +820,7 @@ async function save(){
    const detail=failed.map(x=>x.file.name+': '+x.error).concat(replaceWarnings).join('\n');
    formAlert((mod==='UIA'?'Expediente registrado, pero faltan archivos por adjuntar.':note)+' Revisa los archivos indicados antes de volver a guardar; no repitas una subida confirmada:\n'+detail,'error');
   }else{
-   formAlert(mod==='UIA'?'GRABACIÓN SATISFACTORIA':note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
+   formAlert(mod==='UIA'?'Grabación satisfactoria':note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
   }
   if(r.advertencias?.length)formAlert(note+'\nAdvertencias: '+r.advertencias.join(' | '),'info');
  }catch(e){
