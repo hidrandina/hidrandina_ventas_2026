@@ -3795,7 +3795,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 const tipo = String(getProp(a, ['Tipo_Sustento',2])) === 'Atencion' ? 'Descargo / respuesta' : 'Sustento';
                 const fileId = String(getProp(a, ['Drive_File_ID',5]) || '');
                 const url = 'https://drive.google.com/file/d/'+ encodeURIComponent(fileId) + '/view';
-                const mostrar = fileId ? `<button type="button" class="text-blue-700 font-bold underline" onclick="mostrarPreviewGuardado('${id}','${nombre}','${escapeHtmlSustento(fileId)}')">Vista previa</button> <a class="text-blue-700 font-bold underline ml-2" href="${escapeHtmlSustento(url)}" target="_blank" rel="noopener noreferrer">Abrir en Drive (requiere permiso)</a>` : '<span class="text-red-600">Archivo no disponible</span>';
+                const mostrar = fileId ? `<button type="button" class="text-blue-700 font-bold underline" onclick="mostrarPreviewGuardado('${id}','${nombre}','${escapeHtmlSustento(fileId)}')">Vista previa</button> <a class="text-blue-700 font-bold underline ml-2" href="${escapeHtmlSustento(url)}" target="_blank" rel="noopener noreferrer">Abrir en Drive (requiere permiso)</a>` : '<span class="text-red-600">Archivo perdido</span>';
                 const documentoAsociado=appData.Documentos.find(d=>String(getProp(d,['Numero_Documento',1])).trim().toLowerCase()===String(numero).trim().toLowerCase());
                 const quitar = (permitirEliminar && puedeGestionarDocumento(documentoAsociado)) ? `<button type="button" onclick="reemplazarSustento('${id}')" class="text-blue-700 font-bold px-2 py-1 border border-blue-200 rounded" title="Reemplazar archivo">Reemplazar</button><button type="button" onclick="eliminarSustento('${id}')" class="text-rose-700 font-bold px-2 py-1 border border-rose-200 rounded" title="Eliminar adjunto">Eliminar</button>` : '';
                 return `<div class="p-3 rounded-xl border border-blue-100 bg-white flex justify-between items-center gap-3 text-xs"><div class="min-w-0"><div class="font-bold text-slate-900 break-all"><i class="fa-solid fa-file-lines text-blue-600 mr-1"></i>${nombre}</div><div class="text-slate-500 mt-1">${tipo}</div><div class="mt-2">${mostrar}</div></div>${quitar}</div>`;
@@ -3816,6 +3816,11 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             }
             if(cachePreview.has(id))cachePreviewBytes-=cachePreview.get(id).size;
             cachePreview.set(id,blob);cachePreviewBytes+=blob.size;
+        }
+        // REV120: solo errores confirmados de ausencia; no confundir conexión/permisos.
+        function hdArchivoPerdido_(error){
+            const m=String(error?.message||error||'');
+            return /archivo (?:en la papelera|no disponible|no registrado|eliminado|ya no est[aá] disponible)|no se encontr[oó] (?:el )?(?:archivo|adjunto)|file not found|file does not exist|no item with (?:the )?given id|file was not found|requested entity was not found|cannot find file/i.test(m);
         }
         async function mostrarPreviewGuardado(adjuntoId, nombre, driveId) {
             const solicitud=++vistaSolicitud;
@@ -3941,7 +3946,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             } catch(err) {
                 if(solicitud!==vistaSolicitud)return;
                 estado.classList.remove('hidden');
-                estado.textContent='No se pudo obtener la vista previa: '+(err.message||err);
+                estado.textContent=hdArchivoPerdido_(err)?'Archivo perdido':'No se pudo obtener la vista previa: '+(err.message||err);
                 console.error('Vista previa segura:',err);
             }
         }
@@ -5377,7 +5382,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV118-OM5-TIPO-ORDEN-20261119"></script>
+<script src="./ampliaciones-ui.js?v=REV120-ARCHIVO-PERDIDO-20261120"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
 <script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
 <script>
