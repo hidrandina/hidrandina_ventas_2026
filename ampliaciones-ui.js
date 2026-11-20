@@ -943,7 +943,7 @@ function renderAttachments(){
 
 async function upload(){if(!registro?.id)return;let input=$('amplUploadInput'),campo=$('amplAttachmentField').value;if(!input?.files?.length)return;try{for(let file of input.files){if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);let b64=await fileToBase64(file);await api('amplUpload',{modulo:curso,expedienteId:registro.id,campo,nombre:file.name,base64:b64});}await refresh(curso);registro.row=sheet(curso).registros.find(r=>id(r)===registro.id);renderAttachments();formAlert('Archivos subidos correctamente.','info');}catch(e){formAlert('Error al subir archivo: '+e.message,'error')}}
 function fileToBase64(file){return new Promise((resolve,reject)=>{let r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=()=>reject(Error('No se pudo leer archivo'));r.readAsDataURL(file)});}
-async function download(aid){try{let parts=[],r;for(let i=0;;i++){r=await api('amplPreview',{adjuntoId:aid,parte:i});let bin=atob(r.base64),ar=new Uint8Array(bin.length);for(let j=0;j<bin.length;j++)ar[j]=bin.charCodeAt(j);parts.push(ar);if(i+1>=r.total)break;}let blob=new Blob(parts,{type:r.mime}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=r.nombre;a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}catch(e){update('No se pudo recuperar el adjunto: '+e.message)}}
+async function download(aid){try{let parts=[],r;for(let i=0;;i++){r=await api('amplPreview',{adjuntoId:aid,parte:i});let bin=atob(r.base64),ar=new Uint8Array(bin.length);for(let j=0;j<bin.length;j++)ar[j]=bin.charCodeAt(j);parts.push(ar);if(i+1>=r.total)break;}let blob=new Blob(parts,{type:r.mime}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=r.nombre;a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}catch(e){update(hdAmplArchivoPerdido_(e)?'Archivo perdido':'No se pudo recuperar el adjunto: '+e.message)}}
 async function removeFile(aid){if(!confirm('¿Enviar este archivo a papelera de Google Drive?'))return;try{await api('amplDeleteAdj',{adjuntoId:aid,confirmar:'SI'});captureStage();const activeStage=registro.stage,activeId=registro.id,canEdit=registro.editable,drafts=registro.drafts,pending=registro.pendingFiles;await refresh(curso);open(activeId,activeStage,canEdit,drafts,pending);formAlert('Archivo adjunto eliminado correctamente.','info')}catch(e){formAlert('No se pudo eliminar el archivo: '+e.message,'error')}}
 async function removeExp(){let mod=curso,row=sheet(mod).registros.find(r=>id(r)===NAV[mod].selected);if(!row)return update('Selecciona un expediente.');if(!confirm('¿Eliminar expediente Ítem '+get(row,sheet(mod).headers,'Item')+' y enviar sus archivos a papelera?'))return;try{await api('amplDelete',{modulo:mod,expedienteId:id(row),confirmar:'ELIMINAR'});NAV[mod].selected='';await refresh(mod);update('Expediente eliminado correctamente.');alert('Expediente eliminado correctamente.');}catch(e){update('No se pudo eliminar el expediente: '+e.message);alert('No se pudo eliminar el expediente: '+e.message)}}
 
@@ -958,6 +958,11 @@ function cacheAttachment(id,blob,name,mime){
  if(blob.size>10*1024*1024)return;
  while(previewCacheBytes+blob.size>18*1024*1024 && previewCache.size){const oldest=previewCache.keys().next().value;previewCacheBytes-=previewCache.get(oldest).blob.size;previewCache.delete(oldest);}
  previewCache.set(id,{blob,name,mime});previewCacheBytes+=blob.size;
+}
+// REV120: un registro con adjunto inexistente no equivale a 'Sin archivo'.
+function hdAmplArchivoPerdido_(error){
+ const m=String(error?.message||error||'');
+ return /archivo (?:en la papelera|no disponible|no registrado|eliminado|ya no est[aá] disponible)|no se encontr[oó] (?:el )?(?:archivo|adjunto)|file not found|file does not exist|no item with (?:the )?given id|file was not found|requested entity was not found|cannot find file/i.test(m);
 }
 async function previewSaved(aid){
  const t=++previewGeneration;
@@ -984,7 +989,7 @@ async function previewSaved(aid){
   const blob=new Blob(parts,{type:info.mime||'application/octet-stream'}),name=info.nombre||'Archivo',mime=info.mime||'';
   cacheAttachment(aid,blob,name,mime);
   await previewBlob(blob,name,mime,t);
- }catch(e){if(t===previewGeneration)$('hdAmplPreviewBody').textContent='No se pudo visualizar: '+(e.message||e);}
+ }catch(e){if(t===previewGeneration)$('hdAmplPreviewBody').textContent=hdAmplArchivoPerdido_(e)?'Archivo perdido':'No se pudo visualizar: '+(e.message||e);}
 }
 function openPreview(name){const m=previewModal();if(!m)return;m.hidden=false;$('hdAmplPreviewTitle').textContent=name;$('hdAmplPreviewBody').textContent='Preparando vista previa…';$('hdAmplPreviewDownload').hidden=true;}
 async function previewBlob(blob,name,mime,generation){
