@@ -625,7 +625,15 @@ body[data-hd-auth-state="restore-error"] #hdSessionRestore {display:flex;}
 body[data-hd-auth-state="restore"] #hdMainContent,
 body[data-hd-auth-state="restore"] .glass-header {pointer-events:none;}
 /* Impide el gesto de recarga por arrastre vertical en navegadores compatibles. */
-html, body {overscroll-behavior-y:none;}
+/* REV131: restablecer desplazamiento vertical natural en móvil. */
+html, body {overscroll-behavior-y:auto;}
+@media (max-width:900px) {
+  html {height:auto!important;min-height:100%!important;overflow-y:auto!important;overscroll-behavior-y:auto!important;}
+  body {height:auto!important;min-height:100dvh!important;overflow-y:visible!important;overscroll-behavior-y:auto!important;-webkit-overflow-scrolling:touch;}
+  #hdMainContent {height:auto!important;min-height:0!important;overflow-y:visible!important;}
+  .hd-executive-workspace {height:auto!important;overflow-y:visible!important;}
+  #hdExecutiveSidebar { -webkit-overflow-scrolling:touch; }
+}
 body[data-hd-auth-state="app"] #hdSessionRestore,
 body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 </style>
@@ -3881,7 +3889,21 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             return;
           }
           try{
-            const r=await postGateway({action:'amplSummary'},45000);
+            let r;
+            try {
+              r=await postGateway({action:'amplSummary'},45000);
+            } catch(summaryErr) {
+              // REV131: compatibilidad temporal si el backend todavía no publicó amplSummary.
+              // No ocultar errores de autorización, sesión o red.
+              if (!/Acci[oó]n de ampliaciones desconocida/i.test(String(summaryErr?.message||summaryErr))) throw summaryErr;
+              const [om5,uia]=await Promise.all([hdAsegurarAmpl_('OM5'),hdAsegurarAmpl_('UIA')]);
+              const modalidades=Object.create(null);
+              om5.registros.forEach(exp=>{
+                const nombre=String(hdNro_(exp,['Modalidad'])||'Sin modalidad').trim()||'Sin modalidad';
+                modalidades[nombre]=(modalidades[nombre]||0)+1;
+              });
+              r={success:true,OM5:{total:om5.registros.length,modalidades},UIA:{total:uia.registros.length}};
+            }
             if(job!==hdExecRun||document.getElementById('tab-ejecutivo')?.classList.contains('hidden'))return;
             if(!r?.OM5||!r?.UIA||!Number.isFinite(Number(r.OM5.total))||!Number.isFinite(Number(r.UIA.total)))throw Error('Respuesta incompleta de indicadores.');
             const totalOM5=Number(r.OM5.total),totalUIA=Number(r.UIA.total);
