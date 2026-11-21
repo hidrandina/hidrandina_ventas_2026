@@ -686,6 +686,13 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #tab-uia #amplWorkspace .hd-ampl-grid table > thead > tr > th:nth-child(3),
 #tab-uia #amplWorkspace .hd-ampl-grid table > tbody > tr > td:nth-child(3) { display:none!important; }
 </style>
+<style id="hdSalirSidebarRev130">
+/* REV130: opción Salir al final del menú en PC y móvil. */
+#hdExecutiveSidebar > #hdMenuSalir { margin-top:auto !important; border-top:1px solid #6688b64d !important; }
+#hdExecutiveSidebar > #hdMenuSalir:hover,
+#hdExecutiveSidebar > #hdMenuSalir:focus-visible { background:#733047 !important; color:#fff !important; }
+@media(max-width:900px){ #hdExecutiveSidebar > #hdMenuSalir { margin-top:20px !important; } }
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -790,6 +797,8 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
       <button id="tab-btn-catalogos" class="tab-btn hd-side-item" onclick="switchTab('catalogos')"><i class="fa-solid fa-layer-group"></i><span>Gestión de catálogos</span></button>
       <button id="tab-btn-copias" class="tab-btn hd-side-item" onclick="switchTab('copias')"><i class="fa-solid fa-database"></i><span>Copias de seguridad</span></button>
       <button id="hdMenuConfig" class="hd-side-item" onclick="hdCloseMenu();openConfigModal()"><i class="fa-solid fa-gear"></i><span>Configuración del sistema</span></button>
+      <!-- REV130: opción Salir al final del menú, mantiene el cierre de sesión ya existente. -->
+      <button id="hdMenuSalir" type="button" class="hd-side-item hd-side-logout" onclick="hdCloseMenu();logoutSession()" title="Cerrar sesión de HIDRANDINA" aria-label="Salir y cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i><span>Salir</span></button>
     </nav>
 
     <!-- Contenido Principal -->
@@ -3850,28 +3859,45 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
         let hdExecCharts=[];let hdExecRun=0;
         function hdExecText_(id,value){const el=document.getElementById(id);if(el)el.textContent=String(value);}
         function hdExecGraph_(id,type,labels,values,colors){const canvas=document.getElementById(id);if(!canvas||!window.Chart)return;const ctx=canvas.getContext('2d');if(!ctx)return;hdExecCharts.push(new Chart(ctx,{type,data:{labels,datasets:[{label:'Expedientes',data:values,backgroundColor:colors,borderWidth:0,borderRadius:type==='bar'?5:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type!=='bar',position:'bottom'},tooltip:{enabled:true}},scales:type==='bar'?{y:{beginAtZero:true,ticks:{precision:0}}}:undefined}}));}
+        // REV129: el Panel Ejecutivo solicita solamente contadores, no las dos bases completas.
         async function hdRenderExecutive(){
           const job=++hdExecRun;
           hdExecCharts.forEach(c=>{try{c.destroy()}catch(_){}});hdExecCharts=[];
           const canDoc=hdPuedeModulo_('Documentos'),canAmpl=hdAccesoAmpliaciones_();
-          hdExecText_('hdExecutiveStatus','Actualizando indicadores con las bases de datos…');
-          const docs=canDoc && Array.isArray(appData?.Documentos)?appData.Documentos:null;
+          const docs=canDoc&&Array.isArray(appData?.Documentos)?appData.Documentos:null;
           hdExecText_('hdKpiDocumentos',docs?docs.length.toLocaleString('es-PE'):'—');
-          const results=await Promise.allSettled(canAmpl?['OM5','UIA'].map(mod=>hdAsegurarAmpl_(mod)):[]);
-          if(job!==hdExecRun || document.getElementById('tab-ejecutivo')?.classList.contains('hidden'))return;
-          const om5=results[0]?.status==='fulfilled'?results[0].value:null;
-          const uia=results[1]?.status==='fulfilled'?results[1].value:null;
-          hdExecText_('hdKpiOM5',om5?om5.registros.length.toLocaleString('es-PE'):'—');
-          hdExecText_('hdKpiUIA',uia?uia.registros.length.toLocaleString('es-PE'):'—');
-          const date=new Date();hdExecText_('hdExecutiveUpdated','Actualizado: '+date.toLocaleString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}));
-          const status=[];if(canDoc&&!docs)status.push('Documentos todavía no disponibles');if(canAmpl&&!om5)status.push('OM5: '+(results[0]?.reason?.message||'no disponible'));if(canAmpl&&!uia)status.push('UIA: '+(results[1]?.reason?.message||'no disponible'));
-          hdExecText_('hdExecutiveStatus',status.length?status.join(' · '):'Indicadores consultados correctamente.');
+          hdExecText_('hdKpiOM5',canAmpl?'…':'—');
+          hdExecText_('hdKpiUIA',canAmpl?'…':'—');
+          hdExecText_('hdExecutiveStatus',canAmpl?'Consultando contadores de OM5 y UIA…':'Indicadores disponibles.');
           const counts={};
-          if(docs){docs.forEach(d=>{const state=String(getProp(d,['Estado',9])||'Sin estado').trim()||'Sin estado';counts[state]=(counts[state]||0)+1;});const arr=Object.entries(counts).sort((a,b)=>b[1]-a[1]);hdExecGraph_('hdExecDocChart','doughnut',arr.map(x=>x[0]),arr.map(x=>x[1]),['#22a456','#f6ae1c','#ec4648','#3b82f6','#8b5cf6','#8fa7c4']);hdExecText_('hdExecDocNote',docs.length+' documentos, agrupados por su estado real.');}
-          else hdExecText_('hdExecDocNote',canDoc?'No hay datos de Documentos disponibles.':'Sin permiso para consultar Documentos.');
-          const modes={};if(om5){om5.registros.forEach(r=>{const mode=String(hdNro_(r,['Modalidad'])||'Sin modalidad').trim()||'Sin modalidad';modes[mode]=(modes[mode]||0)+1;});const arr=Object.entries(modes).sort((a,b)=>b[1]-a[1]).slice(0,10);hdExecGraph_('hdExecOM5Chart','bar',arr.map(x=>x[0]),arr.map(x=>x[1]),'#1976ee');hdExecText_('hdExecOM5Note',om5.registros.length+' expedientes OM5, clasificados por modalidad.');}
-          else hdExecText_('hdExecOM5Note',canAmpl?'No se pudo consultar OM5.':'Sin acceso a OM5.');
-
+          if(docs){
+            docs.forEach(d=>{const state=String(getProp(d,['Estado',9])||'Sin estado').trim()||'Sin estado';counts[state]=(counts[state]||0)+1;});
+            const arr=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+            hdExecGraph_('hdExecDocChart','doughnut',arr.map(x=>x[0]),arr.map(x=>x[1]),['#22a456','#f6ae1c','#ec4648','#3b82f6','#8b5cf6','#8fa7c4']);
+            hdExecText_('hdExecDocNote',docs.length+' documentos, agrupados por su estado real.');
+          }else hdExecText_('hdExecDocNote',canDoc?'No hay datos de Documentos disponibles.':'Sin permiso para consultar Documentos.');
+          if(!canAmpl){
+            hdExecText_('hdExecOM5Note','Sin acceso a OM5.');
+            return;
+          }
+          try{
+            const r=await postGateway({action:'amplSummary'},45000);
+            if(job!==hdExecRun||document.getElementById('tab-ejecutivo')?.classList.contains('hidden'))return;
+            if(!r?.OM5||!r?.UIA||!Number.isFinite(Number(r.OM5.total))||!Number.isFinite(Number(r.UIA.total)))throw Error('Respuesta incompleta de indicadores.');
+            const totalOM5=Number(r.OM5.total),totalUIA=Number(r.UIA.total);
+            hdExecText_('hdKpiOM5',totalOM5.toLocaleString('es-PE'));
+            hdExecText_('hdKpiUIA',totalUIA.toLocaleString('es-PE'));
+            const modos=Object.entries(r.OM5.modalidades||{}).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            hdExecGraph_('hdExecOM5Chart','bar',modos.map(x=>x[0]),modos.map(x=>x[1]),'#1976ee');
+            hdExecText_('hdExecOM5Note',totalOM5+' expedientes OM5, clasificados por modalidad.');
+            hdExecText_('hdExecutiveUpdated','Actualizado: '+new Date().toLocaleString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}));
+            hdExecText_('hdExecutiveStatus',canDoc&&!docs?'Documentos todavía no disponibles.':'Indicadores consultados correctamente.');
+          }catch(err){
+            if(job!==hdExecRun||document.getElementById('tab-ejecutivo')?.classList.contains('hidden'))return;
+            hdExecText_('hdKpiOM5','—');hdExecText_('hdKpiUIA','—');
+            hdExecText_('hdExecOM5Note','No se pudieron consultar los indicadores de OM5.');
+            hdExecText_('hdExecutiveStatus','No se pudieron cargar los indicadores de ampliaciones: '+String(err.message||err));
+          }
         }
         function switchTab(tabId) {
             if(currentUser && hdEsSoloOM5_(currentUser.tipo) && ['documentos','dashboard','catalogos'].includes(tabId))return;
