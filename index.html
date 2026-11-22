@@ -1749,11 +1749,16 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-6">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-extrabold text-slate-900 mb-2 text-xs uppercase tracking-wider flex items-center justify-between"><span>Estado de trámites</span><i class="fa-solid fa-chart-pie text-emerald-600"></i></h3>
+                    <p class="text-xs text-slate-500 mb-4">La gráfica circular muestra el nombre del estado, la cantidad y su porcentaje dentro del total filtrado.</p>
+                    <div id="hdDocEstadoChartWrap" style="position:relative;width:100%;height:380px;"><canvas id="chartEstados"></canvas></div>
+                </div>
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-extrabold text-slate-900 mb-2 text-xs uppercase tracking-wider flex items-center justify-between"><span>Documentos por origen / tipo de documento</span><i class="fa-solid fa-chart-bar text-indigo-600"></i></h3>
                     <p class="text-xs text-slate-500 mb-4">Cantidad de documentos por origen, según los filtros seleccionados.</p>
-                    <div id="hdDocOrigenChartWrap" style="position:relative;width:100%;height:320px;"><canvas id="chartOrigenes"></canvas></div>
+                    <div id="hdDocOrigenChartWrap" style="position:relative;width:100%;height:380px;"><canvas id="chartOrigenes"></canvas></div>
                 </div>
             </div>
         </section>
@@ -3653,17 +3658,89 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             const origenCounts = {}; origenesNombres.forEach(o => origenCounts[o] = 0);
             docsFiltrados.forEach(doc => { const orig = getProp(doc, ['Origen_Tipo', 2]) || 'Otros'; origenCounts[orig] = (origenCounts[orig] || 0) + 1; });
 
-            // REV137: solo gráfica de barras, sin modificar filtros ni cantidades fuente.
             if (chartsInstance.estados) { chartsInstance.estados.destroy(); chartsInstance.estados = null; }
-            if (chartsInstance.origenes) chartsInstance.origenes.destroy();
+            if (chartsInstance.origenes) { chartsInstance.origenes.destroy(); chartsInstance.origenes = null; }
 
-            // Omitir barras vacías facilita la lectura; los datos y catálogos no se alteran.
+            const estadoVisibles = Object.entries(dashEstadoCounts).filter(([, cantidad]) => Number(cantidad) > 0);
+            const estadoNombres = estadoVisibles.map(([nombre]) => nombre);
+            const estadoValores = estadoVisibles.map(([, cantidad]) => Number(cantidad));
+            const totalEstados = estadoValores.reduce((acc, val) => acc + val, 0);
+            const estadoWrap = document.getElementById('hdDocEstadoChartWrap');
+            if (estadoWrap) estadoWrap.style.height = Math.max(340, estadoVisibles.length * 32 + 180) + 'px';
+            const hdDocEstadoEtiquetas = {
+                id: 'hdDocEstadoEtiquetas',
+                afterDatasetsDraw(chart) {
+                    const dataset = chart.data.datasets[0];
+                    const meta = chart.getDatasetMeta(0);
+                    if (!dataset || !meta || meta.hidden) return;
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    ctx.font = '700 11px "Plus Jakarta Sans", sans-serif';
+                    ctx.fillStyle = '#183153';
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 1;
+                    meta.data.forEach((arc, index) => {
+                        const valor = Number(dataset.data[index] || 0);
+                        if (!valor || totalEstados <= 0) return;
+                        const angulo = (arc.startAngle + arc.endAngle) / 2;
+                        const x0 = arc.x + Math.cos(angulo) * (arc.outerRadius - 6);
+                        const y0 = arc.y + Math.sin(angulo) * (arc.outerRadius - 6);
+                        const x1 = arc.x + Math.cos(angulo) * (arc.outerRadius + 16);
+                        const y1 = arc.y + Math.sin(angulo) * (arc.outerRadius + 16);
+                        const derecha = Math.cos(angulo) >= 0;
+                        const x2 = x1 + (derecha ? 18 : -18);
+                        const porcentaje = ((valor / totalEstados) * 100).toFixed(1).replace('.0', '');
+                        const etiqueta = `${chart.data.labels[index]} · ${valor} · ${porcentaje}%`;
+                        ctx.beginPath();
+                        ctx.moveTo(x0, y0);
+                        ctx.lineTo(x1, y1);
+                        ctx.lineTo(x2, y1);
+                        ctx.stroke();
+                        ctx.textAlign = derecha ? 'left' : 'right';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(etiqueta, x2 + (derecha ? 4 : -4), y1);
+                    });
+                    ctx.restore();
+                }
+            };
+            chartsInstance.estados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: estadoNombres,
+                    datasets: [{
+                        data: estadoValores,
+                        backgroundColor: ['#2563eb','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#64748b','#14b8a6','#f97316'],
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '52%',
+                    layout: { padding: { top: 18, right: 110, bottom: 18, left: 110 } },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: context => {
+                                    const valor = Number(context.parsed || 0);
+                                    const porcentaje = totalEstados ? ((valor / totalEstados) * 100).toFixed(1).replace('.0', '') : '0';
+                                    return `${context.label}: ${valor} documento(s) · ${porcentaje}%`;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [hdDocEstadoEtiquetas]
+            });
+
             const origenVisibles = Object.entries(origenCounts).filter(([, cantidad]) => Number(cantidad) > 0);
             const origenNombres = origenVisibles.map(([nombre]) => nombre);
             const origenValores = origenVisibles.map(([, cantidad]) => Number(cantidad));
             const origenWrap = document.getElementById('hdDocOrigenChartWrap');
-            if (origenWrap) origenWrap.style.height = Math.max(240, origenVisibles.length * 47 + 75) + 'px';
-            // Etiquetas de cantidad, dibujadas en cada barra sin dependencias nuevas.
+            if (origenWrap) origenWrap.style.height = Math.max(300, origenVisibles.length * 47 + 90) + 'px';
             const hdDocOrigenEtiquetas = {
                 id: 'hdDocOrigenEtiquetas',
                 afterDatasetsDraw(chart) {
@@ -5860,7 +5937,7 @@ function group(rows,fn){let map=new Map();for(let r of rows){let key=String(fn(r
 const metric=(label,rows,fn)=>[label,fn(rows)];
 const col=(heads,lines,sourceMap)=>({heads,lines,sourceMap});
 let state={data:null,mod:null,report:null,chart:null,selected:[],render:0,prepared:null};
-function mount(){const t=$('hdNumMount');if(!t||t.dataset.ready)return;t.dataset.ready='1';t.innerHTML=`<div class="hd-num-panel"><h3 style="font-size:20px;font-weight:850;color:#133d7b">Indicadores numéricos gerenciales — 35 reportes</h3><p class="hd-num-note">Elige módulo, reporte y período. Haz clic en una fila para ver los expedientes que la componen.</p><div class="hd-num-grid"><label>Módulo<select id="hdNumMod"><option value="Documentos">Gestión de Documentos</option><option value="OM5">Ampliaciones OM5</option><option value="UIA">Ampliaciones UIA</option></select></label><label>Reporte<select id="hdNumType"></select></label><label>Fecha inicial<input id="hdNumStart" type="date"></label><label>Fecha final<input id="hdNumEnd" type="date"></label><label>Filtrar por<select id="hdNumFilterField"></select></label><label>Valor del filtro<select id="hdNumFilterValue"><option value="">Todos</option></select></label></div><div class="hd-num-buttons"><button type="button" id="hdNumGo">Consultar</button><button type="button" id="hdNumExcel" disabled>Descargar Excel</button><button type="button" id="hdNumMail" disabled>Abrir correo con Excel</button><button type="button" id="hdNumShare" disabled>Compartir Excel por WhatsApp</button></div><p class="hd-num-note">En celular compatible, «Compartir» abre la selección de aplicaciones con el Excel adjunto. En PC se descarga el archivo y se abre Correo o WhatsApp Web para adjuntarlo manualmente.</p><p id="hdNumStatus" class="hd-num-status" role="status" aria-live="polite"></p><div id="hdNumKpis" class="hd-num-kpis"></div><div class="hd-num-graph"><canvas id="hdNumChart"></canvas></div><div id="hdNumTable"></div><div id="hdNumDetails" class="hd-num-result" hidden></div></div>`;
+function mount(){const t=$('hdNumMount');if(!t||t.dataset.ready)return;t.dataset.ready='1';t.innerHTML=`<div class="hd-num-panel"><h3 style="font-size:20px;font-weight:850;color:#133d7b">Indicadores Gerenciales</h3><p class="hd-num-note">Elige módulo, reporte y período. Haz clic en una fila para ver los expedientes que la componen.</p><div class="hd-num-grid"><label>Módulo<select id="hdNumMod"><option value="Documentos">Gestión de Documentos</option><option value="OM5">Ampliaciones OM5</option><option value="UIA">Ampliaciones UIA</option></select></label><label>Reporte<select id="hdNumType"></select></label><label>Fecha inicial<input id="hdNumStart" type="date"></label><label>Fecha final<input id="hdNumEnd" type="date"></label><label>Filtrar por<select id="hdNumFilterField"></select></label><label>Valor del filtro<select id="hdNumFilterValue"><option value="">Todos</option></select></label></div><div class="hd-num-buttons"><button type="button" id="hdNumGo">Consultar</button><button type="button" id="hdNumExcel" disabled>Descargar Excel</button><button type="button" id="hdNumMail" disabled>Abrir correo con Excel</button><button type="button" id="hdNumShare" disabled>Compartir Excel por WhatsApp</button></div><p class="hd-num-note">En celular compatible, «Compartir» abre la selección de aplicaciones con el Excel adjunto. En PC se descarga el archivo y se abre Correo o WhatsApp Web para adjuntarlo manualmente.</p><p id="hdNumStatus" class="hd-num-status" role="status" aria-live="polite"></p><div id="hdNumKpis" class="hd-num-kpis"></div><div class="hd-num-graph"><canvas id="hdNumChart"></canvas></div><div id="hdNumTable"></div><div id="hdNumDetails" class="hd-num-result" hidden></div></div>`;
  // Panel reservado para el reporte exclusivo Seguimiento de Expedientes — OM5.
  const grid=t.querySelector('.hd-num-grid');
  grid.insertAdjacentHTML('afterend',`<section id="hdNumFollowFilters" hidden><h4>Filtros de seguimiento</h4><div class="hd-num-follow-grid">
