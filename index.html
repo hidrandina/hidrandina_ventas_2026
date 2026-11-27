@@ -1809,7 +1809,7 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
             </div><!-- /hdDocsCatalogArea -->
             <div id="hdAmplCatalogArea" class="hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div class="flex flex-wrap gap-3 justify-between items-center">
-                <div><h3 class="font-extrabold text-blue-950 text-lg">Catálogos OM5 / UIA</h3><p class="text-sm text-slate-500">Fuente: hoja Menu de BD_Ampliaciones_OM5. Las diez listas son independientes.</p></div>
+                <div><h3 class="font-extrabold text-blue-950 text-lg">Catálogos OM5 / UIA</h3><p class="text-sm text-slate-500">Fuente: hoja Menu de BD_Ampliaciones_OM5. Las once listas son independientes.</p></div>
                 <button type="button" onclick="hdAmplCatCargar()" class="border border-blue-300 px-4 py-2 rounded-xl font-bold text-blue-900"><i class="fa-solid fa-rotate mr-1"></i>Actualizar listas</button>
               </div>
               <div class="grid gap-3 md:grid-cols-[minmax(220px,1fr)_auto] items-end">
@@ -6145,11 +6145,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 </script>
 
-<!-- REV42: Catálogos de Ampliaciones administrados desde Menu A:J -->
+<!-- REV137: Catálogos de Ampliaciones administrados desde Menu A:K; K exclusivo OM5. -->
 <script>
 (function(){
   'use strict';
-  const LABELS=[['A','Modalidad'],['B','Tipo de suministro'],['C','Departamento'],['D','Provincia'],['E','Distrito'],['F','Estado Expediente'],['G','Estado Inspección Ventas'],['H','Estado UMD'],['I','Estado de Captación de Clientes'],['J','UUEE']];
+  const LABELS=[['A','Modalidad'],['B','Tipo de suministro'],['C','Departamento'],['D','Provincia'],['E','Distrito'],['F','Estado Expediente'],['G','Estado Inspección Ventas'],['H','Estado UMD'],['I','Estado de Captación de Clientes'],['J','UUEE'],['K','CheckList Inspección de Campo']];
   let data={},loaded=false,busy=false;
   const $=id=>document.getElementById(id);
   const isAdmin=()=>typeof currentUser!=='undefined'&&currentUser&&['Administrador','Administrador Total'].includes(String(currentUser.tipo));
