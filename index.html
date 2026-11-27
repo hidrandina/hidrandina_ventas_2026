@@ -1359,6 +1359,66 @@ body[data-hd-auth-state="login"] #hdSessionRestore {display:none!important;}
 #hdExecutiveSidebar > #hdMenuSalir:hover,#hdExecutiveSidebar > #hdMenuSalir:focus-visible {background:#733047!important;color:#fff!important;}
 @media(max-width:900px){#hdExecutiveSidebar > #hdMenuSalir{margin-top:20px!important;}}
 </style>
+<style id="hdCatalogVisual138">
+/* REV138: exclusivamente presentación de Gestión de catálogos. */
+#tab-catalogos:before{font-size:clamp(21px,2vw,28px);font-weight:800;letter-spacing:-.035em;margin:0 0 14px;color:#102f5d}
+#tab-catalogos>div:first-child{padding:8px!important;border-radius:14px!important;box-shadow:0 3px 12px #173b6510!important}
+#tab-catalogos>div:first-child>h2{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#tab-catalogos>div:first-child>[role=group]{display:flex;gap:6px;flex-wrap:wrap}
+#tab-catalogos #hdCatDocTab,#tab-catalogos #hdCatAmplTab{padding:10px 16px!important;font-size:13px!important;font-weight:700;border:1px solid transparent!important;border-radius:9px!important;min-height:42px;line-height:1.35}
+#tab-catalogos #hdCatDocTab:not(.bg-blue-700),#tab-catalogos #hdCatAmplTab:not(.bg-blue-700){color:#405b7d!important;background:#f3f6fb!important}
+#tab-catalogos #hdCatDocTab.bg-blue-700,#tab-catalogos #hdCatAmplTab.bg-blue-700{color:white!important;background:#164c9c!important;box-shadow:0 2px 5px #143e7620}
+#tab-catalogos #hdAmplCatalogArea{padding:0!important;border-radius:16px!important;overflow:hidden;box-shadow:0 6px 20px #183b6810!important}
+#hdAmplCatalogArea>div:first-child{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;background:#f7faff;border-bottom:1px solid #dce6f3;padding:20px 22px;margin:0!important}
+#hdAmplCatalogArea>div:first-child h3{font-size:19px;line-height:1.3;color:#163660;font-weight:800;margin:0 0 4px}
+#hdAmplCatalogArea>div:first-child p{font-size:12px;line-height:1.5;color:#596e89;margin:0;overflow-wrap:anywhere}
+#hdAmplCatalogArea>div:nth-child(2){display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;margin:0!important;padding:16px 22px 0}
+#hdAmplCatalogArea label{font-size:12px;font-weight:750;color:#345173;display:block;min-width:0}
+#hdAmplCatalogArea #hdAmplCatTipo{display:block;width:100%;min-width:0;margin-top:6px;border:1px solid #bfcfe4!important;background:#fff;color:#193c6d;border-radius:9px!important;padding:10px 12px!important;min-height:44px;font-size:14px;font-weight:650;box-shadow:none!important}
+#hdAmplCatalogArea button{cursor:pointer;transition:background .15s,border-color .15s;line-height:1.4}
+#hdAmplCatalogArea button[onclick="hdAmplCatCargar()"],#hdAmplCatalogArea button[onclick="hdAmplCatAgregar()"]{white-space:nowrap;font-size:13px;font-weight:700;min-height:44px;padding:10px 14px!important;border-radius:9px!important}
+#hdAmplCatalogArea button[onclick="hdAmplCatCargar()"]{border:1px solid #b7cae4!important;background:#fff;color:#17467f!important}
+#hdAmplCatalogArea button[onclick="hdAmplCatCargar()"]:hover{background:#eaf2fd}
+#hdAmplCatalogArea button[onclick="hdAmplCatAgregar()"]{background:#1657ad!important;color:#fff!important;border:1px solid #1657ad!important}
+#hdAmplCatalogArea button[onclick="hdAmplCatAgregar()"]:hover{background:#103f83!important}
+#hdAmplCatalogArea #hdAmplCatStatus{font-size:12px;line-height:1.5;padding:8px 12px;background:#f1f6fc;border-left:3px solid #9cb9dc;border-radius:5px;margin:12px 22px!important;overflow-wrap:anywhere}
+#hdAmplCatalogArea>div:nth-child(4){margin:0 22px!important;border:1px solid #d4dfed!important;border-radius:10px!important;max-height:58vh;overflow:auto;scrollbar-color:#a6b8ce #f1f5fa}
+#hdAmplCatalogArea table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;text-align:left;font-size:13px;min-width:0}
+#hdAmplCatalogArea thead{position:sticky;top:0;z-index:1;background:#163b73!important;color:#fff!important}
+#hdAmplCatalogArea th{padding:11px 12px!important;font-size:12px;font-weight:700;letter-spacing:.015em;text-align:left}
+#hdAmplCatalogArea th:first-child{width:56px;text-align:center}
+#hdAmplCatalogArea th:last-child{width:180px;text-align:center}
+#hdAmplCatalogArea td{padding:10px 12px!important;vertical-align:middle;border-bottom:1px solid #e1e9f3;line-height:1.5;color:#223c60}
+#hdAmplCatalogArea td:first-child:not([colspan]){text-align:center;color:#657b96;font-variant-numeric:tabular-nums;font-weight:600}
+#hdAmplCatalogArea td:nth-child(2){font-weight:550;white-space:normal;overflow-wrap:anywhere}
+#hdAmplCatalogArea td:last-child:not([colspan]){text-align:center;white-space:nowrap}
+#hdAmplCatalogArea tbody tr:nth-child(even){background:#f6f9fd!important}
+#hdAmplCatalogArea tbody tr:hover{background:#eaf2fc!important}
+#hdAmplCatalogArea tbody tr:last-child td{border-bottom:0}
+#hdAmplCatalogArea tbody button{font-size:12px;font-weight:650;border-radius:7px!important;min-height:32px;padding:6px 10px!important;background:#fff;white-space:nowrap}
+#hdAmplCatalogArea tbody button:first-child{color:#174d94!important;border:1px solid #bdd2ee!important;margin-right:6px!important}
+#hdAmplCatalogArea tbody button:last-child{color:#a92934!important;border:1px solid #ecc8cc!important}
+#hdAmplCatalogArea tbody button:first-child:hover{background:#e4effe}
+#hdAmplCatalogArea tbody button:last-child:hover{background:#fff0f0}
+#hdAmplCatalogArea button:focus-visible,#hdAmplCatalogArea select:focus-visible,#tab-catalogos>div:first-child button:focus-visible{outline:3px solid #6499e5;outline-offset:2px}
+#hdAmplCatalogArea>p:last-child{margin:12px 22px 18px!important;font-size:11px;line-height:1.6;color:#62748c}
+@media(max-width:767px){
+#tab-catalogos>div:first-child>[role=group]{display:grid;grid-template-columns:1fr}
+#hdAmplCatalogArea>div:first-child{padding:15px;align-items:flex-start}
+#hdAmplCatalogArea>div:nth-child(2){grid-template-columns:minmax(0,1fr);padding:14px 15px 0}
+#hdAmplCatalogArea #hdAmplCatStatus{margin:10px 15px!important}
+#hdAmplCatalogArea>div:nth-child(4){margin:0 15px!important;max-height:none}
+#hdAmplCatalogArea>p:last-child{margin:10px 15px 15px!important}
+#hdAmplCatalogArea table{min-width:0}
+#hdAmplCatalogArea th:first-child{width:37px}
+#hdAmplCatalogArea th:last-child{width:82px}
+#hdAmplCatalogArea th,#hdAmplCatalogArea td{padding:8px 6px!important;font-size:12px}
+#hdAmplCatalogArea td:last-child:not([colspan]){white-space:normal}
+#hdAmplCatalogArea tbody button{display:block;width:100%;margin:3px 0!important;padding:5px 3px!important;font-size:11px}
+#hdAmplCatalogArea tbody button:first-child{margin-right:0!important}
+}
+</style>
+
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
