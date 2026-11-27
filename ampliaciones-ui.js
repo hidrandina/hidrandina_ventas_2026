@@ -276,6 +276,19 @@ function fieldInput(h,value,editable){let date=/^fecha/i.test(key(h)),text=/obse
 }
 /* REV39: Navegación de cinco etapas. Los cambios escritos y los archivos seleccionados
    quedan en memoria hasta Guardar; cambiar de pestaña no los descarta. */
+// REV123: estado inicial OM5, sin alterar expedientes con avance registrado.
+function om5RegistroCampo_(campo){
+ const k=key(campo);
+ return ['item','solicitante','nombresector','suministro','tiposuministro','iniciativaobra','observacionesobras','uuee','departamento','provincia','distrito','alimentador','clientescaptar'].includes(k)||/^(nrosolicitud|fechasolicitud)[1-6]$|^(nroresolucion|fecharesolucion)[1-2]$/.test(k);
+}
+function om5TieneAvance_(row){
+ return Object.entries(row||{}).some(([k,v])=>!k.startsWith('__')&&!om5RegistroCampo_(k)&&String(v??'').trim()!=='');
+}
+function om5PendienteInicial_(row,original,rid,pendingFiles){
+ if(om5TieneAvance_(row)||om5TieneAvance_(original))return false;
+ if((sheet('OM5').adjuntos||[]).some(a=>rid&&String(a.expedienteId)===String(rid)&&!om5RegistroCampo_(a.campo)))return false;
+ return !Object.entries(pendingFiles||{}).some(([stage,files])=>(files||[]).some(a=>Number(stage)>0||!om5RegistroCampo_(a.campo)));
+}
 function captureStage(){
  if(!registro||!registro.editable)return;
  const form=$('amplFormBody');if(!form)return;
@@ -291,7 +304,7 @@ function captureStage(){
  const changes={};
  form.querySelectorAll('[data-k]').forEach(el=>{
   if(el.closest('[data-doc]')?.hidden)return;
-  const k=el.getAttribute('data-k');if(k)changes[k]=String(el.value??'').trim();
+  const k=el.getAttribute('data-k');if(k&&!(el.dataset.hdAutoPendiente==='1'&&el.value==='Pendiente'))changes[k]=String(el.value??'').trim();
  });
  registro.drafts[registro.stage]=changes;
  const selected=[];
@@ -409,6 +422,7 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   if(key(h)==='item'||grouped.has(h))return;
   let value=displayRow[h]??'';
   if(curso==='UIA'&&!rid&&key(h)==='estadoactual')value='Pendiente';
+  if(curso==='OM5'&&editable&&key(h)==='estadoexpventas'&&om5PendienteInicial_(displayRow,row,rid,pendingFiles))value='Pendiente';
   const readonlyMemo=curso==='OM5'&&key(h)==='memoenviogtmasivo';
   out.push(`<label class="hd-ampl-label"><span>${safe(uiLabels[key(h)]||sheet(curso).etiquetas?.[key(h)]||h)}</span>${fieldInput(h,value,editable)}</label>`);
  });
@@ -423,6 +437,10 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
   out.push('<section class="hd-ampl-doc-group hd-ampl-memo-individual"><h4>Memorando de envío individual a la Gerencia Técnica</h4><div class="hd-ampl-doc-list"><div class="hd-ampl-doc hd-ampl-single-doc"><label class="hd-ampl-doc-cell"><span>Número de memorando</span>'+fieldInput(memoIndividual,displayRow[memoIndividual]??'',editable)+'</label>'+inlineUpload(memoIndividual,editable)+'</div></div></section>');
  }
  ui.innerHTML=out.join('');
+ if(curso==='OM5'&&editable&&stage===1&&om5PendienteInicial_(displayRow,row,rid,pendingFiles)){
+  const status=[...ui.querySelectorAll('[data-k]')].find(el=>key(el.dataset.k)==='estadoexpventas');
+  if(status&&status.value==='Pendiente'){status.dataset.hdAutoPendiente='1';status.addEventListener('change',()=>{delete status.dataset.hdAutoPendiente;});}
+ }
  // REV61: ingreso OM5: agrupar los campos ya existentes sin clonar inputs,
  // sin cambiar nombres de columna, datos, validaciones ni guardado.
  if(isOM5Registro){
@@ -801,7 +819,8 @@ async function save(){
   }
   saving=true;if(button){button.disabled=true;button.textContent='Guardando…';}
   update('Guardando expediente. Permanece en este formulario.');
-  const r=await api('amplSave',{modulo:mod,expedienteId:registro.id,version:registro.version,datos:JSON.stringify(payload)});
+  const r=await api('amplSave',{modulo:mod,expedienteId:registro.id,version:registro.version,datos:JSON.stringify(payload),...(mod==='OM5'?{om5AdjuntosEtapasPosteriores:fileGroups.some(a=>a.stage>0||!om5RegistroCampo_(a.campo))?'SI':'NO'}:{})});
+  if(mod==='OM5'&&r?.estadoExpedienteAutomatico){const k=head(sheet(mod).headers,'EstadoExpVentas');if(k)payload[k]=r.estadoExpedienteAutomatico;}
   if(!r||!r.expedienteId)throw Error('El servidor no confirmó el ID del expediente. Consulta la lista antes de reintentar.');
   savedOnServer=true;serverResult=r;
   if(newEntryFlow)registro.postSaveNew=true; // Conservar la procedencia de un registro nuevo si hay guardado parcial.
