@@ -1439,6 +1439,17 @@ body:has(#tab-dash-ampl:not(.hidden)) #amplModal:is(.hd-om5-consulta,.hd-uia-con
 body #hdExecutiveSidebar #tab-btn-inspecciones-om5,
 body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
 </style>
+
+<style id="hd-checklist-colors-rev156">
+#hdAmplCatLegend[hidden]{display:none!important}
+.hd-checklist-legend{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:10px 12px;color:#294568;font-size:13px;background:#fff}
+.hd-checklist-legend span{display:inline-flex;align-items:center;gap:7px}
+.hd-checklist-legend i{width:15px;height:15px;border-radius:3px;display:inline-block;border:1px solid #adc1d8}
+.hd-checklist-vias,#hdAmplCatFilas tr[data-checklist-category="vias"]>td,.hdi-requirement[data-checklist-category="vias"]{background:#eaf2fd!important;color:#173d70}
+.hd-checklist-ubicacion,#hdAmplCatFilas tr[data-checklist-category="ubicacion"]>td,.hdi-requirement[data-checklist-category="ubicacion"]{background:#e7f5eb!important;color:#205c3c}
+.hdi-requirement[data-checklist-category="vias"]{border-color:#b5cbed}
+.hdi-requirement[data-checklist-category="ubicacion"]{border-color:#a8d4b8}
+</style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
 
@@ -1901,6 +1912,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                 <button type="button" onclick="hdAmplCatAgregar()" class="px-4 py-3 rounded-xl bg-blue-700 text-white font-bold"><i class="fa-solid fa-plus mr-1"></i>Agregar valor</button>
               </div>
               <div id="hdAmplCatStatus" role="status" aria-live="polite" class="text-sm text-slate-600">Selecciona un catálogo para consultar sus valores.</div>
+              <div id="hdAmplCatLegend" hidden class="hd-checklist-legend"><span><i class="hd-checklist-vias"></i>Corte de vías</span><span><i class="hd-checklist-ubicacion"></i>Ubicación y manzaneo</span></div>
               <div class="overflow-x-auto max-h-[55vh] overflow-y-auto border rounded-xl">
                 <table class="w-full text-sm text-left"><thead class="sticky top-0 bg-blue-900 text-white"><tr><th class="p-3">N.º</th><th class="p-3">Valor registrado</th><th class="p-3">Acciones</th></tr></thead><tbody id="hdAmplCatFilas"></tbody></table>
               </div>
@@ -6261,12 +6273,21 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!docs&&!loaded)load();
   }
   function chosen(){return $('hdAmplCatTipo')?.value||'A';}
+  // REV156: diferenciación visual exclusiva del catálogo K.
+  function checklistColor(value){
+    const t=String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');
+    if(/\(\s*cortes? de vias\s*\)/.test(t))return 'vias';
+    if(/\(\s*ubicacion\s+y\s+manzaneo\s*\)/.test(t))return 'ubicacion';
+    return '';
+  }
   function render(){
     const tb=$('hdAmplCatFilas');if(!tb)return;tb.replaceChildren();
     const entries=data[chosen()]||[];
+    const legend=$('hdAmplCatLegend');if(legend)legend.hidden=chosen()!=='K';
     if(!entries.length){const tr=tb.insertRow(),td=tr.insertCell();td.colSpan=3;td.className='p-4 text-slate-500';td.textContent=loaded?'No hay valores registrados.':'Selecciona Actualizar listas.';return;}
     entries.forEach((entry,i)=>{
       const tr=tb.insertRow();tr.className=i%2?'bg-slate-50':'';
+      if(chosen()==='K'){const category=checklistColor(entry.valor);if(category)tr.dataset.checklistCategory=category;}
       let a=tr.insertCell();a.className='p-3';a.textContent=String(i+1);
       a=tr.insertCell();a.className='p-3 font-semibold break-words';a.textContent=entry.valor;
       a=tr.insertCell();a.className='p-3 whitespace-nowrap';
