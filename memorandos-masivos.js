@@ -30,9 +30,9 @@ function renderItems(){
  const mod=selectModalidad(),data=currentData();items=mod&&data?data.registros.filter(r=>normalize(r.Modalidad)===normalize(mod)):[];
  selection=new Set([...selection].filter(id=>items.some(r=>String(r.__HD_ID)===id)));
  $('hdMemoTotal').textContent=items.length+' expedientes de la modalidad';
- $('hdMemoItems').innerHTML=items.map(r=>{
+ $('hdMemoItems').innerHTML=items.map((r,i)=>{
   const id=String(r.__HD_ID||''),n=associatedCount(id),full=n>=4;
-  return '<tr><td><input type="checkbox" data-memo-pick="'+esc(id)+'" '+(selection.has(id)?'checked':'')+' '+(full?'disabled title="Ya tiene cuatro memorandos"':'')+'></td><td>'+esc(r['Ítem']??r.Item??'')+'</td><td>'+esc(r.Solicitante||'')+'</td><td>'+esc(r.NombreSector||'')+'</td><td>'+n+' / 4</td><td>'+esc(r.MemoEnvioGTmasivo||'')+'</td></tr>';
+  return '<tr><td><input type="checkbox" data-memo-pick="'+esc(id)+'" '+(selection.has(id)?'checked':'')+' '+(full?'disabled title="Ya tiene cuatro memorandos"':'')+'></td><td>'+esc(i+1)+'</td><td>'+esc(r.Solicitante||'')+'</td><td>'+esc(r.NombreSector||'')+'</td><td>'+n+' / 4</td><td>'+esc(r.MemoEnvioGTmasivo||'')+'</td></tr>';
  }).join('')||'<tr><td colspan="6">Sin expedientes para esta modalidad.</td></tr>';
  $('hdMemoPicked').textContent=selection.size+' seleccionados';
  $('hdMemoItems').querySelectorAll('[data-memo-pick]').forEach(cb=>cb.addEventListener('change',()=>{cb.checked?selection.add(cb.dataset.memoPick):selection.delete(cb.dataset.memoPick);$('hdMemoPicked').textContent=selection.size+' seleccionados';}));
