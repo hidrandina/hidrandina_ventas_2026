@@ -1445,10 +1445,12 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
 .hd-checklist-legend{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:10px 12px;color:#294568;font-size:13px;background:#fff}
 .hd-checklist-legend span{display:inline-flex;align-items:center;gap:7px}
 .hd-checklist-legend i{width:15px;height:15px;border-radius:3px;display:inline-block;border:1px solid #adc1d8}
-.hd-checklist-vias,#hdAmplCatFilas tr[data-checklist-category="vias"]>td,.hdi-requirement[data-checklist-category="vias"]{background:#eaf2fd!important;color:#173d70}
-.hd-checklist-ubicacion,#hdAmplCatFilas tr[data-checklist-category="ubicacion"]>td,.hdi-requirement[data-checklist-category="ubicacion"]{background:#e7f5eb!important;color:#205c3c}
-.hdi-requirement[data-checklist-category="vias"]{border-color:#b5cbed}
-.hdi-requirement[data-checklist-category="ubicacion"]{border-color:#a8d4b8}
+.hd-checklist-vias,#hdAmplCatFilas tr[data-checklist-category="vias"]>td,.hdi-requirement[data-checklist-category="vias"]{background:#e5effd!important;color:#173d70}
+.hd-checklist-ubicacion,#hdAmplCatFilas tr[data-checklist-category="ubicacion"]>td,.hdi-requirement[data-checklist-category="ubicacion"]{background:#e4f3e9!important;color:#205c3c}
+#hdAmplCatalogArea #hdAmplCatFilas tr[data-checklist-category="vias"]>td{background:#e5effd!important;border-bottom:1px solid #a9bfdc!important}
+#hdAmplCatalogArea #hdAmplCatFilas tr[data-checklist-category="ubicacion"]>td{background:#e4f3e9!important;border-bottom:1px solid #a8cbb4!important}
+.hdi-requirement[data-checklist-category="vias"]{background:#e5effd!important;border:1px solid #a9bfdc!important}
+.hdi-requirement[data-checklist-category="ubicacion"]{background:#e4f3e9!important;border:1px solid #a8cbb4!important}
 </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800 antialiased bg-slate-100 selection:bg-blue-600 selection:text-white">
@@ -6277,7 +6279,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function checklistColor(value){
     const t=String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');
     if(/\(\s*cortes? de vias\s*\)/.test(t))return 'vias';
-    if(/\(\s*ubicacion\s+y\s+manzaneo\s*\)/.test(t))return 'ubicacion';
+    if(/\(\s*ubicacion\s+(?:y\s+)?manzaneo\s*\)/.test(t))return 'ubicacion';
     return '';
   }
   function render(){
