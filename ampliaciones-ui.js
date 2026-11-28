@@ -503,9 +503,27 @@ function open(rid,stage=0,editable=false,carriedDrafts=null,carriedFiles=null,ca
    // Observaciones, infraestructura y por último respuesta/estado.
    group('amplObsInsp');
    section('Metrado de redes a implementar','fa-network-wired',matches(/^(redes|postes|sed)/),3);
-   section('Memorando de respuesta al solicitante','fa-clipboard-check',
-    [...take('MemoRespuestaGC','MemoRespGC','MemoInspeccionRespuestaGC','MemoRespuestaInspeccionGC'),
-     ...take('EstadoInspeccionVentas')],2);
+   // REV164: reutilizar el componente documental existente, sin duplicar data-k.
+   const respuestas=take(...OM5_MEMO_RESPUESTA_FIELDS_);
+   if(respuestas.length){
+    const doc=document.createElement('section');
+    doc.className='hd-ampl-doc-group hd-ampl-memo-individual hd-ampl-memo-respuesta';
+    doc.innerHTML='<h4>Memorando de respuesta al solicitante</h4><div class="hd-ampl-doc-list"></div>';
+    const list=doc.querySelector('.hd-ampl-doc-list');
+    for(const label of respuestas){
+     const campo=label.querySelector('[data-k]').dataset.k;
+     const row=document.createElement('div');
+     row.className='hd-ampl-doc hd-ampl-single-doc';
+     row.style.gridTemplateColumns='minmax(0,1fr) minmax(0,1.5fr)';
+     remaining.delete(label);
+     label.classList.add('hd-ampl-doc-cell');
+     row.appendChild(label);
+     row.insertAdjacentHTML('beforeend',inlineUpload(campo,editable));
+     list.appendChild(row);
+    }
+    rendered.push(doc);
+   }
+   section('Estado de la inspección','fa-clipboard-check',take('EstadoInspeccionVentas'),1);
   }else if(stage===3){
    // Memorando individual con su archivo, masivo, modalidad, fechas, OM y estado.
    const individual=originalDocs.find(node=>node.classList.contains('hd-ampl-memo-individual'));
@@ -930,6 +948,7 @@ function lockSavedNewUIA(){
 
 /* Los adjuntos mostrados en las fichas de cada etapa NO se vuelven a listar abajo.
    Se conserva acceso a adjuntos de otros campos y la carga adicional en edición. */
+const OM5_MEMO_RESPUESTA_FIELDS_=['MemoRespuestaGC','MemoRespGC','MemoInspeccionRespuestaGC','MemoRespuestaInspeccionGC'];
 function inlineAttachmentFields(mod){
  const hs=sheet(mod).headers;
  const names=new Set();
@@ -940,6 +959,7 @@ function inlineAttachmentFields(mod){
   add('MemoObsGC',3);
   add('MemoObsInspGC',3);
   const individual=head(hs,'MemoEnvioIndividualGT');if(individual)names.add(key(individual));
+  for(const h of fieldsByStage('OM5',2))if(OM5_MEMO_RESPUESTA_FIELDS_.some(n=>key(n)===key(h)))names.add(key(h));
  }else add('MemorandoGC',5);
  return names;
 }
