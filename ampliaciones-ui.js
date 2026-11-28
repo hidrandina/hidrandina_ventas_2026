@@ -22,6 +22,7 @@ const view=()=>adm()||asis()||oper()||['Visitante OM5','Visitante Total'].includ
 const edit=()=>adm()||asis()||oper();
 const update=(txt,type='info')=>{let e=$('amplStatus');if(e)e.textContent=txt;let m=$('amplFormStatus');if(m&&!$('amplModal')?.hidden&&registro?.editable){m.textContent=txt;m.dataset.type=type;m.hidden=!txt;}};
 let saving=false;
+const aviso171=(m,t='info',d='')=>{if(typeof window.hdAviso171_==='function')window.hdAviso171_(m,t,d);else window.alert(m+(d?'\n'+d:''));};
 function formAlert(message,type='error',fieldName=''){
  const t=String(message||'No se pudo completar la operación.');update(t,type);
  const e=$('amplFormStatus');if(e){e.hidden=false;e.scrollIntoView({block:'nearest',behavior:'smooth'});}
@@ -790,7 +791,7 @@ function addDoc(kind){
  const btn=next.parentElement.querySelector('.hd-ampl-add');if(btn)btn.disabled=!rows.some(e=>e.hidden);
  next.querySelector('input[data-k],textarea[data-k]')?.focus();
 }
-async function deleteDocField(campo){if(!registro?.id||!registro.editable)return;if(!confirm('¿Eliminar '+campo+' y enviar a la papelera TODOS sus adjuntos?'))return;try{let r=await api('amplDeleteDocument',{modulo:curso,expedienteId:registro.id,campo,confirmar:'ELIMINAR_DOCUMENTO'});let rid=registro.id;await refresh(curso);open(rid,registro.stage,true);formAlert('Documento eliminado correctamente; '+r.adjuntos+' adjunto(s) enviados a papelera.','info');}catch(e){formAlert('No se pudo eliminar el documento: '+e.message,'error')}}
+async function deleteDocField(campo){if(!registro?.id||!registro.editable)return;if(!confirm('¿Eliminar '+campo+' y enviar a la papelera TODOS sus adjuntos?'))return;try{let r=await api('amplDeleteDocument',{modulo:curso,expedienteId:registro.id,campo,confirmar:'ELIMINAR_DOCUMENTO'});let rid=registro.id;await refresh(curso);open(rid,registro.stage,true);formAlert('Documento eliminado correctamente; '+r.adjuntos+' adjunto(s) enviados a papelera.','info');aviso171('Documento eliminado satisfactoriamente.','success',r.adjuntos+' adjunto(s) enviados a papelera.');}catch(e){formAlert('No se pudo eliminar el documento: '+e.message,'error');aviso171('No se pudo confirmar la eliminación del documento.',e.respuestaServidor?'error':'uncertain',e.message)}}
 function close(){
  if(saving){formAlert('El guardado todavía está en curso. No cierres el formulario.','info');return;}
  if((registro?.mod==='OM5'||registro?.mod==='UIA')&&registro.editable&&(!registro.id||registro.postSaveNew)){
@@ -825,7 +826,7 @@ async function save(){
   const uiaEditFlow=mod==='UIA'&&!newEntryFlow&&!isNew;
   const om5CompleteFlow=newEntryFlow||om5EditFlow||uiaEditFlow;
   const validation=validateBeforeSave(payload,mod,isNew);
-  if(validation){formAlert(validation.message,'error',validation.field);return;}
+  if(validation){formAlert(validation.message,'error',validation.field);aviso171(validation.message,'error');return;}
   const currentStage=registro.stage;
   const fileGroups=Object.entries(registro.pendingFiles).flatMap(([stage,arr])=>(arr||[]).map(item=>({...item,stage:Number(stage)})));
   // REV94: registrar adjuntos anteriores ANTES de subir los nuevos, solo en Editar OM5.
@@ -902,7 +903,7 @@ async function save(){
   // los datos, todos los adjuntos se procesaron y la nueva lectura se confirmó.
   // Con errores, advertencias o carga parcial conserva abierta la misma ficha.
   if(om5CompleteFlow&&refreshed&&!failed.length&&!replaceWarnings.length&&!(r.advertencias||[]).length){
-   window.alert('Grabación satisfactoria');
+   aviso171((isNew?'Expediente '+mod+' registrado':'Expediente '+mod+' actualizado')+' satisfactoriamente.','success',fileGroups.length?fileGroups.length+' archivo(s) adjuntado(s).':'');
    const modal=$('amplModal');
    if(modal)modal.hidden=true;
    registro=null;
@@ -915,11 +916,13 @@ async function save(){
    formAlert(uiaEditFlow?'No se pudo confirmar la actualización completa. Comprueba las advertencias antes de salir.':mod==='UIA'?'Grabación satisfactoria':note+' Puedes continuar editando cualquier etapa o pulsar Cerrar.','info');
   }
   if(r.advertencias?.length)formAlert(note+'\nAdvertencias: '+r.advertencias.join(' | '),'info');
+  if(failed.length||replaceWarnings.length||r.advertencias?.length||!refreshed){aviso171('El expediente fue guardado, pero el proceso no se completó totalmente.','warning',[...failed.map(x=>x.file.name+': '+x.error),...replaceWarnings,...(r.advertencias||[]),...(!refreshed?['No se pudo actualizar la lista. Verifica antes de repetir.']:[])].join('\n'));}
+  else aviso171((isNew?'Expediente '+mod+' registrado':'Expediente '+mod+' actualizado')+' satisfactoriamente.','success');
   // UIA y OM5 cierran el alta únicamente después de confirmar todos los adjuntos.
   // La edición ordinaria de UIA conserva el comportamiento anterior.
  }catch(e){
   const msg=(e&&e.message)||String(e);
-  formAlert((savedOnServer?'El expediente se guardó, pero ocurrió un problema adicional; no repitas el guardado sin verificarlo. ':'No se pudo guardar. ')+msg,'error');
+  formAlert((savedOnServer?'El expediente se guardó, pero ocurrió un problema adicional; no repitas el guardado sin verificarlo. ':'No se pudo guardar. ')+msg,'error');aviso171(savedOnServer?'Expediente guardado con incidencias.':'No se pudo confirmar el guardado.',savedOnServer?'warning':e.respuestaServidor?'error':'uncertain',msg); 
  }finally{saving=false;if(button){button.disabled=!!registro?.postSaveLocked;button.textContent='Guardar';}}
 }
 /* REV108: solo NUEVO expediente UIA guardado satisfactoriamente.
@@ -983,11 +986,11 @@ function renderAttachments(){
  if(divider)divider.hidden=!show;
 }
 
-async function upload(){if(!registro?.id)return;let input=$('amplUploadInput'),campo=$('amplAttachmentField').value;if(!input?.files?.length)return;try{for(let file of input.files){if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);let b64=await fileToBase64(file);await api('amplUpload',{modulo:curso,expedienteId:registro.id,campo,nombre:file.name,base64:b64});}await refresh(curso);registro.row=sheet(curso).registros.find(r=>id(r)===registro.id);renderAttachments();formAlert('Archivos subidos correctamente.','info');}catch(e){formAlert('Error al subir archivo: '+e.message,'error')}}
+async function upload(){if(!registro?.id)return;let input=$('amplUploadInput'),campo=$('amplAttachmentField').value;if(!input?.files?.length)return;try{for(let file of input.files){if(file.size>10*1024*1024)throw Error('Archivo mayor de 10 MB: '+file.name);let b64=await fileToBase64(file);await api('amplUpload',{modulo:curso,expedienteId:registro.id,campo,nombre:file.name,base64:b64});}await refresh(curso);registro.row=sheet(curso).registros.find(r=>id(r)===registro.id);renderAttachments();formAlert('Archivos subidos correctamente.','info');aviso171('Archivos adjuntados satisfactoriamente.','success');}catch(e){formAlert('Error al subir archivo: '+e.message,'error');aviso171('No se pudo confirmar la carga completa.','uncertain',e.message+' Verifica los adjuntos antes de repetir.')}}
 function fileToBase64(file){return new Promise((resolve,reject)=>{let r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=()=>reject(Error('No se pudo leer archivo'));r.readAsDataURL(file)});}
 async function download(aid){try{let parts=[],r;for(let i=0;;i++){r=await api('amplPreview',{adjuntoId:aid,parte:i});let bin=atob(r.base64),ar=new Uint8Array(bin.length);for(let j=0;j<bin.length;j++)ar[j]=bin.charCodeAt(j);parts.push(ar);if(i+1>=r.total)break;}let blob=new Blob(parts,{type:r.mime}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=r.nombre;a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}catch(e){update(hdAmplArchivoPerdido_(e)?'Archivo perdido':'No se pudo recuperar el adjunto: '+e.message)}}
-async function removeFile(aid){if(!confirm('¿Enviar este archivo a papelera de Google Drive?'))return;try{await api('amplDeleteAdj',{adjuntoId:aid,confirmar:'SI'});captureStage();const activeStage=registro.stage,activeId=registro.id,canEdit=registro.editable,drafts=registro.drafts,pending=registro.pendingFiles;await refresh(curso);open(activeId,activeStage,canEdit,drafts,pending);formAlert('Archivo adjunto eliminado correctamente.','info')}catch(e){formAlert('No se pudo eliminar el archivo: '+e.message,'error')}}
-async function removeExp(){let mod=curso,row=sheet(mod).registros.find(r=>id(r)===NAV[mod].selected);if(!row)return update('Selecciona un expediente.');if(!confirm('¿Eliminar expediente Ítem '+get(row,sheet(mod).headers,'Item')+' y enviar sus archivos a papelera?'))return;try{await api('amplDelete',{modulo:mod,expedienteId:id(row),confirmar:'ELIMINAR'});NAV[mod].selected='';await refresh(mod);update('Expediente eliminado correctamente.');alert('Expediente eliminado correctamente.');}catch(e){const msg=mod==='OM5'&&/^No se puede eliminar:/i.test(e.message)?e.message.replace(/^No se puede eliminar:/i,'No se puede eliminar el expediente:').replace(/: el expediente tiene/i,': tiene'):'No se pudo eliminar el expediente: '+e.message;update(msg);alert(msg)}}
+async function removeFile(aid){if(!confirm('¿Enviar este archivo a papelera de Google Drive?'))return;try{await api('amplDeleteAdj',{adjuntoId:aid,confirmar:'SI'});captureStage();const activeStage=registro.stage,activeId=registro.id,canEdit=registro.editable,drafts=registro.drafts,pending=registro.pendingFiles;await refresh(curso);open(activeId,activeStage,canEdit,drafts,pending);formAlert('Archivo adjunto eliminado correctamente.','info');aviso171('Archivo eliminado satisfactoriamente.','success')}catch(e){formAlert('No se pudo eliminar el archivo: '+e.message,'error');aviso171('No se pudo confirmar la eliminación del archivo.',e.respuestaServidor?'error':'uncertain',e.message)}}
+async function removeExp(){let mod=curso,row=sheet(mod).registros.find(r=>id(r)===NAV[mod].selected);if(!row)return update('Selecciona un expediente.');if(!confirm('¿Eliminar expediente Ítem '+get(row,sheet(mod).headers,'Item')+' y enviar sus archivos a papelera?'))return;try{await api('amplDelete',{modulo:mod,expedienteId:id(row),confirmar:'ELIMINAR'});NAV[mod].selected='';await refresh(mod);update('Expediente eliminado correctamente.');aviso171('Expediente '+mod+' eliminado satisfactoriamente.','success');}catch(e){const msg=mod==='OM5'&&/^No se puede eliminar:/i.test(e.message)?e.message.replace(/^No se puede eliminar:/i,'No se puede eliminar el expediente:').replace(/: el expediente tiene/i,': tiene'):'No se pudo eliminar el expediente: '+e.message;update(msg);aviso171(msg,/^No se puede eliminar:/i.test(e.message)||e.respuestaServidor?'error':'uncertain')}}
 
 // REV13: Vista previa local y de Drive sin modificar ni subir archivos.
 let previewObjectUrl=null, previewGeneration=0, previewPdf=null, previewPage=1;

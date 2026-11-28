@@ -11,6 +11,7 @@ const mayEdit=()=>['Administrador','Administrador OM5','Asistente OM5','Operador
 // Revalidar los permisos al abrir el módulo: durante DOMContentLoaded la sesión puede no estar restaurada.
 function syncNewButton(){const b=$('hdMemoNew');if(!b)return;const allowed=mayEdit();b.disabled=!allowed;b.title=allowed?'Preparar un memorando nuevo':'Tu perfil solo permite consultar memorandos';}
 
+const aviso171=(m,t='info',d='')=>{if(typeof window.hdAviso171_==='function')window.hdAviso171_(m,t,d);else window.alert(m+(d?'\n'+d:''));};
 function alertBox(message,type='info'){
  const el=$('hdMemoStatus');if(!el)return;el.textContent=message;el.dataset.kind=type;
 }
@@ -114,15 +115,15 @@ async function save(){if(busy){alertBox('Ya se está procesando el memorando. Ev
   if(file){alertBox('Memorando guardado. Adjuntando archivo…');await uploadAttachment(result.memoId,file);}
   // Recargar expedientes para reflejar el último memo y la nueva versión.
   await Promise.all([window.Ampliaciones.refresh('OM5'),load()]);renderModalities();renderItems();renderMemos();resetForm();selection.clear();renderItems();
-  alertBox((esEdicion?'Cambios del memorando guardados correctamente.':'Memorando grabado correctamente en '+cantidadSeleccionada+' expedientes.')+(file?' Archivo adjunto guardado correctamente.':''),'success');
- }catch(e){alertBox((registered?'El memorando se guardó, pero quedó pendiente el archivo adjunto o la actualización visual. No vuelvas a registrarlo sin consultar el historial. ':'No se pudo guardar. ')+e.message,'error');}
+  alertBox((esEdicion?'Cambios del memorando guardados correctamente.':'Memorando grabado correctamente en '+cantidadSeleccionada+' expedientes.')+(file?' Archivo adjunto guardado correctamente.':''),'success');aviso171(esEdicion?'Memorando masivo actualizado satisfactoriamente.':'Memorando masivo registrado satisfactoriamente.','success',(esEdicion?'':cantidadSeleccionada+' expedientes. ')+(file?'Archivo adjunto guardado.':''));
+ }catch(e){alertBox((registered?'El memorando se guardó, pero quedó pendiente el archivo adjunto o la actualización visual. No vuelvas a registrarlo sin consultar el historial. ':'No se pudo guardar. ')+e.message,'error');aviso171(registered?'Memorando guardado con incidencias.':'No se pudo confirmar el guardado del memorando.',registered?'warning':e.respuestaServidor?'error':'uncertain',e.message+' Verifica el historial antes de repetir.');}
  finally{setBusy(false);}
 }
 async function removeMemo(id){if(busy||!mayEdit()||!serverReady)return;const m=memos.find(x=>x.id===id);if(!m)return;
  if(!confirm('¿Confirma que desea eliminar el memorando '+m.numero+' de '+m.expedientes.length+' expedientes?'))return;
  setBusy(true);try{await api('amplMemoWrite',{operacion:'eliminar',memoId:id,confirmar:'ELIMINAR_MEMORANDO'});
- await Promise.all([window.Ampliaciones.refresh('OM5'),load()]);renderItems();renderMemos();if(editId===id)resetForm();alertBox('Memorando eliminado correctamente.','success');
- }catch(e){alertBox('No se pudo eliminar el memorando: '+e.message,'error');}finally{setBusy(false);}
+ await Promise.all([window.Ampliaciones.refresh('OM5'),load()]);renderItems();renderMemos();if(editId===id)resetForm();alertBox('Memorando eliminado correctamente.','success');aviso171('Memorando masivo eliminado satisfactoriamente.','success');
+ }catch(e){alertBox('No se pudo eliminar el memorando: '+e.message,'error');aviso171('No se pudo confirmar la eliminación del memorando.',e.respuestaServidor?'error':'uncertain',e.message);}finally{setBusy(false);}
 }
 // REV51: un único Excel profesional de la tabla visible "Historial de memorandos".
 // No se crean reportes ni selectores adicionales. Se utiliza el exportador
@@ -158,8 +159,8 @@ async function exportExcel(){
    encabezados,filas,
    'Historial_Memorandos_OM5_'+safe+'_'+new Date().toISOString().slice(0,10)+'.xlsx'
   );
-  alertBox('Historial de memorandos descargado correctamente en Excel.','success');
- }catch(e){alertBox('No se pudo descargar el Excel: '+String(e?.message||e),'error');}
+  alertBox('Historial de memorandos preparado en Excel.','success');aviso171('Reporte de memorandos generado satisfactoriamente.','success','Descarga iniciada.');
+ }catch(e){alertBox('No se pudo descargar el Excel: '+String(e?.message||e),'error');aviso171('No se pudo generar el Excel.','error',e?.message||e);}
  finally{button.disabled=false;button.textContent=originalText;}
 }
 function closeLocalPdf(){
