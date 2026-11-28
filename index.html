@@ -13,6 +13,8 @@
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
     <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <title>GESTIÓN DE DOCUMENTOS Y AMPLIACIONES OM5</title>
+    <script src="./mensajes-ui.js?v=REV171"></script>
+    <script>function hdAviso171_(m,t='info',d=''){try{if(window.HDMensajes?.show){window.HDMensajes.show(m,t,d);return;}window.alert(String(m)+(d?'\n'+d:''));}catch(_){}}</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -3039,6 +3041,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
         }
 
         async function logoutSession() {
+            window.HDMensajes?.clear();
             // Invalidar inmediatamente lecturas en vuelo; una respuesta atrasada no reabrirá el programa.
             hidraSesionVersion++;
             om5.seq++; om5.hojas=[];om5.data=[];om5.filtered=[];om5.gid=null;om5.loaded=false;
@@ -3255,8 +3258,8 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                 if (params.action !== 'read') { cachePreview.clear(); cachePreviewBytes=0; }
                 setConnectionStatus('active','Guardado en nube');
                 if(successCallback) await successCallback(res); else await fetchData();
-                if(params.action==='saveCatalog')alert('Datos de '+(params.type||'catálogo')+' guardados correctamente.');
-                if(params.action==='deleteCatalog')alert('Registro de '+(params.type||'catálogo')+' eliminado correctamente.');
+                if(params.action==='saveCatalog')hdAviso171_('Datos de '+(params.type||'catálogo')+' guardados correctamente.','success');
+                if(params.action==='deleteCatalog')hdAviso171_('Registro de '+(params.type||'catálogo')+' eliminado correctamente.','success');
             }catch(err){
                 if (err.respuestaServidor) {
                     // Usuario duplicado, permisos o validación: servidor accesible.
@@ -3268,7 +3271,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                 const b=document.querySelector('#docForm button[type="submit"]');
                 if(b){b.disabled=false;b.textContent='Guardar';}
                 const perfilDesactualizado=params.action==='saveCatalog' && params.type==='Personal' && /perfil no v[aá]lido/i.test(String(err.message||''));
-                alert('No se completó la operación: '+(err.message||err)+(perfilDesactualizado?'\n\nRevisa que hayas publicado una NUEVA VERSIÓN de Codigo.gs REV36 en la misma implementación de Apps Script.':'') );
+                hdAviso171_('No se pudo confirmar la operación.',err.respuestaServidor?'error':'uncertain',(err.message||err)+(perfilDesactualizado?'\n\nRevisa que hayas publicado una NUEVA VERSIÓN de Codigo.gs REV36 en la misma implementación de Apps Script.':'') );
             }
         }
 
@@ -3339,7 +3342,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                     throw new Error('La fecha de término debe ser igual o posterior a la fecha de inicio.');
                 }
             } catch(error) {
-                alert(error.message);
+                hdAviso171_(error.message,'error');
                 return;
             }
             rangoFechasDocumentosAplicado = { inicio, fin };
@@ -3514,9 +3517,9 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
           document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
         }
 
-        function exportarExcel() {
+        function exportarExcel(paraCorreo=false) {
             const docs = obtenerDocumentosFiltradosActuales();
-            if (!docs || docs.length === 0) { alert("No hay registros para exportar."); return; }
+            if (!docs || docs.length === 0) { hdAviso171_("No hay registros para exportar."); return; }
 
             const datosFormateados = docs.map(doc => {
                 const fechaIngRaw = getProp(doc, ['Fecha_Ingreso', 4]) || '';
@@ -3539,17 +3542,16 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
 
             const headers=Object.keys(datosFormateados[0]);
             const filas=datosFormateados.map(r=>headers.map(h=>r[h]??''));
-            hdExcelDescargar_('Control de documentos','Gestión de Documentos',headers,filas,'Control_Documentos_Hidrandina.xlsx')
-              .catch(e=>alert('No se pudo generar el Excel: '+e.message));
+            return hdExcelDescargar_('Control de documentos','Gestión de Documentos',headers,filas,'Control_Documentos_Hidrandina.xlsx')
+              .then(()=>{hdAviso171_('Reporte Excel generado satisfactoriamente.','success',paraCorreo===true?'Descarga iniciada. Adjunta el archivo en tu gestor de correo.':'Descarga iniciada en el navegador.');return true;}).catch(e=>{hdAviso171_('No se pudo generar el Excel.','error',e.message);return false;});
         }
 
-        function enviarListaCorreo() {
+        async function enviarListaCorreo() {
             const docs = obtenerDocumentosFiltradosActuales();
-            if (!docs || docs.length === 0) { alert("No hay registros en la lista para enviar."); return; }
-            exportarExcel();
+            if (!docs || docs.length === 0) { hdAviso171_("No hay registros en la lista para enviar."); return; }
+            if(!await exportarExcel(true))return;
             const asunto = encodeURIComponent("REPORTE GENERAL: Control de Documentos - Hidrandina (Ventas y Clientes Menores)");
             let cuerpo = `Estimado equipo,\n\nSe adjunta el reporte actual de control de documentos en formato Excel para su revisión y atención.\n\nAtte,\nIng. Johnny Quevin Camacho Mori`;
-            alert("¡Reporte Excel descargado con éxito!\n\nPor favor, adjunta el archivo 'Control_Documentos_Hidrandina.xlsx' en tu gestor de correo.");
             window.location.href = `mailto:?subject=${asunto}&body=${encodeURIComponent(cuerpo)}`;
         }
 
@@ -3887,7 +3889,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
         let documentoOriginalEnEdicion_ = '';
         function openDocFormModal(idx = null) {
             if (!currentUser || hdRolDocJS_(currentUser.tipo) === 'Visita') return;
-            if (idx !== null && !puedeGestionarDocumento(appData.Documentos[idx])) { alert('Solo puedes editar expedientes creados por ti o asignados a tu nombre.'); return; }
+            if (idx !== null && !puedeGestionarDocumento(appData.Documentos[idx])) { hdAviso171_('Solo puedes editar expedientes creados por ti o asignados a tu nombre.'); return; }
             document.getElementById('docForm').reset();
             archivosEnCola = [];
             limpiarPrevisualizaciones();
@@ -3960,7 +3962,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                 if (idx === null) {
                     const nombre = String(currentUser.nombre || '').trim();
                     const op = Array.from(respSelect.options).find(opt => opt.value.trim().toLowerCase() === nombre.toLowerCase());
-                    if (!op) { alert('Tu usuario no tiene un responsable asociado en Personal. Consulta al administrador.'); return; }
+                    if (!op) { hdAviso171_('Tu usuario no tiene un responsable asociado en Personal. Consulta al administrador.'); return; }
                     respSelect.value = op.value;
                 } else {
                     // Conserva al responsable del expediente existente, sin reasignarlo.
@@ -4283,9 +4285,9 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
             const estado=document.getElementById('estadoCompartirExpediente');
             const btn=document.getElementById('btnCompartirExpediente');
             if(!doc||!currentUser||!window.hidraSessionToken){
-                alert('Debes iniciar sesión y abrir un documento para exportar su expediente.');return;
+                hdAviso171_('Debes iniciar sesión y abrir un documento para exportar su expediente.');return;
             }
-            if(!window.JSZip){alert('No cargó el componente de ZIP. Comprueba la conexión e inténtalo de nuevo.');return;}
+            if(!window.JSZip){hdAviso171_('No cargó el componente de ZIP. Comprueba la conexión e inténtalo de nuevo.');return;}
             btn.disabled=true;btn.classList.add('opacity-50');
             estado.textContent='Preparando el resumen...';
             try {
@@ -4322,10 +4324,10 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                 const url=URL.createObjectURL(blob);
                 const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
                 setTimeout(()=>URL.revokeObjectURL(url),60000);
-                estado.textContent='ZIP descargado. Puedes enviarlo desde Archivos o Descargas.';
+                estado.textContent='ZIP preparado. Descarga iniciada.';hdAviso171_('Expediente preparado para su descarga.','success');
             }catch(error){
                 console.error('Exportar expediente:',error);
-                estado.textContent='No se pudo exportar: '+(error.message||error);
+                estado.textContent='No se pudo exportar: '+(error.message||error);hdAviso171_('No se pudo exportar el expediente.','error',error.message||error);
             }finally{btn.disabled=false;btn.classList.remove('opacity-50');}
         }
 
@@ -4379,7 +4381,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
             if(zipExpedienteMovilEnProceso) return;
             const doc=appData.Documentos && appData.Documentos[idx];
             if(!doc || !currentUser || !window.hidraSessionToken) {
-                alert('Inicia sesión para compartir expedientes.'); return;
+                hdAviso171_('Inicia sesión para compartir expedientes.'); return;
             }
             const panel=document.getElementById('modalCompartirWhatsApp');
             const estado=document.getElementById('estadoWhatsApp');
@@ -4463,7 +4465,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                     campo.focus();campo.select();
                     if(!document.execCommand('copy'))throw new Error('No se pudo copiar automáticamente');
                 }
-                document.getElementById('estadoWhatsApp').textContent='Resumen copiado. Abre WhatsApp, elige el contacto y pégalo.';
+                document.getElementById('estadoWhatsApp').textContent='Resumen copiado. Abre WhatsApp, elige el contacto y pégalo.';hdAviso171_('Resumen copiado satisfactoriamente.','success');
             } catch(error) {
                 document.getElementById('estadoWhatsApp').textContent='Mantén pulsado el texto del resumen para copiarlo manualmente.';
             }
@@ -4475,7 +4477,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
             const a=document.createElement('a');a.href=url;a.download=paquete.nombreArchivo;
             document.body.appendChild(a);a.click();a.remove();
             setTimeout(()=>URL.revokeObjectURL(url),60000);
-            document.getElementById('estadoWhatsApp').textContent='ZIP descargado. Abre Descargas, selecciona el archivo y compártelo con WhatsApp.';
+            document.getElementById('estadoWhatsApp').textContent='ZIP preparado. Abre Descargas, selecciona el archivo y compártelo con WhatsApp.';hdAviso171_('Expediente preparado para su descarga.','success');
         }
 
         function eliminarSustento(id) {
@@ -4488,7 +4490,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                 appData.Adjuntos = (appData.Adjuntos || []).filter(a => String(getProp(a,['ID',0])) !== String(id));
                 saveLocalCache();
                 pintarAdjuntosEnFormulario(numero);
-                alert('Archivo adjunto eliminado correctamente.');
+                hdAviso171_('Archivo adjunto eliminado correctamente.','success');
                 fetchData();
             });
         }
@@ -4506,10 +4508,10 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
             const id = idAdjuntoParaReemplazar;
             if (!archivo || !id) return;
             if (!/\.(pdf|doc|docx|png|jpg|jpeg|gif|webp|bmp|tif|tiff)$/i.test(archivo.name) || !archivo.size || archivo.size > 10*1024*1024) {
-                alert('Elige un PDF, Word o imagen de hasta 10 MB.'); return;
+                hdAviso171_('Elige un PDF, Word o imagen de hasta 10 MB.'); return;
             }
             const anterior = (appData.Adjuntos || []).find(a => String(getProp(a,['ID',0])) === id);
-            if (!anterior) {alert('El adjunto original ya no existe. Actualiza los datos.');return;}
+            if (!anterior) {hdAviso171_('El adjunto original ya no existe. Actualiza los datos.');return;}
             const tipoAnterior = String(getProp(anterior,['Tipo_Sustento',2]) || 'Ingreso');
             const previo = archivosEnCola.findIndex(f => f.reemplazarId === id);
             // La vista previa del nuevo archivo aparece en la lista antes de guardarlo.
@@ -4528,11 +4530,11 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
             const nuevos = Array.from(input.files || []);
             for (const archivo of nuevos) {
                 if (!/\.(pdf|doc|docx|png|jpg|jpeg|gif|webp|bmp|tif|tiff)$/i.test(archivo.name)) {
-                    alert('Solo se permiten PDF, Word o imágenes: ' + archivo.name);
+                    hdAviso171_('Solo se permiten PDF, Word o imágenes: ' + archivo.name);
                     continue;
                 }
                 if (!archivo.size || archivo.size > 10 * 1024 * 1024) {
-                    alert('El archivo debe tener contenido y pesar como máximo 10 MB: ' + archivo.name);
+                    hdAviso171_('El archivo debe tener contenido y pesar como máximo 10 MB: ' + archivo.name);
                     continue;
                 }
                 // Evitar que seleccionar por accidente el mismo archivo dos veces lo duplique.
@@ -4672,7 +4674,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                 ? appData.Documentos.find(d => String(getProp(d, ['Numero_Documento', 1]) || '') === documentoOriginalEnEdicion_)
                 : null;
             if (currentIndex !== '' && (!documentoEdicion || !puedeGestionarDocumento(documentoEdicion))) {
-                alert('Solo puedes modificar expedientes creados por ti o asignados a tu nombre.'); return;
+                hdAviso171_('Solo puedes modificar expedientes creados por ti o asignados a tu nombre.'); return;
             }
             if (hdRolDocJS_(currentUser.tipo) === 'Operador') {
                 const idxActual = document.getElementById('docIndex').value;
@@ -4680,7 +4682,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                     ? String(getProp(documentoEdicion, ['Responsable', 8]) || '').trim()
                     : String(currentUser.nombre || '').trim();
                 if (document.getElementById('formResponsable').value.trim().toLowerCase() !== responsablePermitido.toLowerCase()) {
-                    alert('No tienes permiso para asignar o reasignar expedientes.'); return;
+                    hdAviso171_('No tienes permiso para asignar o reasignar expedientes.'); return;
                 }
             }
             const form = document.getElementById('docForm');
@@ -4693,8 +4695,8 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
             const numeroAnterior = idx !== '' ? documentoOriginalEnEdicion_ : '';
             const archivos = archivosEnCola.slice();
             const tipo = document.getElementById('adjuntoTipo').value;
-            if (archivos.some(f => !/\.(pdf|doc|docx|png|jpg|jpeg|gif|webp|bmp|tif|tiff)$/i.test(f.name))) { alert('Solo se permiten PDF, Word o imágenes.'); return; }
-            if (archivos.some(f => f.size > 10 * 1024 * 1024)) { alert('Cada archivo debe pesar 10 MB o menos.'); return; }
+            if (archivos.some(f => !/\.(pdf|doc|docx|png|jpg|jpeg|gif|webp|bmp|tif|tiff)$/i.test(f.name))) { hdAviso171_('Solo se permiten PDF, Word o imágenes.'); return; }
+            if (archivos.some(f => f.size > 10 * 1024 * 1024)) { hdAviso171_('Cada archivo debe pesar 10 MB o menos.'); return; }
 
             const registro = {
                 action: 'saveDoc', Numero_Documento: numDoc,
@@ -4714,12 +4716,12 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                 try {
                     await subirSustentos(numDoc, archivos, tipo);
                     document.getElementById('adjuntoProgreso').textContent = 'Registro y adjuntos guardados correctamente.';
-                    alert('Documento guardado correctamente'+(archivos.length?' con '+archivos.length+' archivo(s) adjunto(s).':'.'));
+                    hdAviso171_((currentIndex!==''?'Documento actualizado correctamente':'Documento registrado correctamente')+(archivos.length?' con '+archivos.length+' archivo(s) adjunto(s).':'.'),'success');
                     closeDocFormModal();
                     fetchData();
                 } catch (err) {
                     document.getElementById('adjuntoProgreso').textContent = 'No se completó la carga: ' + err.message;
-                    alert('El documento se guardó en Sheets, pero hubo un problema con uno o más adjuntos: ' + err.message + '\nPuedes editar el documento y volver a adjuntar los archivos que falten.');
+                    hdAviso171_('El documento se guardó, pero quedaron adjuntos pendientes.','warning',err.message+'\nVerifica los archivos antes de volver a adjuntarlos.');
                     fetchData();
                 } finally {
                     boton.disabled = false;
@@ -4731,7 +4733,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
         function editDocument(idx) { openDocFormModal(idx); }
 
         async function deleteDocument(idx) {
-            if (!currentUser || !puedeEliminarDocumento(appData.Documentos[idx])) { alert('No tienes permiso para eliminar este documento.'); return; }
+            if (!currentUser || !puedeEliminarDocumento(appData.Documentos[idx])) { hdAviso171_('No tienes permiso para eliminar este documento.'); return; }
             const doc = appData.Documentos[idx];
             if (!doc) return;
             const numDoc = String(getProp(doc, ['Numero_Documento', 1]));
@@ -4744,7 +4746,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
             // Verificación adicional para evitar eliminaciones accidentales.
             if (cantidad && !confirm('SEGUNDA CONFIRMACIÓN: ¿Enviar a la papelera los ' + cantidad + ' archivos y eliminar el documento?')) return;
             await executeGASAction({ action: 'deleteDoc', Numero_Documento: numDoc, eliminarAdjuntos: 'SI' }, async (res) => {
-                alert(res.message || 'Documento y archivos eliminados.');
+                hdAviso171_(res.message || 'Documento y archivos eliminados.','success');
                 await fetchData();
             });
         }
@@ -4926,11 +4928,11 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
             const clave = document.getElementById('catalogInputClave') ? document.getElementById('catalogInputClave').value.trim() : '';
             const tipo_usuario = document.getElementById('catalogInputTipoUsuario') ? hdCanonRolJS_(document.getElementById('catalogInputTipoUsuario').value) : '';
             if(type==='Personal' && !Array.from(document.getElementById('catalogInputTipoUsuario').options).some(o=>o.value===tipo_usuario)){
-                alert('El perfil seleccionado no corresponde a uno de los 11 roles autorizados.');return;
+                hdAviso171_('El perfil seleccionado no corresponde a uno de los 11 roles autorizados.');return;
             }
             if (!val) return;
             if (type === 'Personal' && clave && !validarClaveNueva(clave)) {
-                alert('La contraseña debe tener entre 4 y 20 caracteres, mayúscula, minúscula, número y carácter especial, sin espacios.');
+                hdAviso171_('La contraseña debe tener entre 4 y 20 caracteres, mayúscula, minúscula, número y carácter especial, sin espacios.');
                 document.getElementById('catalogInputClave').focus(); return;
             }
 
@@ -5023,9 +5025,9 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
           const filas=r.rows.map(x=>r.headers.map(k=>{const v=x[k];return v instanceof Date?v.toISOString().slice(0,10):v??'';}));
           try{
             await hdExcelDescargar_(titulo,r.modulo,r.headers,filas,(titulo+' - '+r.modulo+'.xlsx'));
-            document.getElementById('hdReporteEstado').textContent='Excel generado con formato institucional: '+filas.length+' registros. Fecha, hora y usuario incluidos.';
+            document.getElementById('hdReporteEstado').textContent='Excel generado con formato institucional: '+filas.length+' registros. Fecha, hora y usuario incluidos.';hdAviso171_('Reporte Excel generado satisfactoriamente.','success',filas.length+' registros. Descarga iniciada.');
           }catch(e){
-            document.getElementById('hdReporteEstado').textContent='Error al exportar Excel: '+e.message;
+            document.getElementById('hdReporteEstado').textContent='Error al exportar Excel: '+e.message;hdAviso171_('No se pudo generar el Excel.','error',e.message);
           }
         }
         /* REV26 - Copias locales (Google Sheets fuente / Excel profesional / adjuntos).
@@ -5335,12 +5337,12 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
             hdBackupProgreso_(100,'Preparación completada');
             const successText=folder?'Copia de seguridad completada y guardada en la carpeta seleccionada.':'Copia de seguridad preparada. La descarga se ha enviado al navegador: comprueba la carpeta Descargas.';
             status.textContent=successText;
-            hdBackupAviso_('✓ '+successText);
+            hdBackupAviso_('✓ '+successText);hdAviso171_(successText,'success');
             document.getElementById('hdBackupResultados').textContent=log.join(' · ');
           }catch(e){
             const msg=(e.message||String(e));
             status.textContent='No se pudo completar el respaldo: '+msg;
-            hdBackupAviso_('No se completó el respaldo: '+msg,true);
+            hdBackupAviso_('No se completó el respaldo: '+msg,true);hdAviso171_(hdBackupAbortado_?'Copia de seguridad cancelada.':'No se pudo completar la copia de seguridad.',hdBackupAbortado_?'cancel':'error',msg);
             document.getElementById('hdBackupProgresoEtapa').textContent=hdBackupAbortado_?'Cancelado':'Error en la preparación';
           }
           finally{button.disabled=false;cancel.hidden=true;}
@@ -5451,7 +5453,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
 
         function openConfigModal() { 
             if (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador') {
-                alert("Acceso denegado. Solo el Administrador puede configurar Apps Script.");
+                hdAviso171_("Acceso denegado. Solo el Administrador puede configurar Apps Script.");
                 return;
             }
             document.getElementById('inputBackendUrl').value = getBackendUrl();
@@ -5464,7 +5466,7 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
 
         async function saveBackendUrl() {
             if (!currentUser || hdRolDocJS_(currentUser.tipo) !== 'Administrador' || !window.hidraSessionToken) {
-                alert('Acceso restringido al administrador autenticado.');
+                hdAviso171_('Acceso restringido al administrador autenticado.');
                 return;
             }
             const url = document.getElementById('inputBackendUrl').value.trim();
@@ -5510,10 +5512,11 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
                 if (anteriorToken && anteriorUrl !== url) {
                     postGateway({action:'logout'},10000,{url:anteriorUrl,sessionToken:anteriorToken}).catch(()=>{});
                 }
-                alert('Conexión verificada, URL guardada y documentos sincronizados en este dispositivo.');
+                hdAviso171_('Conexión verificada, URL guardada y documentos sincronizados en este dispositivo.','success');
             } catch(err) {
                 setConnectionStatus('error','No sincronizado');
                 estado.textContent = err.message || 'No se pudo sincronizar. No se cambió la URL.';
+                hdAviso171_('No se pudo confirmar la configuración.',err.respuestaServidor?'error':'uncertain',estado.textContent);
                 if (nuevoToken && getBackendUrl() !== url) {
                     postGateway({action:'logout'},10000,{url,sessionToken:nuevoToken}).catch(()=>{});
                 }
@@ -5625,9 +5628,9 @@ body #hdExecutiveSidebar #hdMemoLaunch { padding-left: 28px !important; }
   <div class="hd-ampl-preview-footer"><a id="hdAmplPreviewDownload" hidden>Descargar archivo</a></div>
  </div>
 </div>
-<script src="./ampliaciones-ui.js?v=REV120-ARCHIVO-PERDIDO-20261120"></script>
+<script src="./ampliaciones-ui.js?v=REV171"></script>
 <script>console.info("HIDRANDINA OM5: paquete REV75 cargado");</script>
-<script src="./memorandos-masivos.js?v=REV52-NUEVO-MEMORANDO-20261115"></script>
+<script src="./memorandos-masivos.js?v=REV171"></script>
 <script>
 
 /* REV28: búsqueda autónoma; el módulo de ampliaciones y sus datos no se modifican. */
@@ -6227,7 +6230,7 @@ function exportReport(mode){
  const prepared=state.prepared;
  if(!prepared){status.textContent='Primero pulsa Consultar y espera a que el Excel esté listo.';return;}
  const {info,blob}=prepared;
- if(mode==='excel'){saveBlob(blob,info.file);status.textContent='Se inició la descarga del Excel.';return;}
+ if(mode==='excel'){saveBlob(blob,info.file);status.textContent='Se inició la descarga del Excel.';hdAviso171_('Reporte de indicadores generado satisfactoriamente.','success','Descarga iniciada.');return;}
  // En móviles compatibles, Web Share permite entregar un archivo REAL a Correo o WhatsApp.
  // El usuario selecciona la aplicación y el destinatario; nunca se envía automáticamente.
  if(nativeShareFile(prepared,mode))return;
@@ -6316,11 +6319,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       if(!confirm('¿Eliminar «'+entry.valor+'» del catálogo '+name+'? Los expedientes existentes conservarán sus datos.'))return;
     }
     busy=true;status('Procesando '+name+'...');
+    let confirmed=false, confirmedMessage='';
     try{
       const r=await window.postGateway({action:'amplCatalogSave',columna:chosen(),operacion:action,valor:val,fila:entry?.fila||'',valorAnterior:entry?.valor||''},110000);
       if(!r?.success)throw Error(r?.message||'No se confirmó la operación.');
       status(r.mensaje||'Operación completada.');
-      alert(r.mensaje||'Operación completada.');
+      confirmed=true;confirmedMessage=r.mensaje||'Operación completada.';
       // Borrar caché de listas cargadas: refrescar ambas bases sin escribir expedientes.
       loaded=false;
       const fresh=await window.postGateway({action:'amplCatalogRead'},110000);
@@ -6329,7 +6333,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         // Actualizar ambos repositorios; solo se redibuja el módulo activo.
         await Promise.allSettled(['OM5','UIA'].map(m=>window.Ampliaciones.refresh(m)));
       }
-    }catch(e){status('No se completó la operación: '+(e.message||e),true);alert('No se completó la operación: '+(e.message||e));}
+      hdAviso171_(confirmedMessage,'success');
+    }catch(e){status('No se completó la operación: '+(e.message||e),true);hdAviso171_(confirmed?'Catálogo guardado; no se completó la actualización visual.':'No se pudo confirmar la operación.',confirmed?'warning':e.respuestaServidor?'error':'uncertain',e.message||e);}
     finally{busy=false;}
   }
   document.addEventListener('DOMContentLoaded',()=>{
@@ -6387,7 +6392,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  async function openRecord(it){if(!it||!it.r.__HD_ID){$('hdDashEstado').textContent='No se encontró el identificador del expediente.';return;}try{await window.Ampliaciones.enter(it.mod);if($('tab-dash-ampl').classList.contains('hidden'))return;window.Ampliaciones.open(String(it.r.__HD_ID),0,false);}catch(e){$('hdDashEstado').textContent='No se pudo abrir el expediente: '+(e.message||e);}}
  function repaint(){const start=$('hdDaStart').value,end=$('hdDaEnd').value;if(start&&end&&start>end){$('hdDashEstado').textContent='La fecha inicial no puede superar la fecha final.';return;}filtered.OM5=kept(stores.OM5?.registros||[],'OM5');filtered.UIA=kept(stores.UIA?.registros||[],'UIA');$('hdDashContenido').innerHTML=metrics().join('');chartsFor();attention();$('hdDashEstado').textContent='Datos reales consultados · OM5: '+filtered.OM5.length+' expedientes · UIA: '+filtered.UIA.length+' expedientes. Las fechas filtran expedientes que contienen al menos una fecha registrada dentro del período.';}
  function exportData(){const result=[];for(const m of ['OM5','UIA']){if(mod==='OM5'&&m==='UIA'||mod==='UIA'&&m==='OM5')continue;for(const r of filtered[m])result.push({Módulo:m,'Ítem':get(r,'Ítem','Item'),'Nombre / solicitante':get(r,m==='OM5'?'Solicitante':'Nombre'),'Sector / dirección':get(r,m==='OM5'?'NombreSector':'Direccion','Dirección'),Departamento:get(r,'Departamento'),Provincia:get(r,'Provincia'),Distrito:get(r,'Distrito'),Modalidad:m==='OM5'?get(r,'Modalidad'):'','Estado principal':get(r,m==='OM5'?'EstadoExpVentas':'Estado Actual'),'Estado de captación':get(r,m==='OM5'?'EstadoCaptacionClientes':'Estado Captación Clientes'),'Clientes previstos':get(r,m==='OM5'?'ClientesCaptar':'N° Clientes'),'Clientes captados':get(r,m==='OM5'?'ClientesCaptados':'Clentes Captados','Clientes Captados')});}return result;}
- function excel(){if(!window.XLSX){$('hdDashEstado').textContent='El exportador de Excel no está disponible.';return;}const r=exportData();if(!r.length){$('hdDashEstado').textContent='No existen expedientes para exportar con los filtros actuales.';return;}try{const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(r);ws['!cols']=Object.keys(r[0]).map(k=>({wch:Math.min(42,Math.max(16,k.length+5))}));XLSX.utils.book_append_sheet(wb,ws,'Expedientes');const metas=[['Reporte','Dashboard Ampliaciones '+mod],['Fecha de generación',new Date().toLocaleString('es-PE')],['Fecha inicial',$('hdDaStart').value||'Todas'],['Fecha final',$('hdDaEnd').value||'Todas'],['Modalidad',$('hdDaModalidad').value||'Todas'],['Departamento',$('hdDaDept').value||'Todos'],['Provincia',$('hdDaProv').value||'Todas'],['Distrito',$('hdDaDist').value||'Todos'],['Expedientes exportados',r.length]];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(metas),'Filtros');XLSX.writeFile(wb,'Dashboard_Ampliaciones_'+mod+'_'+new Date().toISOString().slice(0,10)+'.xlsx');$('hdDashEstado').textContent='Excel preparado con '+r.length+' expedientes y los filtros aplicados.';}catch(e){$('hdDashEstado').textContent='No se pudo exportar Excel: '+e.message;}}
+ function excel(){if(!window.XLSX){$('hdDashEstado').textContent='El exportador de Excel no está disponible.';return;}const r=exportData();if(!r.length){$('hdDashEstado').textContent='No existen expedientes para exportar con los filtros actuales.';return;}try{const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(r);ws['!cols']=Object.keys(r[0]).map(k=>({wch:Math.min(42,Math.max(16,k.length+5))}));XLSX.utils.book_append_sheet(wb,ws,'Expedientes');const metas=[['Reporte','Dashboard Ampliaciones '+mod],['Fecha de generación',new Date().toLocaleString('es-PE')],['Fecha inicial',$('hdDaStart').value||'Todas'],['Fecha final',$('hdDaEnd').value||'Todas'],['Modalidad',$('hdDaModalidad').value||'Todas'],['Departamento',$('hdDaDept').value||'Todos'],['Provincia',$('hdDaProv').value||'Todas'],['Distrito',$('hdDaDist').value||'Todos'],['Expedientes exportados',r.length]];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(metas),'Filtros');XLSX.writeFile(wb,'Dashboard_Ampliaciones_'+mod+'_'+new Date().toISOString().slice(0,10)+'.xlsx');$('hdDashEstado').textContent='Excel preparado con '+r.length+' expedientes y los filtros aplicados.';hdAviso171_('Reporte de ampliaciones generado satisfactoriamente.','success',r.length+' expedientes. Descarga iniciada.');}catch(e){$('hdDashEstado').textContent='No se pudo exportar Excel: '+e.message;hdAviso171_('No se pudo exportar Excel.','error',e.message);}}
  function printReport(){const rows=exportData();const kp=document.querySelector('#hdDashContenido')?.innerText||'';const head=['Módulo','Ítem','Nombre / solicitante','Sector / dirección','Estado principal','Clientes previstos','Clientes captados'];const safeRows=rows.map(r=>'<tr>'+head.map(k=>'<td>'+escape(r[k])+'</td>').join('')+'</tr>').join('');const html='<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Dashboard Ampliaciones</title><style>body{font:12px Arial,sans-serif;color:#183b69;padding:22px}h1{background:#113d80;color:white;padding:16px;font-size:19px}p{white-space:pre-line}table{border-collapse:collapse;width:100%;font-size:10px}th{background:#173d7d;color:#fff}td,th{border:1px solid #c8d6ec;padding:7px;text-align:left}@page{size:A4 landscape;margin:12mm}</style></head><body><h1>HIDRANDINA · DASHBOARD AMPLIACIONES '+escape(mod)+'</h1><p>Generado: '+escape(new Date().toLocaleString('es-PE'))+' · Registros: '+rows.length+'</p><h2>Indicadores</h2><p>'+escape(kp)+'</p><h2>Expedientes filtrados</h2><table><thead><tr>'+head.map(k=>'<th>'+escape(k)+'</th>').join('')+'</tr></thead><tbody>'+safeRows+'</tbody></table></body></html>';
  const w=window.open('','_blank');if(!w){$('hdDashEstado').textContent='El navegador bloqueó la ventana del reporte. Permite las ventanas emergentes para imprimir o guardar como PDF.';return;}w.document.open();w.document.write(html);w.document.close();w.focus();w.print();}
  function whatsapp(){const rows=exportData();const lines=['HIDRANDINA - Dashboard de Ampliaciones '+mod,'Expedientes filtrados: '+rows.length];if(mod!=='UIA')lines.push('OM5: '+filtered.OM5.length+' expedientes · Clientes a captar: '+sum(filtered.OM5,['ClientesCaptar'])+' · Captados: '+sum(filtered.OM5,['ClientesCaptados']));if(mod!=='OM5')lines.push('UIA: '+filtered.UIA.length+' expedientes · Clientes captados: '+sum(filtered.UIA,['Clentes Captados','Clientes Captados']));lines.push('Generado: '+new Date().toLocaleString('es-PE'));const url='https://web.whatsapp.com/send?text='+encodeURIComponent(lines.join('\n'));const w=window.open(url,'_blank');if(!w)$('hdDashEstado').textContent='El navegador bloqueó WhatsApp Web; permite las ventanas emergentes. HIDRANDINA permanece abierta.';}
@@ -6749,6 +6754,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #amplModal.hd-om5-consolidated.hd-om5-consulta #amplFormStatus{display:none!important;}
 </style>
 <div id="hdiPreview" hidden role="dialog" aria-modal="true" aria-labelledby="hdiPreviewTitle"><div><div class="hdi-info"><h3 id="hdiPreviewTitle">Vista previa</h3><a id="hdiPreviewDownload" class="hdi-btn hdi-outline" download><i class="fa-solid fa-download"></i> Descargar</a><button type="button" class="hdi-btn" data-hdi-act="preview-close">Cerrar</button></div><div id="hdiPreviewContent"></div></div></div>
-<script src="./inspecciones-om5.js?v=REV142"></script>
+<script src="./inspecciones-om5.js?v=REV171"></script>
 </body>
 </html>
